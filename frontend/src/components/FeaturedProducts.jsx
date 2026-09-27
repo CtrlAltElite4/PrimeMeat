@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import ProductCard from "./ProductCard";
 import "../styles/FeaturedProducts.css";
 
 function FeaturedProducts() {
@@ -41,7 +40,37 @@ function FeaturedProducts() {
           <p className="featured-products-message">Loading products...</p>
         ) : products.length > 0 ? (
           products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <article className="featured-product-card" key={product.id}>
+              <div className="featured-product-image-container">
+                <img
+                  className="featured-product-image"
+                  src={product.image}
+                  alt={product.name}
+                />
+              </div>
+
+              <div className="featured-product-content">
+                <h3 className="featured-product-name">{product.name}</h3>
+
+                <div className="featured-product-grade">
+                  <span>Grade</span>
+                  <strong>{product.grade}</strong>
+                </div>
+
+                <p className="featured-product-description">
+                  {product.description}
+                </p>
+
+                <div className="featured-product-price">R{product.price}</div>
+
+                <NavLink
+                  className="featured-product-button"
+                  to={`/products/${product.id}`}
+                >
+                  View Product
+                </NavLink>
+              </div>
+            </article>
           ))
         ) : (
           <p className="featured-products-message">

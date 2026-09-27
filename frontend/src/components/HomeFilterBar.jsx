@@ -6,18 +6,22 @@ function HomeFilterBar() {
     {
       name: "Full Carcass",
       value: "full-carcass",
+      path: "/products?filter=full-carcass",
     },
     {
       name: "Half Carcass",
       value: "half-carcass",
+      path: "/products?filter=half-carcass",
     },
     {
       name: "Quarter Carcass",
       value: "quarter-carcass",
+      path: "/products?filter=quarter-carcass",
     },
     {
       name: "Group Orders",
       value: "group-orders",
+      path: "/group-orders",
     },
   ];
 
@@ -28,7 +32,7 @@ function HomeFilterBar() {
           <NavLink
             key={filter.value}
             className="home-filter-link"
-            to={`/products?filter=${filter.value}`}
+            to={filter.path}
           >
             {filter.name}
           </NavLink>
