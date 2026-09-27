@@ -1,0 +1,59 @@
+.home-filter-bar {
+  margin-top: 45px;
+  background: #d8d0bf;
+  border-bottom: 1px solid #c8c0b0;
+}
+
+.home-filter-container {
+  display: flex;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-filter-link {
+  flex: 1;
+  padding: 22px 18px;
+  border-right: 1px solid white;
+  color: #161616;
+  text-align: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.home-filter-link:first-child {
+  border-left: 1px solid white;
+}
+
+.home-filter-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 600px) {
+  .home-filter-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-filter-link {
+    padding: 18px 10px;
+    font-size: 16px;
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+
+  .home-filter-link:first-child {
+    border-left: 1px solid white;
+  }
+
+  .home-filter-link:nth-child(3) {
+    border-left: 1px solid white;
+  }
+
+  .home-filter-link:nth-child(3),
+  .home-filter-link:nth-child(4) {
+    border-bottom: none;
+  }
+}
