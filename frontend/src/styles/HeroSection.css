@@ -1,0 +1,95 @@
+.hero-section {
+  position: relative;
+
+  min-height: 520px;
+
+  background-image: url("/images/hero-meat.jpg");
+  background-size: cover;
+  background-position: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  width: 100%;
+  min-height: 520px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 150px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hero-content {
+  width: 560px;
+
+  padding: 30px 40px;
+
+  border: 2px solid white;
+
+  background: rgba(30, 40, 45, 0.65);
+
+  color: white;
+
+  text-align: center;
+}
+
+.hero-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+.hero-small-text {
+  font-size: 15px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.5px;
+}
+
+.hero-title {
+  margin: 0;
+
+  font-family: Georgia, serif;
+
+  font-size: 34px;
+
+  font-weight: 500;
+
+  letter-spacing: 1px;
+}
+
+.hero-description {
+  max-width: 420px;
+  font-family: Georgia, serif;
+  margin: 0 auto 20px;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+.hero-button {
+  display: inline-block;
+  padding: 9px 28px;
+  border: 1px solid white;
+  color: white;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hero-button:hover {
+  background: white;
+  color: #222;
+}

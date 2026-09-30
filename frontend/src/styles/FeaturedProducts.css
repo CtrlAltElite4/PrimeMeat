@@ -1,0 +1,132 @@
+.featured-products {
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 45px 25px 60px;
+}
+
+.featured-products-header {
+  margin-bottom: 28px;
+}
+
+.featured-products-title {
+  margin: 0 0 6px;
+
+  color: #333;
+
+  font-family: Georgia, serif;
+
+  font-size: 24px;
+
+  font-weight: 500;
+
+  text-transform: uppercase;
+}
+
+.featured-products-description {
+  margin: 0;
+
+  color: #777;
+
+  font-size: 12px;
+}
+
+.featured-products-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 28px;
+}
+
+.featured-products-message {
+  grid-column: 1 / -1;
+
+  text-align: center;
+
+  color: #777;
+}
+
+.featured-products-button-container {
+  display: flex;
+
+  justify-content: center;
+
+  margin-top: 35px;
+}
+
+.featured-products-button {
+  padding: 10px 25px;
+
+  border: 1px solid #333;
+
+  color: #333;
+
+  text-decoration: none;
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  text-transform: uppercase;
+}
+
+.featured-products-button:hover {
+  background: #333;
+
+  color: white;
+}
+@media (max-width: 600px) {
+  .featured-products-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .featured-products-grid .product-card {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .featured-products-grid .product-card-image-container {
+    height: 140px;
+  }
+
+  .featured-products-grid .product-card-content {
+    padding: 12px;
+  }
+
+  .featured-products-grid .product-card-name {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .featured-products-grid .product-card-grade {
+    margin-bottom: 6px;
+  }
+
+  .featured-products-grid .product-card-description {
+    display: none;
+  }
+
+  .featured-products-grid .product-card-price {
+    margin-bottom: 10px;
+  }
+
+  .featured-products-grid .product-card-price-value {
+    font-size: 16px;
+  }
+
+  .featured-products-grid .product-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .featured-products-grid .product-card-view-button,
+  .featured-products-grid .product-card-cart-button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
