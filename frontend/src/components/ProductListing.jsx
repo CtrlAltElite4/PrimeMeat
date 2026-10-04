@@ -3,10 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import "../styles/ProductListing.css";
 
-function ProductListing() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+function ProductListing({
+  products,
+  pagination,
+  loading,
+  onProductsFetch,
+  onCartUpdated,
+}) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchParams] = useSearchParams();
 
@@ -16,51 +19,54 @@ function ProductListing() {
   const [category, setCategory] = useState("all");
   const [grade, setGrade] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 0]);
+  const [priceFilterActive, setPriceFilterActive] = useState(false);
+  const [sort, setSort] = useState("none");
+
+  const minimumPrice = pagination.minimumPrice || 0;
+  const maximumPrice = pagination.maximumPrice || 0;
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/products")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch products.");
-        }
+    setPriceRange([minimumPrice, maximumPrice]);
+    setPriceFilterActive(false);
+  }, [minimumPrice, maximumPrice]);
 
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data);
+  const fetchWithFilters = ({
+    newCategory = category,
+    newGrade = grade,
+    newPriceRange = priceRange,
+    newPriceFilterActive = priceFilterActive,
+    newSort = sort,
+    page = 1,
+    perPage = pagination.perPage,
+  } = {}) => {
+    onProductsFetch({
+      page,
+      perPage,
+      category: newCategory,
+      grade: newGrade,
+      minPrice: newPriceFilterActive ? newPriceRange[0] : "",
+      maxPrice: newPriceFilterActive ? newPriceRange[1] : "",
+      sort: newSort,
+    });
+  };
 
-        const activeProducts = data.filter(
-          (product) => product.is_active === true,
-        );
+  const handleCategoryChange = (value) => {
+    setCategory(value);
 
-        if (activeProducts.length > 0) {
-          const activePrices = activeProducts.map((product) =>
-            Number(product.price),
-          );
+    fetchWithFilters({
+      newCategory: value,
+      page: 1,
+    });
+  };
 
-          const minimumPrice = Math.min(...activePrices);
-          const maximumPrice = Math.max(...activePrices);
+  const handleGradeChange = (value) => {
+    setGrade(value);
 
-          setPriceRange([minimumPrice, maximumPrice]);
-        }
-
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError(error.message);
-        setLoading(false);
-      });
-  }, []);
-
-  const activeProducts = products.filter(
-    (product) => product.is_active === true,
-  );
-
-  const activePrices = activeProducts.map((product) => Number(product.price));
-
-  const minimumPrice = activePrices.length > 0 ? Math.min(...activePrices) : 0;
-
-  const maximumPrice = activePrices.length > 0 ? Math.max(...activePrices) : 0;
+    fetchWithFilters({
+      newGrade: value,
+      page: 1,
+    });
+  };
 
   const handleMinimumPriceChange = (event) => {
     const value = Number(event.target.value);
@@ -69,6 +75,8 @@ function ProductListing() {
       Math.min(value, previousRange[1]),
       previousRange[1],
     ]);
+
+    setPriceFilterActive(true);
   };
 
   const handleMaximumPriceChange = (event) => {
@@ -78,85 +86,84 @@ function ProductListing() {
       previousRange[0],
       Math.max(value, previousRange[0]),
     ]);
+
+    setPriceFilterActive(true);
+  };
+
+  const applyPriceFilter = () => {
+    fetchWithFilters({
+      newPriceRange: priceRange,
+      newPriceFilterActive: true,
+      page: 1,
+    });
   };
 
   const resetFilters = () => {
     setCategory("all");
     setGrade("all");
     setPriceRange([minimumPrice, maximumPrice]);
+    setPriceFilterActive(false);
+
+    onProductsFetch({
+      page: 1,
+      perPage: pagination.perPage,
+      category: "all",
+      grade: "all",
+      minPrice: "",
+      maxPrice: "",
+    });
   };
 
-  const filteredProducts = products.filter((product) => {
-    let matchesFilter = true;
-    let matchesSearch = true;
-    let matchesCategory = true;
-    let matchesGrade = true;
-    let matchesPrice = true;
-
-    const productName = product.name?.toLowerCase() || "";
-    const productGrade = product.grade?.toLowerCase() || "";
-    const productDescription = product.description?.toLowerCase() || "";
-    const productPrice = Number(product.price);
-
-    if (filter === "full-carcass") {
-      matchesFilter = productName === "full carcass";
+  const handlePageChange = (page) => {
+    if (
+      page < 1 ||
+      page > pagination.lastPage ||
+      page === pagination.currentPage
+    ) {
+      return;
     }
 
-    if (filter === "half-carcass") {
-      matchesFilter = productName === "half carcass";
+    fetchWithFilters({
+      page,
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handlePerPageChange = (event) => {
+    const perPage = Number(event.target.value);
+
+    fetchWithFilters({
+      page: 1,
+      perPage,
+    });
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+
+    for (let page = 1; page <= pagination.lastPage; page += 1) {
+      if (
+        page === 1 ||
+        page === pagination.lastPage ||
+        Math.abs(page - pagination.currentPage) <= 1
+      ) {
+        pages.push(page);
+      } else if (
+        page === pagination.currentPage - 2 ||
+        page === pagination.currentPage + 2
+      ) {
+        pages.push("...");
+      }
     }
 
-    if (filter === "quarter-carcass") {
-      matchesFilter = productName === "quarter carcass";
-    }
-
-    if (filter === "group-orders") {
-      matchesFilter = false;
-    }
-
-    if (search) {
-      matchesSearch =
-        productName.includes(search) ||
-        productGrade.includes(search) ||
-        productDescription.includes(search);
-    }
-
-    if (category !== "all") {
-      matchesCategory = productName === category;
-    }
-
-    if (grade !== "all") {
-      matchesGrade = productGrade === grade;
-    }
-
-    matchesPrice =
-      productPrice >= priceRange[0] && productPrice <= priceRange[1];
-
-    return (
-      matchesFilter &&
-      matchesSearch &&
-      matchesCategory &&
-      matchesGrade &&
-      matchesPrice &&
-      product.is_active === true
+    return pages.filter(
+      (page, index) => page !== "..." || pages[index - 1] !== "...",
     );
-  });
-
-  if (loading) {
-    return (
-      <section className="product-listing">
-        <p className="product-listing-loading">Loading products...</p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="product-listing">
-        <p className="product-listing-error">{error}</p>
-      </section>
-    );
-  }
+  };
 
   return (
     <section className="product-listing">
@@ -189,99 +196,44 @@ function ProductListing() {
           <div className="product-filter-group">
             <h4>Category</h4>
 
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="category"
-                checked={category === "all"}
-                onChange={() => setCategory("all")}
-              />
-              <span>All</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="category"
-                checked={category === "full carcass"}
-                onChange={() => setCategory("full carcass")}
-              />
-              <span>Full Carcass</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="category"
-                checked={category === "half carcass"}
-                onChange={() => setCategory("half carcass")}
-              />
-              <span>Half Carcass</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="category"
-                checked={category === "quarter carcass"}
-                onChange={() => setCategory("quarter carcass")}
-              />
-              <span>Quarter Carcass</span>
-            </label>
+            {[
+              ["all", "All"],
+              ["full carcass", "Full Carcass"],
+              ["half carcass", "Half Carcass"],
+              ["quarter carcass", "Quarter Carcass"],
+            ].map(([value, label]) => (
+              <label className="product-filter-option" key={value}>
+                <input
+                  type="radio"
+                  name="category"
+                  checked={category === value}
+                  onChange={() => handleCategoryChange(value)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
           </div>
 
           <div className="product-filter-group">
             <h4>Grade</h4>
 
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === "all"}
-                onChange={() => setGrade("all")}
-              />
-              <span>All</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === "a"}
-                onChange={() => setGrade("a")}
-              />
-              <span>A</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === "ab"}
-                onChange={() => setGrade("ab")}
-              />
-              <span>AB</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === "b"}
-                onChange={() => setGrade("b")}
-              />
-              <span>B</span>
-            </label>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === "c"}
-                onChange={() => setGrade("c")}
-              />
-              <span>C</span>
-            </label>
+            {[
+              ["all", "All"],
+              ["a", "A"],
+              ["ab", "AB"],
+              ["b", "B"],
+              ["c", "C"],
+            ].map(([value, label]) => (
+              <label className="product-filter-option" key={value}>
+                <input
+                  type="radio"
+                  name="grade"
+                  checked={grade === value}
+                  onChange={() => handleGradeChange(value)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
           </div>
 
           <div className="product-filter-group">
@@ -300,6 +252,8 @@ function ProductListing() {
                 max={maximumPrice}
                 value={priceRange[0]}
                 onChange={handleMinimumPriceChange}
+                onMouseUp={applyPriceFilter}
+                onTouchEnd={applyPriceFilter}
               />
 
               <input
@@ -309,6 +263,8 @@ function ProductListing() {
                 max={maximumPrice}
                 value={priceRange[1]}
                 onChange={handleMaximumPriceChange}
+                onMouseUp={applyPriceFilter}
+                onTouchEnd={applyPriceFilter}
               />
             </div>
 
@@ -316,6 +272,34 @@ function ProductListing() {
               <span>R{minimumPrice.toLocaleString()}</span>
               <span>R{maximumPrice.toLocaleString()}</span>
             </div>
+          </div>
+
+          <div className="product-filter-group">
+            <h4>Sort By</h4>
+
+            {[
+              ["none", "Default"],
+              ["price-low-high", "Price: Low to High"],
+              ["price-high-low", "Price: High to Low"],
+            ].map(([value, label]) => (
+              <label className="product-filter-option" key={value}>
+                <input
+                  type="radio"
+                  name="sort"
+                  checked={sort === value}
+                  onChange={() => {
+                    setSort(value);
+
+                    fetchWithFilters({
+                      newSort: value,
+                      page: 1,
+                    });
+                  }}
+                />
+
+                <span>{label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
@@ -339,14 +323,6 @@ function ProductListing() {
       </aside>
 
       <div className="product-listing-header">
-        <div className="product-listing-title-container">
-          <h2 className="product-listing-title">Our Products</h2>
-
-          <p className="product-listing-description">
-            Choose from our quality bulk beef carcass options.
-          </p>
-        </div>
-
         <button
           className="product-filter-open-button"
           type="button"
@@ -354,27 +330,112 @@ function ProductListing() {
         >
           Filters
         </button>
+
+        <div className="product-listing-title-container">
+          <h2 className="product-listing-title">Our Products</h2>
+
+          <p className="product-listing-description">
+            Choose from our quality bulk beef carcass options.
+          </p>
+        </div>
       </div>
 
       <div className="product-listing-summary">
-        <p className="product-listing-count">
-          {filteredProducts.length} products
-        </p>
+        <p className="product-listing-count">{pagination.total} products</p>
       </div>
 
-      <div className="product-listing-grid">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))
-        ) : (
-          <div className="product-listing-empty">
-            <p className="product-listing-empty-message">
-              No products available.
-            </p>
+      {loading ? (
+        <div className="product-listing-loading">
+          <p>Loading products...</p>
+        </div>
+      ) : (
+        <>
+          <div className="product-listing-grid">
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onCartUpdated={onCartUpdated}
+                />
+              ))
+            ) : (
+              <div className="product-listing-empty">
+                <p className="product-listing-empty-message">
+                  No products available.
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {pagination.lastPage > 1 && (
+            <div className="products-pagination-container">
+              <div className="products-per-page">
+                <label
+                  className="products-per-page-label"
+                  htmlFor="products-per-page"
+                >
+                  Products per page
+                </label>
+
+                <select
+                  id="products-per-page"
+                  className="products-per-page-select"
+                  value={pagination.perPage}
+                  onChange={handlePerPageChange}
+                >
+                  <option value="8">8</option>
+                  <option value="12">12</option>
+                  <option value="16">16</option>
+                  <option value="24">24</option>
+                </select>
+              </div>
+
+              <div className="products-pagination">
+                <button
+                  className="products-pagination-button"
+                  type="button"
+                  disabled={pagination.currentPage === 1}
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                >
+                  Previous
+                </button>
+
+                {getPageNumbers().map((page, index) =>
+                  page === "..." ? (
+                    <span
+                      className="products-pagination-ellipsis"
+                      key={`ellipsis-${index}`}
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      className={`products-pagination-button ${
+                        page === pagination.currentPage ? "active" : ""
+                      }`}
+                      type="button"
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+
+                <button
+                  className="products-pagination-button"
+                  type="button"
+                  disabled={pagination.currentPage === pagination.lastPage}
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

@@ -9,38 +9,39 @@ class FaqSeeder extends Seeder
 {
     public function run(): void
     {
+        Faq::query()->delete();
         Faq::insert([
             [
                 'question' => 'What is PrimeMeat?',
                 'answer' => 'PrimeMeat is a South African agribusiness based in Limpopo. The company specialises in commercial feedlot operations, meat processing, and the supply of premium-quality beef.
 
-PrimeMeat supplies beef products to households, community buying groups, and commercial customers. The company aims to make bulk meat purchasing simple, affordable, convenient, and reliable.
+PrimeMeat supplies beef products to households, community buying groups, and commercial customers. The company aims to make bulk beef purchasing simple, convenient, and reliable.
 
 Keywords: PrimeMeat, company, about PrimeMeat, Limpopo, beef supplier',
             ],
             [
                 'question' => 'Where is PrimeMeat located?',
-                'answer' => 'PrimeMeat is located in the province of Limpopo, South Africa. The company currently operates from one physical branch or store.
+                'answer' => 'PrimeMeat is located in Limpopo, South Africa. The company currently operates from one physical branch or store.
 
-Customers may choose to collect their orders from the branch or request delivery to an available address in South Africa.
+Customers may choose to collect their orders from the branch or request delivery through PrimeMeat’s external delivery service.
 
 Keywords: location, address, Limpopo, branch, store',
             ],
             [
                 'question' => 'Does PrimeMeat deliver outside Limpopo?',
-                'answer' => 'Yes. PrimeMeat provides internal delivery services to all provinces of South Africa.
+                'answer' => 'Yes. PrimeMeat offers delivery throughout all provinces of South Africa through an external delivery service.
 
-Delivery availability may depend on the destination, order size, delivery schedule, and route planning. Customers should enter their delivery address during checkout so that the delivery distance and fee can be calculated.
+Delivery availability may depend on the destination and delivery arrangements. Customers should provide their delivery address during checkout.
 
 Keywords: nationwide delivery, all provinces, South Africa delivery, delivery areas',
             ],
             [
                 'question' => 'What type of meat does PrimeMeat sell?',
-                'answer' => 'PrimeMeat specialises in beef. The company supplies whole carcasses, half carcasses, quarter carcasses, bulk meat boxes, family meat packs, and group-sharing packages.
+                'answer' => 'PrimeMeat specialises in beef. The company offers whole carcasses, half carcasses, quarter carcasses, and group orders.
 
-The available cuts depend on the selected product and the customer’s cutsheet choices.
+The available cuts depend on the selected product and, where applicable, the customer’s cutsheet choices.
 
-Keywords: beef, meat products, beef cuts, products',
+Keywords: beef, meat products, beef cuts, products, whole carcass, half carcass, quarter carcass, group order',
             ],
             [
                 'question' => 'Does PrimeMeat sell locally sourced beef?',
@@ -50,98 +51,85 @@ Keywords: locally sourced, local beef, feedlot, beef quality',
             ],
             [
                 'question' => 'What is a whole carcass?',
-                'answer' => 'A whole carcass is a complete beef carcass that has been professionally processed and packaged for bulk buyers or commercial customers.
+                'answer' => 'A whole carcass is the entire beef carcass prepared and processed as one large order. It provides a large quantity of beef and allows customers to receive a wide variety of cuts.
 
-Customers purchasing a whole carcass may be required to complete a cutsheet. The cutsheet allows them to select how different parts of the beef should be prepared, cut, packaged, or divided.
+A whole carcass may be suitable for large households, businesses, restaurants, butcheries, community buying groups, weddings, funerals, parties, family gatherings, and other large events.
 
-A whole carcass is generally suitable for commercial customers, large households, restaurants, butcheries, or large buying groups.
+The right carcass size depends on factors such as the number of people being served, the type of event, the amount of meat needed, and the customer’s budget.
 
-Keywords: whole carcass, full carcass, bulk beef, commercial order',
+Keywords: whole carcass, full carcass, beef carcass, large order, wedding, funeral, event, bulk beef',
             ],
             [
                 'question' => 'What is a half carcass?',
-                'answer' => 'A half carcass is one-half of a processed beef carcass. It is professionally cut and packaged according to the customer’s selections.
+                'answer' => 'A half carcass is half of a beef carcass prepared and processed as one order. It provides a substantial amount of beef while being smaller than a whole carcass.
 
-A half carcass is suitable for families, smaller businesses, restaurants, and groups that require a substantial quantity of beef but do not need a complete carcass.
+A half carcass may be suitable for families, businesses, restaurants, community buying groups, weddings, funerals, parties, family gatherings, and other events where a substantial amount of beef is needed.
 
-Keywords: half carcass, half beef, family bulk order',
+The right carcass size depends on the number of people being served, the type of event, the amount of meat needed, and the customer’s budget.
+
+Keywords: half carcass, half beef, family bulk order, wedding, funeral, event',
             ],
             [
                 'question' => 'What is a quarter carcass?',
-                'answer' => 'A quarter carcass is one-quarter of a processed beef carcass. It provides a smaller and more affordable bulk-buying option.
+                'answer' => 'A quarter carcass is one-quarter of a beef carcass prepared and processed as one order. It provides a smaller quantity of beef than a half or whole carcass.
 
-It is suitable for households, small community groups, and customers who want to buy in bulk without ordering a whole or half carcass.
+A quarter carcass may be suitable for households, smaller groups, family gatherings, smaller events, or customers who want to buy beef in bulk without ordering a whole or half carcass.
 
-Keywords: quarter carcass, quarter beef, small bulk order',
+The right carcass size depends on the number of people being served, the type of event, the amount of meat needed, and the customer’s budget.
+
+Keywords: quarter carcass, quarter beef, smaller bulk order, family gathering, event',
             ],
             [
-                'question' => 'What are bulk meat boxes?',
-                'answer' => 'Bulk meat boxes are standardised beef packages available in different sizes. PrimeMeat offers:
+                'question' => 'Which carcass size should I choose?',
+                'answer' => 'The best carcass size depends on how many people you need to serve, the type of event or occasion, how much beef you need, your storage space, and your budget.
 
-• 10 kg beef boxes.
-• 20 kg beef boxes.
-• 30 kg beef boxes.
-• 50 kg beef boxes.
+A quarter carcass provides a smaller bulk order, a half carcass provides a larger amount, and a whole carcass provides the largest amount.
 
-The boxes contain a selection of premium beef cuts. The exact contents may depend on the selected box, current availability, and the cuts listed on the product page.
+Carcasses may be suitable for households, businesses, community groups, weddings, funerals, parties, family gatherings, and other events. If you provide details about your occasion and the number of people involved, PrimeMeat can help you determine which option may be appropriate.
 
-Keywords: meat box, bulk box, 10kg box, 20kg box, 30kg box, 50kg box',
+Keywords: choose carcass, carcass size, quarter carcass, half carcass, whole carcass, wedding, funeral, event',
             ],
             [
-                'question' => 'What is a family meat pack?',
-                'answer' => 'A family meat pack is a convenient mixed-cut beef package designed for household consumption.
+                'question' => 'What is a group order?',
+                'answer' => 'A group order allows several people to purchase beef together as one order.
 
-It may contain a selection of beef cuts suitable for preparing different meals. Customers should review the product description to confirm the approximate weight, cuts, packaging, and price before placing an order.
+The meat is prepared using traditional cuts and divided as evenly as possible among the members of the group. Group orders are separate from the normal shopping cart and are checked out directly from the Group Orders section.
 
-Keywords: family pack, family meat, household pack, mixed cuts',
+Keywords: group order, group buying, community group, shared order, bulk beef',
             ],
             [
-                'question' => 'What are group-sharing packages?',
-                'answer' => 'Group-sharing packages are bulk meat packages designed for community buying groups.
+                'question' => 'How many people can be included in a group order?',
+                'answer' => 'A group order must have at least 2 people and can include a maximum of 8 people.
 
-The meat can be divided into equal-weight portions for each participant in the group. This allows several customers to purchase meat together while receiving a fair and clearly divided portion.
-
-The group organiser should provide the number of participants and confirm how the portions should be divided when completing the order.
-
-Keywords: group package, community buying group, shared meat, equal portions',
+Keywords: group size, group order size, minimum group, maximum group, 2 people, 8 people',
             ],
             [
-                'question' => 'Which product should I choose?',
-                'answer' => 'The appropriate product depends on the number of people being served, the available budget, storage space, and the intended use of the meat.
+                'question' => 'How are group order portions divided?',
+                'answer' => 'The meat in a group order is divided as evenly as possible between the members of the group.
 
-• A 10 kg box may be suitable for a small household.
-• A 20 kg or 30 kg box may be suitable for a larger household.
-• A 50 kg box may be suitable for a large household, business, or buying group.
-• A quarter carcass may be suitable for customers who want more variety or custom cuts.
-• A half or whole carcass may be suitable for commercial customers and large groups.
-• A group-sharing package may be suitable when several people want to share the cost and meat equally.
+Traditional cuts are used, with stew meats divided equally and normal steaks divided equally between participants.
 
-Customers can contact PrimeMeat if they need help selecting an option.
-
-Keywords: choose product, best meat package, product recommendation, order size',
+Keywords: group portions, equal portions, group order cuts, traditional cuts, shared meat',
             ],
             [
-                'question' => 'How do I place an order?',
-                'answer' => 'To place an order:
+                'question' => 'Can I include ground beef in a group order?',
+                'answer' => 'Yes. Ground beef can be included as an optional part of a group order.
 
-1. Browse the available beef products.
-2. Select the desired product, quantity, and package size.
-3. Complete the required cutsheet if the product requires customised cuts.
-4. Select collection or delivery.
-5. Enter the required customer and delivery details.
-6. Review the order carefully.
-7. Submit the order.
-8. Make payment before the order can be fulfilled.
+Keywords: ground beef, mince, group order, optional ground beef',
+            ],
+            [
+                'question' => 'Can I choose delivery or collection for a group order?',
+                'answer' => 'Yes. Group orders can be collected or delivered.
 
-The order will only proceed after the required information and payment have been received and confirmed.
+For delivery, the customer must provide the required delivery address during the group order checkout process.
 
-Keywords: place order, order process, how to buy, checkout',
+Keywords: group order delivery, group order collection, group collection, group delivery',
             ],
             [
                 'question' => 'What is a cutsheet?',
                 'answer' => 'A cutsheet is an order form used to specify how the beef should be cut and prepared.
 
-It contains a list of beef parts and preparation options. Customers select their preferred options using multiple-choice checkboxes.
+It contains a list of beef parts and preparation options. Customers select their preferred options using the available choices.
 
 The cutsheet helps PrimeMeat understand how the customer wants the meat divided, cut, packaged, and prepared.
 
@@ -151,27 +139,31 @@ Keywords: cutsheet, cut sheet, meat selection, beef preparation',
                 'question' => 'Why do I need to complete a cutsheet?',
                 'answer' => 'A cutsheet is required for products that allow customers to choose specific beef cuts or processing instructions.
 
-It helps reduce misunderstandings and ensures that the processing team has a clear record of the customer’s preferences. Customers should review all selections before submitting the order because the cutsheet may be used as the official processing instruction.
+It helps reduce misunderstandings and gives the processing team a clear record of the customer’s preferences. Customers should review their selections carefully before submitting the order.
 
 Keywords: cutsheet purpose, custom cuts, processing instructions',
             ],
             [
                 'question' => 'What choices are available on the cutsheet?',
-                'answer' => 'The cutsheet contains selectable beef parts and preparation options. Depending on the product, customers may be able to choose different cuts such as steaks, mince, roasts, stew meat, ribs, brisket, or other available beef portions.
+                'answer' => 'The cutsheet contains selectable beef cuts and preparation options.
 
-The exact options are determined by PrimeMeat’s official cutsheet and the type of product ordered.
+For a front quarter, available choices include brisket, chuck, short ribs, rib steak, rib eye, prime rib, stew meat, soup shanks, and soup bones.
 
-Customers should select only the cuts that are displayed on the online cutsheet.
+For a hind quarter, available choices include T-bone, sirloin, ramp steak, leg roasts, ground beef, and soup bones.
 
-Keywords: beef cuts, cutsheet options, available cuts, meat portions',
+Soup bones are included with every quarter. For the rib option, customers choose between rib steak, rib eye, or prime rib.
+
+Customers should select only the options displayed on the current online cutsheet.
+
+Keywords: cutsheet options, beef cuts, front quarter, hind quarter, brisket, chuck, short ribs, rib steak, rib eye, prime rib, T-bone, sirloin, ramp steak, leg roast, ground beef, soup bones',
             ],
             [
                 'question' => 'Can I select more than one beef cut?',
-                'answer' => 'Yes. The cutsheet uses multiple-choice checkboxes, allowing customers to select the applicable beef cuts and preparation options.
+                'answer' => 'Yes. Customers can select the applicable beef cuts and preparation options available on the cutsheet.
 
-However, selecting a cut does not necessarily mean that the entire order will consist only of that cut. The final quantity of each cut may depend on the size of the carcass, the available meat, the selected product, and normal processing limitations.
+The final quantity of each cut may depend on the size of the carcass, the available meat, the selected product, and normal processing limitations.
 
-Keywords: multiple cuts, checkbox, select cuts, custom order',
+Keywords: multiple cuts, select cuts, custom order, beef cuts',
             ],
             [
                 'question' => 'Can I change my cutsheet after placing an order?',
@@ -185,7 +177,7 @@ Keywords: change cutsheet, edit order, modify cuts, order changes',
                 'question' => 'What happens if I complete the cutsheet incorrectly?',
                 'answer' => 'Customers should carefully review the cutsheet before submitting the order.
 
-If a cutsheet is incomplete, unclear, or contains conflicting instructions, PrimeMeat may contact the customer for clarification. This may delay order processing. If processing has already started, the company may not be able to change the selected cuts.
+If a cutsheet is incomplete, unclear, or contains conflicting instructions, PrimeMeat may contact the customer for clarification. This may delay order processing. If processing has already started, the selected cuts may not be able to be changed.
 
 Keywords: incorrect cutsheet, incomplete cutsheet, order mistake',
             ],
@@ -193,7 +185,7 @@ Keywords: incorrect cutsheet, incomplete cutsheet, order mistake',
                 'question' => 'Can I request cuts that are not shown on the cutsheet?',
                 'answer' => 'Customers should select from the available options displayed on the official cutsheet.
 
-If a customer requires a cut or preparation method that is not listed, they should contact PrimeMeat before placing the order. The request may depend on the type of meat, available equipment, processing requirements, and additional charges.
+If a customer requires a cut or preparation method that is not listed, they should contact PrimeMeat before placing the order. The request may depend on the type of meat, available equipment, and processing requirements.
 
 Keywords: special cuts, custom request, unavailable cut, extra processing',
             ],
@@ -201,49 +193,9 @@ Keywords: special cuts, custom request, unavailable cut, extra processing',
                 'question' => 'Are the exact weights of each cut guaranteed?',
                 'answer' => 'Exact weights may vary because every carcass and order is different. The final weight of individual cuts may depend on the size of the carcass, trimming, deboning, bone-in or boneless preparation, and the customer’s selections.
 
-The product page should be used to identify whether a listed weight is fixed, approximate, or a standard package size.
+The product description should be used to identify whether a listed weight is fixed or approximate.
 
 Keywords: exact weight, estimated weight, carcass weight, meat quantity',
-            ],
-            [
-                'question' => 'Can I bring my own animal to PrimeMeat?',
-                'answer' => 'Yes. Customers may bring their own animal to PrimeMeat for cutting and processing, subject to the company’s acceptance requirements and applicable processing conditions.
-
-Customers should contact PrimeMeat before transporting the animal to confirm whether the company can process it and what documents, preparation, fees, and delivery arrangements are required.
-
-Keywords: own animal, customer animal, private animal, processing service',
-            ],
-            [
-                'question' => 'Can PrimeMeat process a whole animal?',
-                'answer' => 'Yes. PrimeMeat can process a whole animal brought by a customer, subject to acceptance and processing requirements.
-
-The customer must provide clear instructions about how the animal should be cut and packaged. A cutsheet may be required before processing begins.
-
-Keywords: whole animal, full animal processing, animal cutting',
-            ],
-            [
-                'question' => 'Can I bring meat that must be cut into smaller pieces?',
-                'answer' => 'Yes. Customers may bring meat that needs to be cut into smaller pieces, subject to PrimeMeat’s processing requirements.
-
-The customer should contact the company before arriving to confirm whether the meat is suitable for processing and to discuss the required cuts, packaging, fees, and turnaround time.
-
-Keywords: bring meat, cut smaller, meat processing, customer meat',
-            ],
-            [
-                'question' => 'Do I need to provide a cutsheet for my own animal?',
-                'answer' => 'A cutsheet may be required when a customer brings an animal or meat for processing.
-
-The cutsheet allows the customer to specify the desired cuts, portions, and packaging. Customers should confirm the required form with PrimeMeat before delivering the animal or meat.
-
-Keywords: own animal cutsheet, processing form, customer instructions',
-            ],
-            [
-                'question' => 'Is PrimeMeat responsible for transporting my animal?',
-                'answer' => 'Customers should confirm the transport arrangements with PrimeMeat before placing an animal-processing request.
-
-Unless otherwise agreed, the customer should not assume that the company will collect the animal. Any transport service, cost, permits, and delivery requirements should be confirmed in advance.
-
-Keywords: animal transport, collection of animal, processing delivery',
             ],
             [
                 'question' => 'When must I pay for my order?',
@@ -251,13 +203,11 @@ Keywords: animal transport, collection of animal, processing delivery',
 
 An order may remain pending until payment has been received and verified. Customers should ensure that the correct order reference is used when making payment.
 
-Keywords: payment before fulfilment, prepayment, order payment',
+Keywords: payment, payment before fulfilment, prepayment, order payment',
             ],
             [
                 'question' => 'Can I place an order and pay when it is delivered?',
-                'answer' => 'PrimeMeat’s stated policy is that payment is required before the order can be fulfilled. Customers should therefore not assume that payment on delivery is available.
-
-If a customer requires a different payment arrangement, they should contact PrimeMeat before placing the order.
+                'answer' => 'PrimeMeat requires payment before an order can be fulfilled. Customers should therefore not assume that payment on delivery is available.
 
 Keywords: cash on delivery, payment on delivery, pay later',
             ],
@@ -265,7 +215,7 @@ Keywords: cash on delivery, payment on delivery, pay later',
                 'question' => 'What happens after I make payment?',
                 'answer' => 'After payment is received and confirmed, PrimeMeat can begin preparing or processing the order.
 
-The order will then be scheduled for collection or delivery according to the customer’s selected option and the company’s processing and delivery schedule.
+The order will then be scheduled for collection or delivery according to the customer’s selected option and the company’s processing and delivery arrangements.
 
 Keywords: after payment, order confirmation, payment received',
             ],
@@ -273,13 +223,13 @@ Keywords: after payment, order confirmation, payment received',
                 'question' => 'Can I cancel my order after paying?',
                 'answer' => 'Customers should contact PrimeMeat as soon as possible if they want to cancel an order.
 
-Cancellation may depend on whether the order has already been processed, cut, packaged, dispatched, or delivered. Any refund or cancellation decision will be subject to the company’s cancellation policy.
+Cancellation may depend on whether the order has already been processed, cut, packaged, dispatched, or delivered. Any refund or cancellation decision will be subject to PrimeMeat’s cancellation policy.
 
 Keywords: cancel order, refund, paid order, cancellation',
             ],
             [
                 'question' => 'How will I know whether my order was accepted?',
-                'answer' => 'The website should display an order confirmation after the order is submitted. PrimeMeat may also provide a confirmation through email, SMS, WhatsApp, or another communication channel.
+                'answer' => 'The website should display an order confirmation after the order is submitted.
 
 An order should be treated as ready for processing only after payment has been received and confirmed.
 
@@ -295,41 +245,25 @@ Keywords: collection, pickup, collect order, store collection',
             ],
             [
                 'question' => 'Does PrimeMeat offer delivery?',
-                'answer' => 'Yes. PrimeMeat offers internal delivery services to customers in all provinces of South Africa.
+                'answer' => 'Yes. PrimeMeat offers delivery throughout all provinces of South Africa through an external delivery service.
 
 Delivery is selected during checkout. The customer must provide a complete and accurate delivery address and ensure that someone is available to receive the order.
 
-Keywords: delivery, home delivery, nationwide delivery',
-            ],
-            [
-                'question' => 'How much does delivery cost?',
-                'answer' => 'PrimeMeat charges R12 per kilometre for delivery.
-
-The final delivery fee should be calculated according to the distance between the PrimeMeat branch and the customer’s delivery address. Customers should verify the calculated amount before completing payment.
-
-Keywords: delivery fee, R12 per km, delivery price, kilometre charge',
+Keywords: delivery, home delivery, external delivery service, nationwide delivery, all provinces',
             ],
             [
                 'question' => 'How is the delivery distance calculated?',
-                'answer' => 'The delivery distance is calculated from PrimeMeat’s branch or dispatch location to the customer’s delivery address.
+                'answer' => 'Delivery arrangements are handled through PrimeMeat’s external delivery service.
 
-Customers should provide a complete address, including the suburb, town, province, postal code, and any relevant landmarks. The final fee may depend on the route used by the company.
+Customers should provide a complete and accurate delivery address during checkout so that the delivery service can process the delivery request.
 
-Keywords: delivery distance, delivery calculation, address, route',
-            ],
-            [
-                'question' => 'Does delivery cost depend on the amount of meat ordered?',
-                'answer' => 'The stated delivery charge is R12 per kilometre. The distance-based calculation may apply regardless of whether the customer orders a small or large quantity.
-
-However, large commercial orders or special delivery arrangements may be handled differently. Customers should contact PrimeMeat if they are placing a large or business order.
-
-Keywords: delivery quantity, bulk delivery, commercial delivery',
+Keywords: delivery distance, delivery address, delivery service, address',
             ],
             [
                 'question' => 'Can I change my delivery address after placing the order?',
-                'answer' => 'Customers should contact PrimeMeat immediately if they need to change the delivery address.
+                'answer' => 'Customers should contact PrimeMeat as soon as possible if they need to change the delivery address.
 
-An address change may affect the delivery fee, route, delivery date, and availability. Changes may not be possible once the order has been dispatched.
+An address change may affect the delivery arrangements and may not be possible once the order has been dispatched.
 
 Keywords: change address, delivery address, update address',
             ],
@@ -337,7 +271,7 @@ Keywords: change address, delivery address, update address',
                 'question' => 'What happens if nobody is available to receive the order?',
                 'answer' => 'Customers should ensure that an authorised person is available to receive the delivery.
 
-If nobody is available, PrimeMeat may need to reschedule the delivery. Additional delivery charges or delays may apply depending on the circumstances.
+If nobody is available, the delivery may need to be rescheduled. Customers should contact PrimeMeat if they are unable to receive their order at the arranged time.
 
 Keywords: missed delivery, unavailable customer, delivery attempt',
             ],
@@ -345,7 +279,7 @@ Keywords: missed delivery, unavailable customer, delivery attempt',
                 'question' => 'Do you deliver to businesses and community groups?',
                 'answer' => 'Yes. PrimeMeat supplies households, community buying groups, and commercial customers.
 
-Business and group customers should provide accurate delivery information and identify a responsible person who can receive and inspect the order.
+Business and group customers should provide accurate delivery information and identify a responsible person who can receive the order.
 
 Keywords: business delivery, group delivery, commercial order',
             ],
@@ -369,7 +303,7 @@ Keywords: vacuum pack, vacuum-sealed, meat storage, packaging',
                 'question' => 'Can I request a specific packaging method?',
                 'answer' => 'Customers may request a packaging preference, but the request must be confirmed with PrimeMeat before processing.
 
-The available packaging method may depend on the product, cut, equipment, quantity, and any applicable additional charge.
+The available packaging method may depend on the product, cut, equipment, quantity, and any applicable requirements.
 
 Keywords: packaging request, boxes, plastic packaging, custom packaging',
             ],
@@ -385,7 +319,7 @@ Keywords: store meat, refrigeration, freezing, meat safety',
                 'question' => 'Can I freeze the meat?',
                 'answer' => 'Customers should follow the storage guidance provided by PrimeMeat and the instructions on the product packaging.
 
-Vacuum-packed meat may be suitable for refrigeration or freezing, but customers should confirm the recommended storage period and thawing instructions for their specific product.
+Vacuum-packed meat may be suitable for refrigeration or freezing, but customers should follow the recommended storage period and thawing instructions provided with their product.
 
 Keywords: freeze beef, frozen meat, thaw meat, storage',
             ],
@@ -454,7 +388,7 @@ Keywords: restaurant supply, business customer, commercial beef, wholesale',
             ],
             [
                 'question' => 'Can I place a large bulk order?',
-                'answer' => 'Yes. Customers may order whole carcasses, half carcasses, quarter carcasses, large meat boxes, or group-sharing packages.
+                'answer' => 'Yes. Customers may place large orders for whole carcasses, half carcasses, quarter carcasses, or group orders.
 
 Large orders should be placed in advance because processing, packaging, payment verification, and delivery planning may require additional time.
 
@@ -462,27 +396,11 @@ Keywords: large order, bulk order, commercial quantity, wholesale beef',
             ],
             [
                 'question' => 'Can a community group place one order?',
-                'answer' => 'Yes. Community buying groups can place a combined order and request a group-sharing package.
+                'answer' => 'Yes. Community buying groups can place a group order.
 
-The group organiser should collect the participants’ requirements, confirm the number of portions, provide one delivery or collection arrangement, and ensure that payment is completed before processing begins.
+The group organiser should provide the required participant information, confirm the number of people in the group, and ensure that payment is completed before processing begins.
 
-Keywords: community group, buying group, shared order, group purchase',
-            ],
-            [
-                'question' => 'How are group portions divided?',
-                'answer' => 'Group-sharing packages are designed to divide the meat into equal-weight portions for each participant.
-
-The number of portions should be specified when the order is placed. Final portions may be affected by the available meat and the selected cutting instructions, so the group should confirm the arrangements with PrimeMeat before payment.
-
-Keywords: equal portions, group division, shared meat portions',
-            ],
-            [
-                'question' => 'Can different customers in one group choose different cuts?',
-                'answer' => 'This depends on the group-sharing product and PrimeMeat’s processing procedure.
-
-If all portions must be equal, different cut selections may affect the weight and composition of the portions. The group organiser should confirm whether individual cut preferences can be accommodated before submitting the order.
-
-Keywords: different cuts, group preferences, equal portions',
+Keywords: community group, buying group, group order, group purchase',
             ],
         ]);
     }
