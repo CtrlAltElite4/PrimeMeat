@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
 import "../styles/Navbar.css";
@@ -7,8 +7,6 @@ import "../styles/Navbar.css";
 function Navbar({ user, onLogout, cartCount }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
     setMenuOpen(false);
@@ -16,9 +14,9 @@ function Navbar({ user, onLogout, cartCount }) {
 
   return (
     <nav className="navbar">
-      <div
-        className={`navbar-container ${!isHomePage ? "navbar-with-image" : ""}`}
-      >
+      <div className="navbar-container">
+        <div className="navbar-background" aria-hidden="true"></div>
+
         <div className="navbar-left">
           <ul className="navbar-links">
             <li className="navbar-link-item">
@@ -91,6 +89,7 @@ function Navbar({ user, onLogout, cartCount }) {
                 <span className="navbar-cart-count">{cartCount}</span>
               )}
             </NavLink>
+
             {user && (
               <div className="navbar-user">
                 <span className="navbar-user-name">{user.name}</span>
@@ -140,6 +139,7 @@ function Navbar({ user, onLogout, cartCount }) {
               </button>
             </div>
           )}
+
           <div className="navbar-mobile-links">
             <NavLink
               className="navbar-mobile-link"

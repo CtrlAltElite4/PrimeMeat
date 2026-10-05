@@ -42,12 +42,44 @@
   align-items: center;
   min-height: 50px;
   padding: 8px 24px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+.navbar-background {
+  position: absolute;
+  inset: 0;
   border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 12px;
   background: #161616b0;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
-  box-sizing: border-box;
   backdrop-filter: blur(8px);
+  overflow: hidden;
+  z-index: 0;
+}
+
+.navbar-background::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  background-image: url("/images/hero-meat.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: blur(5px);
+  transform: scale(1.05);
+}
+
+.navbar-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 22, 22, 0.45);
+}
+.navbar-left,
+.navbar-brand,
+.navbar-right,
+.navbar-mobile-menu-button {
+  position: relative;
+  z-index: 2;
 }
 
 .navbar-with-image {
@@ -65,6 +97,7 @@
   filter: blur(5px);
   transform: scale(1.05);
   z-index: -2;
+  border-radius: 12px;
 }
 
 .navbar-with-image::after {
@@ -73,6 +106,7 @@
   inset: 0;
   background: rgba(22, 22, 22, 0.45);
   z-index: -1;
+  border-radius: 12px;
 }
 
 .navbar-left {
@@ -129,38 +163,42 @@
 }
 
 .navbar-brand {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  width: 90px;
+  height: 50px;
   margin: 0 20px;
+  z-index: 3;
 }
 
 .navbar-logo-link {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 90px;
+  height: 90px;
+  transform: translate(-50%, -50%);
   text-decoration: none;
 }
 
 .navbar-logo-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 86px;
-  height: 86px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  background: rgba(55, 70, 80, 0.85);
-  border: 2px solid white;
   overflow: hidden;
+  z-index: 3;
 }
 
 .navbar-logo {
-  width: 120px;
-  height: 55px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: center;
-  transform: scale(1.55);
+  display: block;
 }
 
 .navbar-actions {
@@ -264,7 +302,14 @@
   }
 
   .navbar-brand {
+    width: 76px;
+    height: 50px;
     margin: 0;
+  }
+
+  .navbar-logo-link {
+    width: 76px;
+    height: 76px;
   }
 
   .navbar-logo-container {
@@ -273,10 +318,9 @@
   }
 
   .navbar-logo {
-    width: 62px;
-    height: 62px;
+    width: 100%;
+    height: 100%;
   }
-
   .navbar-mobile-menu-button {
     display: flex;
     position: absolute;
@@ -395,14 +439,15 @@
     min-height: 65px;
   }
 
+  .navbar-logo-link,
   .navbar-logo-container {
     width: 68px;
     height: 68px;
   }
 
   .navbar-logo {
-    width: 55px;
-    height: 55px;
+    width: 100%;
+    height: 100%;
   }
 
   .navbar-mobile-menu-button {

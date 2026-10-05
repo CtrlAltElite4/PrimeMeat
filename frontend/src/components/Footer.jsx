@@ -7,7 +7,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-column">
-          <div className="footer-logo">[Logo]</div>
+          <img className="footer-logo" src="/images/logo.png" alt="PrimeMeat" />
 
           <p className="footer-tagline">
             Making meat purchasing simple and affordable
