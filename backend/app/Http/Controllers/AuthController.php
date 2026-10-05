@@ -49,6 +49,16 @@ class AuthController extends Controller
             ]);
         }
 
+        // Suspended accounts can't log in. Only shown after a correct password,
+        // so it doesn't reveal anything to someone guessing.
+        if (Auth::user()->suspended_at) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been suspended. Contact us if you think this is a mistake.',
+            ]);
+        }
+
         // Prevent session fixation
         $request->session()->regenerate();
 

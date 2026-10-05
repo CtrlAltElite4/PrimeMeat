@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaUserCircle, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import api from '../api';
+import './AuthPage.css';
 
 const EMPTY = {
   first_name: '', last_name: '', email: '',
@@ -112,10 +113,10 @@ export default function AuthPage({ onAuth }) {
 
   return (
     <>
-      <section className="hero">
-        <div className="hero__panel">
-          <h1 className="hero__title">{HERO[mode].title}</h1>
-          <p className="hero__text">{HERO[mode].text}</p>
+      <section className="auth-hero">
+        <div className="auth-hero__panel">
+          <h1 className="auth-hero__title">{HERO[mode].title}</h1>
+          <p className="auth-hero__text">{HERO[mode].text}</p>
         </div>
       </section>
 
