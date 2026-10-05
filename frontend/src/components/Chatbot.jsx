@@ -1,5 +1,5 @@
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import api from "../api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../styles/Chatbot.css";
@@ -9,6 +9,31 @@ function Chatbot() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Thinking...");
+
+  const loadingMessages = [
+    "Thinking...",
+    "Checking that...",
+    "Looking into it...",
+    "Almost there...",
+    "Preparing your answer...",
+  ];
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingText("Thinking...");
+      return;
+    }
+
+    let currentIndex = 0;
+
+    const interval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % loadingMessages.length;
+      setLoadingText(loadingMessages[currentIndex]);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const askQuestion = async () => {
     if (!question.trim() || loading) {
@@ -30,13 +55,10 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/chatbot/ask",
-        {
-          question: userQuestion,
-          messages: conversationHistory,
-        },
-      );
+      const response = await api.post("/api/chatbot/ask", {
+        question: userQuestion,
+        messages: conversationHistory,
+      });
 
       const botAnswer = response.data.answer;
 
@@ -49,12 +71,18 @@ function Chatbot() {
       ]);
     } catch (error) {
       console.error("Chatbot error:", error);
+      console.error("Server response:", error.response?.data);
+
+      const serverMessage =
+        error.response?.data?.details?.error?.message ||
+        error.response?.data?.error ||
+        "Sorry, something went wrong. Please try again.";
 
       setMessages((previousMessages) => [
         ...previousMessages,
         {
           sender: "bot",
-          text: "Sorry, something went wrong. Please try again.",
+          text: serverMessage,
         },
       ]);
     } finally {
@@ -70,7 +98,6 @@ function Chatbot() {
 
   return (
     <div className="chatbot">
-      {/* Chatbot Sidebar */}
       {isOpen && (
         <aside className="chatbot-sidebar">
           <div className="chatbot-header">
@@ -132,7 +159,7 @@ function Chatbot() {
             {loading && (
               <div className="chatbot-message-row chatbot-message-row-bot">
                 <div className="chatbot-message chatbot-message-bot">
-                  Typing...
+                  {loadingText}
                 </div>
               </div>
             )}
@@ -161,7 +188,6 @@ function Chatbot() {
         </aside>
       )}
 
-      {/* Floating Chatbot Bubble */}
       <button
         className="chatbot-bubble"
         type="button"
