@@ -498,17 +498,7 @@
   align-items: flex-start;
   gap: 20px;
 }
-.product-filter-option input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: #710014;
-  cursor: pointer;
-}
 
-.product-filter-option:hover span {
-  color: #710014;
-}
 .product-filter-open-button {
   padding: 11px 25px;
   border: 1px solid #710014;

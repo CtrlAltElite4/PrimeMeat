@@ -7,18 +7,18 @@ import "../styles/GroupOrders.css";
 
 const WEIGHT_RANGES = [
   {
-    id: "400-440",
-    label: "400–440 kg",
+    id: "200-240",
+    label: "200–240 kg",
     price: 17000,
   },
   {
-    id: "441-480",
-    label: "441–480 kg",
+    id: "241-280",
+    label: "241–280 kg",
     price: 20750,
   },
   {
-    id: "481-520",
-    label: "481–520 kg",
+    id: "281-320",
+    label: "281–320 kg",
     price: 23750,
   },
 ];
