@@ -16,6 +16,7 @@ function HeroSection() {
 
           <p className="hero-description">
             We offer the best meats delivered where you are. Shop with us today,
+            <br />
             for that excellent service.
           </p>
 
