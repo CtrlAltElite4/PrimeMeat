@@ -8,7 +8,8 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import api from "../api";
-import "../styles.css";
+import "./AuthPage.css";
+
 const EMPTY = {
   first_name: "",
   last_name: "",
@@ -50,6 +51,7 @@ function PasswordField({
   autoComplete,
 }) {
   const [visible, setVisible] = useState(false);
+
   return (
     <Field icon={FaLock} error={error}>
       <input
@@ -61,6 +63,7 @@ function PasswordField({
         onChange={onChange}
         autoComplete={autoComplete}
       />
+
       <button
         type="button"
         className="field__toggle"
@@ -85,15 +88,28 @@ export default function AuthPage({ onAuth }) {
 
   const update = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
-    setErrors((errs) => ({ ...errs, [name]: undefined }));
+
+    setForm((f) => ({
+      ...f,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+
+    setErrors((errs) => ({
+      ...errs,
+      [name]: undefined,
+    }));
   };
 
   const switchMode = (next) => {
     setMode(next);
     setErrors({});
     setFormError("");
-    setForm((f) => ({ ...f, password: "", password_confirmation: "" }));
+
+    setForm((f) => ({
+      ...f,
+      password: "",
+      password_confirmation: "",
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -101,9 +117,10 @@ export default function AuthPage({ onAuth }) {
     setErrors({});
     setFormError("");
 
-    // Quick client-side check; Laravel validates again on the server
     if (isRegister && form.password !== form.password_confirmation) {
-      setErrors({ password_confirmation: "Passwords don't match." });
+      setErrors({
+        password_confirmation: "Passwords don't match.",
+      });
       return;
     }
 
@@ -115,29 +132,44 @@ export default function AuthPage({ onAuth }) {
           password: form.password,
           password_confirmation: form.password_confirmation,
         }
-      : { email: form.email, password: form.password, remember: form.remember };
+      : {
+          email: form.email,
+          password: form.password,
+          remember: form.remember,
+        };
 
     setLoading(true);
+
     try {
       await api.get("/sanctum/csrf-cookie");
+
       const { data } = await api.post(`/api/${mode}`, payload);
+
       onAuth(data);
 
       navigate("/");
     } catch (err) {
       const status = err.response?.status;
+
       if (status === 422) {
-        // Laravel returns { errors: { field: [messages] } }; keep the first message per field
         const fieldErrors = err.response.data.errors || {};
+
         setErrors(
           Object.fromEntries(
-            Object.entries(fieldErrors).map(([k, v]) => [k, v[0]]),
+            Object.entries(fieldErrors).map(([key, messages]) => [
+              key,
+              messages[0],
+            ]),
           ),
         );
       } else if (status === 429) {
-        setFormError("Too many attempts. Wait a minute, then try again.");
+        setFormError(
+          "Too many attempts. Wait a minute, then try again.",
+        );
       } else {
-        setFormError("Can't reach the server. Check that Laravel is running.");
+        setFormError(
+          "Can't reach the server. Check that Laravel is running.",
+        );
       }
     } finally {
       setLoading(false);
@@ -146,36 +178,49 @@ export default function AuthPage({ onAuth }) {
 
   return (
     <>
-      <section className="hero">
-        <div className="hero__panel">
-          <h1 className="hero__title">{HERO[mode].title}</h1>
-          <p className="hero__text">{HERO[mode].text}</p>
+      <section className="auth-hero">
+        <div className="auth-hero__panel">
+          <h1 className="auth-hero__title">{HERO[mode].title}</h1>
+          <p className="auth-hero__text">{HERO[mode].text}</p>
         </div>
       </section>
 
       <section className="auth">
-        <div className="auth__tabs" role="tablist" aria-label="Account">
+        <div
+          className="auth__tabs"
+          role="tablist"
+          aria-label="Account"
+        >
           <button
             type="button"
             role="tab"
             aria-selected={isRegister}
-            className={`auth__tab${isRegister ? " auth__tab--active" : ""}`}
+            className={`auth__tab${
+              isRegister ? " auth__tab--active" : ""
+            }`}
             onClick={() => switchMode("register")}
           >
             Sign Up
           </button>
+
           <button
             type="button"
             role="tab"
             aria-selected={!isRegister}
-            className={`auth__tab${!isRegister ? " auth__tab--active" : ""}`}
+            className={`auth__tab${
+              !isRegister ? " auth__tab--active" : ""
+            }`}
             onClick={() => switchMode("login")}
           >
             Login
           </button>
         </div>
 
-        <form className="auth__form" onSubmit={handleSubmit} noValidate>
+        <form
+          className="auth__form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           {formError && (
             <p className="auth__alert" role="alert">
               {formError}
@@ -184,7 +229,10 @@ export default function AuthPage({ onAuth }) {
 
           {isRegister && (
             <div className="auth__row">
-              <Field icon={FaUserCircle} error={errors.first_name}>
+              <Field
+                icon={FaUserCircle}
+                error={errors.first_name}
+              >
                 <input
                   name="first_name"
                   placeholder="First Name"
@@ -194,7 +242,11 @@ export default function AuthPage({ onAuth }) {
                   autoComplete="given-name"
                 />
               </Field>
-              <Field icon={FaUserCircle} error={errors.last_name}>
+
+              <Field
+                icon={FaUserCircle}
+                error={errors.last_name}
+              >
                 <input
                   name="last_name"
                   placeholder="Last Name"
@@ -225,7 +277,9 @@ export default function AuthPage({ onAuth }) {
             value={form.password}
             onChange={update}
             error={errors.password}
-            autoComplete={isRegister ? "new-password" : "current-password"}
+            autoComplete={
+              isRegister ? "new-password" : "current-password"
+            }
           />
 
           {isRegister ? (
@@ -249,7 +303,11 @@ export default function AuthPage({ onAuth }) {
             </label>
           )}
 
-          <button type="submit" className="auth__submit" disabled={loading}>
+          <button
+            type="submit"
+            className="auth__submit"
+            disabled={loading}
+          >
             {loading
               ? isRegister
                 ? "Registering…"

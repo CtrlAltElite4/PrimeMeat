@@ -14,6 +14,8 @@ class OrderItem extends Model
         'product_name',
         'grade',
         'price',
+        'unit_price',
+        'line_total',
         'quantity',
         'cut_type',
         'selected_quarter',
@@ -21,6 +23,8 @@ class OrderItem extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'unit_price' => 'decimal:2',
+        'line_total' => 'decimal:2',
         'quantity' => 'integer',
     ];
 
