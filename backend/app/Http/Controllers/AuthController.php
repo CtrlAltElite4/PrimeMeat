@@ -15,16 +15,16 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:50'],
-            'last_name'  => ['required', 'string', 'max:50'],
-            'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
+            'last_name' => ['required', 'string', 'max:50'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             // 'confirmed' checks against the password_confirmation field
-            'password'   => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
 
         $user = User::create([
             // Default users table has a single "name" column
-            'name'     => trim($data['first_name'].' '.$data['last_name']),
-            'email'    => $data['email'],
+            'name' => trim($data['first_name'].' '.$data['last_name']),
+            'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
 
@@ -38,7 +38,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 

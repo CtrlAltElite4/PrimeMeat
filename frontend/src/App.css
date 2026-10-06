@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300;400;600;700&family=Inria+Serif:wght@400;700&display=swap");
+
 html,
 body,
 #root {
@@ -7,6 +9,18 @@ body,
   min-height: 100%;
 }
 
+body {
+  font-family: "Inria Sans", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Inria Serif", serif;
+}
 body {
   min-height: 100vh;
 }

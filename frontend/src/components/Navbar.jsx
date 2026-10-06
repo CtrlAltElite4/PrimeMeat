@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
 import "../styles/Navbar.css";
 
-function Navbar() {
+function Navbar({ user, onLogout, cartCount }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
     setMenuOpen(false);
@@ -16,9 +14,9 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div
-        className={`navbar-container ${!isHomePage ? "navbar-with-image" : ""}`}
-      >
+      <div className="navbar-container">
+        <div className="navbar-background" aria-hidden="true"></div>
+
         <div className="navbar-left">
           <ul className="navbar-links">
             <li className="navbar-link-item">
@@ -52,7 +50,7 @@ function Navbar() {
             <div className="navbar-logo-container">
               <img
                 className="navbar-logo"
-                src="/logo.png"
+                src="/images/logo.png"
                 alt="PrimeMeat Logo"
               />
             </div>
@@ -87,8 +85,24 @@ function Navbar() {
             >
               <ShoppingCart className="navbar-action-icon" />
               <span className="navbar-action-label">Cart</span>
-              <span className="navbar-cart-count">0</span>
+              {cartCount > 0 && (
+                <span className="navbar-cart-count">{cartCount}</span>
+              )}
             </NavLink>
+
+            {user && (
+              <div className="navbar-user">
+                <span className="navbar-user-name">{user.name}</span>
+
+                <button
+                  type="button"
+                  className="navbar-logout"
+                  onClick={onLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -112,6 +126,20 @@ function Navbar() {
 
       {menuOpen && (
         <div className="navbar-mobile-panel">
+          {user && (
+            <div className="navbar-user">
+              <span className="navbar-user-name">{user.name}</span>
+
+              <button
+                type="button"
+                className="navbar-logout"
+                onClick={onLogout}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+
           <div className="navbar-mobile-links">
             <NavLink
               className="navbar-mobile-link"
@@ -173,7 +201,10 @@ function Navbar() {
             >
               <ShoppingCart />
               <span>Cart</span>
-              <span className="navbar-cart-count">0</span>
+
+              {cartCount > 0 && (
+                <span className="navbar-cart-count">{cartCount}</span>
+              )}
             </NavLink>
           </div>
         </div>

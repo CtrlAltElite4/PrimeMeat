@@ -34,9 +34,11 @@
 }
 
 .footer-logo {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .footer-tagline {
