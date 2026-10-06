@@ -119,36 +119,53 @@ body {
 .AboutHeroFinal {
   width: 100%;
   background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
-  padding-top: 50px;
-  padding-bottom: 250px;
+  padding: 45px 40px 110px;
   box-sizing: border-box;
   margin-top: 0;
   filter: brightness(85%);
+}
+
+.AboutHeroContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+.AboutHeroHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.AboutHeroTitle {
+  position: relative;
+  margin: 0;
+  font-size: 70px;
+  line-height: 1;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.AboutHeroPhrase {
+  position: relative;
+  margin: 15px 0 0;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: bold;
+  color: #ffffff;
+  white-space: nowrap;
 }
 
 #AboutHeroWords {
   max-width: 1200px;
   margin: 60px auto;
   padding: 0 20px;
-}
-
-.AboutHeroTitle {
-  position: absolute;
-  margin-top: 70px;
-  font-size: 70px;
-  color: white;
-  font-weight: bold;
-  margin-left: 50px;
-}
-
-.AboutHeroPhrase {
-  position: absolute;
-  margin-top: 145px;
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-  margin-left: 50px;
-  white-space: nowrap;
 }
 
 #HistoryStory {
@@ -507,188 +524,272 @@ body {
   margin-left: 430px;
 }
 
+.about-section-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 5px;
+  padding: 3px;
+  width: fit-content;
+  max-width: max-content;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 30px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.about-section-nav a {
+  padding: 10px 18px;
+  border-radius: 30px;
+  color: #710014;
+  font-family: "Inria Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.about-section-nav a:hover {
+  background-color: #710014;
+  color: #ffffff;
+}
+
+.about-section-nav a:focus-visible {
+  outline: 2px solid #710014;
+  outline-offset: 2px;
+}
+
 @media (max-width: 480px) {
   .AboutHeroFinal {
-    padding: 40px 20px;
+    padding: 30px 20px 60px;
   }
+}
 
-  .AboutHeroTitle {
-    position: relative;
-    margin-left: 0;
-    margin-top: 0;
-    font-size: 36px;
-  }
+.AboutHeroContent {
+  padding: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 25px;
+}
 
-  .AboutHeroPhrase {
-    position: relative;
-    margin-left: 0;
-    margin-top: -44px;
-    font-size: 14px;
-    white-space: normal;
-  }
+.AboutHeroTitle {
+  position: relative;
+  margin: 0;
+  font-size: 36px;
+}
 
-  .Story {
-    flex-direction: column;
-    padding: 20px;
-  }
+.AboutHeroPhrase {
+  position: relative;
+  margin: 12px 0 0;
+  font-size: 14px;
+  white-space: normal;
+}
 
-  .StorePic {
-    margin-left: auto;
-    margin-right: auto;
-    width: 280px;
-    height: 280px;
-    max-width: 280px;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 50%;
-  }
+.about-section-nav {
+  width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  justify-content: flex-start;
+  scrollbar-width: none;
+}
 
-  #MainStore {
-    padding: 0;
-    border: none;
-    box-sizing: border-box;
-    flex-shrink: 0;
-  }
+.about-section-nav::-webkit-scrollbar {
+  display: none;
+}
 
-  .StoryParagraph {
-    margin-left: 0;
-    margin-top: 20px;
-    max-width: 100%;
-  }
+.about-section-nav a {
+  padding: 9px 14px;
+  font-size: 13px;
+}
 
-  .StoryTitle {
-    font-size: 28px;
-  }
+.Story {
+  flex-direction: column;
+  padding: 20px;
+}
 
-  .FullHistory {
-    font-size: 14px;
-    line-height: 1.6;
-  }
+.StorePic {
+  margin-left: auto;
+  margin-right: auto;
+  width: 280px;
+  height: 280px;
+  max-width: 280px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
 
-  #HistoryStory {
-    padding-top: 20px;
-  }
+#MainStore {
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
 
-  .FullMission {
-    position: relative;
-    margin-top: 20px;
-    margin-left: 0;
-    max-width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    flex-direction: column;
-  }
+.StoryParagraph {
+  margin-left: 0;
+  margin-top: 20px;
+  max-width: 100%;
+}
 
-  #MissionTitle {
-    margin-left: 0;
-    text-align: center;
-    font-size: 28px;
-  }
+.StoryTitle {
+  font-size: 28px;
+}
 
-  .MissionStatement {
-    font-size: 14px;
-    text-align: left;
-  }
+.FullHistory {
+  font-size: 14px;
+  line-height: 1.6;
+}
 
-  .center-line,
-  .InfoLine,
-  .FarmDot,
-  .ProcessDot,
-  .PackageDot,
-  .DeliveryDot,
-  .collage-container {
-    display: none;
-  }
+#HistoryStory {
+  padding-top: 20px;
+}
 
-  .TheProcess {
-    position: relative;
-    padding: 20px;
-    margin-top: 20px;
-  }
+.FullMission {
+  position: relative;
+  margin-top: 20px;
+  margin-left: 0;
+  max-width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+}
 
-  #ProcessTitle {
-    position: relative;
-    margin-left: 0;
-    margin-top: 0;
-    font-size: 28px;
-    text-align: center;
-    display: block;
-    margin-bottom: 30px;
-  }
+#MissionTitle {
+  margin-left: 0;
+  text-align: center;
+  font-size: 28px;
+}
 
-  .MeatSource,
-  #FarmSource,
-  #ProcessSource,
-  #PackageSource,
-  #DeliverySource {
-    position: relative;
-    margin: 0 0 30px 0;
-    width: 100%;
-    border-left: 3px solid #8b0000;
-    padding: 10px 15px;
-    box-sizing: border-box;
-    display: block;
-  }
+.MissionStatement {
+  font-size: 14px;
+  text-align: left;
+}
 
-  .Source1,
-  #ProcessCut {
-    position: relative;
-    margin: 0 0 8px 0;
-    font-size: 20px;
-    white-space: normal;
-    margin-left: 0;
-    margin-top: 0;
-  }
+.center-line,
+.InfoLine,
+.FarmDot,
+.ProcessDot,
+.PackageDot,
+.DeliveryDot,
+.collage-container {
+  display: none;
+}
 
-  .Source2,
-  #ProcessCut2 {
-    position: relative;
-    margin: 0;
-    margin-top: 0;
-    width: 100%;
-    font-size: 13px;
-    line-height: 1.6;
-  }
+.TheProcess {
+  position: relative;
+  padding: 20px;
+  margin-top: 20px;
+}
 
-  .SourceImage {
-    width: 150px;
-    height: 150px;
-    margin-top: 15px;
-  }
+#ProcessTitle {
+  position: relative;
+  margin-left: 0;
+  margin-top: 0;
+  font-size: 28px;
+  text-align: center;
+  display: block;
+  margin-bottom: 30px;
+}
 
-  .FullClient {
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 30px;
-    width: 200px;
-  }
+.MeatSource,
+#FarmSource,
+#ProcessSource,
+#PackageSource,
+#DeliverySource {
+  position: relative;
+  margin: 0 0 30px 0;
+  width: 100%;
+  border-left: 3px solid #8b0000;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  display: block;
+}
 
-  #Footer {
-    padding: 40px 20px;
-    text-align: center;
-    font-size: 16px;
-    margin-top: 20px;
-  }
+.Source1,
+#ProcessCut {
+  position: relative;
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  white-space: normal;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.Source2,
+#ProcessCut2 {
+  position: relative;
+  margin: 0;
+  margin-top: 0;
+  width: 100%;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.SourceImage {
+  width: 150px;
+  height: 150px;
+  margin-top: 15px;
+}
+
+.FullClient {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 30px;
+  width: 200px;
+}
+
+#Footer {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 16px;
+  margin-top: 20px;
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
   .AboutHeroFinal {
-    padding: 50px 30px;
+    padding: 40px 20px 80px;
+  }
+
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 25px;
   }
 
   .AboutHeroTitle {
     position: relative;
-    margin-left: 0;
-    margin-top: 0;
+    margin: 0;
     font-size: 48px;
   }
 
   .AboutHeroPhrase {
     position: relative;
-    margin-left: 0;
-    margin-top: -46px;
+    margin: 12px 0 0;
     font-size: 16px;
     white-space: normal;
+  }
+
+  .about-section-nav {
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .about-section-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .about-section-nav a {
+    padding: 10px 16px;
+    font-size: 14px;
   }
 
   .Story {
@@ -833,22 +934,31 @@ body {
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .AboutHeroFinal {
-    padding: 60px 40px;
+    padding: 50px 40px 110px;
+  }
+
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 30px;
   }
 
   .AboutHeroTitle {
     position: relative;
-    margin-left: 0;
-    margin-top: 0;
+    margin: 0;
     font-size: 56px;
   }
 
   .AboutHeroPhrase {
     position: relative;
-    margin-left: 0;
-    margin-top: -48px;
+    margin: 12px 0 0;
     font-size: 18px;
     white-space: normal;
+  }
+
+  .about-section-nav {
+    flex-shrink: 0;
   }
 
   .Story {
@@ -993,22 +1103,32 @@ body {
 
 @media (min-width: 1025px) {
   .AboutHeroFinal {
-    padding: 60px 40px;
+    padding: 45px 40px 110px;
+  }
+
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 50px;
   }
 
   .AboutHeroTitle {
     position: relative;
-    margin-left: 0;
-    margin-top: 0;
-    font-size: 56px;
+    margin: 0;
+    font-size: 70px;
   }
 
   .AboutHeroPhrase {
     position: relative;
-    margin-left: 0;
-    margin-top: -48px;
-    font-size: 18px;
-    white-space: normal;
+    margin: 15px 0 0;
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .about-section-nav {
+    margin-top: 5px;
   }
 
   .Story {
@@ -1116,11 +1236,7 @@ body {
   }
 
   #FarmSource .SourceImage,
-  #PackageSource .SourceImage {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
+  #PackageSource .SourceImage,
   #ProcessSource .SourceImage,
   #DeliverySource .SourceImage {
     margin-left: 0;

@@ -1,6 +1,6 @@
 .chatbot {
   position: fixed;
-  right: 30px;
+  right: 7px;
   bottom: 25px;
   z-index: 1000;
 }

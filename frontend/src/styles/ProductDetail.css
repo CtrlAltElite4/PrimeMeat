@@ -72,6 +72,42 @@
   font-size: 2rem;
   font-weight: 700;
 }
+.product-detail-image-container {
+  position: relative;
+}
+.grade-stamp {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 100px;
+  height: 100px;
+  border: 3px solid #710014;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.grade-letter {
+  font-family: "Inria Serif", serif;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  color: #710014;
+}
+
+.grade-label {
+  font-family: "Inria Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #161616;
+  margin-top: 5px;
+}
 
 /* Cut preference */
 
@@ -348,7 +384,58 @@
   color: #777777;
   font-size: 12px;
 }
+.breadcrumbs {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Inria Sans", sans-serif;
+  font-size: 14px;
+  color: #666666;
+}
 
+.breadcrumbs a {
+  color: #710014;
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs span:last-child {
+  color: #161616;
+}
+.product-card-weight-d {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #161616;
+  font-family: "Inria Sans", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .breadcrumbs {
+    margin-bottom: 20px;
+    padding: 0 15px;
+    font-size: 13px;
+    gap: 7px;
+  }
+}
 /* Mobile layout */
 @media (max-width: 768px) {
   .remaining-meat-section,

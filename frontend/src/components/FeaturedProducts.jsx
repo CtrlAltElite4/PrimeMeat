@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import "../styles/FeaturedProducts.css";
 
 function FeaturedProducts() {
@@ -64,22 +64,37 @@ function FeaturedProducts() {
           <>
             {products.map((product) => (
               <article className="featured-product-card" key={product.id}>
-                <div className="featured-product-image-container">
-                  <img
-                    className="featured-product-image"
-                    src={
-                      product.name.toLowerCase().includes("full")
-                        ? "/images/full-carcasss.png"
-                        : product.name.toLowerCase().includes("half")
-                          ? "/images/half-carcasss.png"
-                          : "/images/quarter-carcasss.png"
-                    }
-                    alt={product.name}
-                  />
-                </div>
+                <Link
+                  to={`/products/${product.id}`}
+                  className="featured-product-image-link"
+                  aria-label={`View ${product.name}`}
+                >
+                  <div className="featured-product-image-container">
+                    <img
+                      className="featured-product-image"
+                      src={
+                        product.name.toLowerCase().includes("full")
+                          ? "/images/full-carcasss.png"
+                          : product.name.toLowerCase().includes("half")
+                            ? "/images/half-carcasss.png"
+                            : "/images/quarter-carcasss.png"
+                      }
+                      alt={product.name}
+                    />
+                    <div className="f-grade-stamp">
+                      <span className="f-grade-letter">{product.grade}</span>
+                      <span className="f-grade-label">GRADE</span>
+                    </div>
+                  </div>
+                </Link>
 
                 <div className="featured-product-content">
-                  <h3 className="featured-product-name">{product.name}</h3>
+                  <Link
+                    to={`/products/${product.id}`}
+                    className="featured-product-name-link"
+                  >
+                    <h3 className="featured-product-name">{product.name}</h3>
+                  </Link>
 
                   <div className="featured-product-grade">
                     <span>Grade</span>

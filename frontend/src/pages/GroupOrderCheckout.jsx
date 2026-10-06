@@ -64,6 +64,14 @@ function GroupOrderCheckout() {
 
   return (
     <main className="group-order-checkout-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link to="/">Home</Link>
+        <span>/</span>
+        <Link to="/group-orders">Group Orders</Link>
+        <span>/</span>
+        <span>Checkout</span>
+      </nav>
+
       <section className="group-order-checkout-header">
         <span>GROUP ORDER CHECKOUT</span>
 

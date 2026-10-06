@@ -23,6 +23,8 @@ import Footer from "./components/Footer";
 import Chatbot from "./components/Chatbot";
 import AuthPage from "./components/AuthPage";
 import PageTransitionLoader from "./components/PageTransitionLoader";
+import ScrollToTop from "./components/ScrollToTop";
+import BackToTop from "./components/BackToTop";
 
 import AdminLayout from "./admin/AdminLayout";
 import Dashboard from "./admin/Dashboard";
@@ -105,6 +107,8 @@ function App() {
 
   const site = (
     <div className="page-container">
+      <ScrollToTop />
+      <BackToTop />
       <PageTransitionLoader />
 
       <Navbar

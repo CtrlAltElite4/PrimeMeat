@@ -594,7 +594,42 @@
   height: 38px;
   color: #161616;
 }
+.product-card-image-container {
+  position: relative;
+}
+.p-grade-stamp {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 70px;
+  height: 70px;
+  border: 3px solid #710014;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  z-index: 2;
+}
 
+.p-grade-letter {
+  font-family: "Inria Serif", serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  color: #710014;
+}
+
+.p-grade-label {
+  font-family: "Inria Sans", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #161616;
+  margin-top: 5px;
+}
 @media (max-width: 768px) {
   .products-pagination-container {
     flex-direction: column;
@@ -615,6 +650,46 @@
     min-width: 36px;
     height: 36px;
   }
+}
+.product-card-image-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-card-name-link {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-card-name-link:hover .product-card-name {
+  color: #710014;
+}
+
+.product-card-weight {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #161616;
+  font-family: "Inria Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.product-card-weight-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #710014;
 }
 
 @media (max-width: 600px) {

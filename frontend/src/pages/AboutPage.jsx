@@ -21,13 +21,22 @@ function AboutPage() {
   return (
     <>
       <section className="AboutHeroFinal">
-        <h1 className="AboutHeroTitle">About Us</h1>
-        <br />
-        <p className="AboutHeroPhrase">
-          Quality meat. Community roots. Growing together.
-        </p>
-      </section>
+        <div className="AboutHeroContent">
+          <div className="AboutHeroHeading">
+            <h1 className="AboutHeroTitle">About Us</h1>
 
+            <p className="AboutHeroPhrase">
+              Quality meat. Community roots. Growing together.
+            </p>
+          </div>
+
+          <nav className="about-section-nav" aria-label="About page sections">
+            <a href="#HistoryStory">Our Story</a>
+            <a href="#our-process">Our Process</a>
+            <a href="#our-mission">Our Mission</a>
+          </nav>
+        </div>
+      </section>
       <section className="Story" id="HistoryStory">
         <img className="StorePic" src={StoreImage} id="MainStore" />
 
@@ -54,7 +63,7 @@ function AboutPage() {
       </section>
 
       <div className="ProcessWrap">
-        <section className="TheProcess">
+        <section className="TheProcess" id="our-process">
           <span className="StoryTitle" id="ProcessTitle">
             What We Offer
           </span>
@@ -155,7 +164,7 @@ function AboutPage() {
         </section>
       </div>
 
-      <div className="FullMission">
+      <div className="FullMission" id="our-mission">
         <p className="Mission">
           <span className="StoryTitle" id="MissionTitle">
             Our Mission

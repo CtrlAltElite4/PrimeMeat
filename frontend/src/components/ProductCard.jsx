@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Scale } from "lucide-react";
 
 import api from "../api";
 
@@ -43,18 +44,39 @@ function ProductCard({ product, onCartUpdated }) {
         ? "/images/quarter-carcasss.png"
         : product.image;
 
+  const weightMatch = product.description?.match(/(\d+(?:\.\d+)?)\s*kg/i);
+  const productWeight = weightMatch ? `${weightMatch[1]} kg` : null;
+
   return (
     <article className="product-card">
-      <div className="product-card-image-container">
-        <img
-          className="product-card-image"
-          src={productImage}
-          alt={product.name}
-        />
-      </div>
+      <Link
+        to={`/products/${product.id}`}
+        className="product-card-image-link"
+        aria-label={`View ${product.name}`}
+      >
+        <div className="product-card-image-container">
+          {productWeight && (
+            <div className="product-card-weight">
+              <Scale className="product-card-weight-icon" />
+              <span>{productWeight}</span>
+            </div>
+          )}
+          <img
+            className="product-card-image"
+            src={productImage}
+            alt={product.name}
+          />
+          <div className="p-grade-stamp">
+            <span className="p-grade-letter">{product.grade}</span>
+            <span className="p-grade-label">GRADE</span>
+          </div>
+        </div>
+      </Link>
 
       <div className="product-card-content">
-        <h3 className="product-card-name">{product.name}</h3>
+        <Link to={`/products/${product.id}`} className="product-card-name-link">
+          <h3 className="product-card-name">{product.name}</h3>
+        </Link>
 
         <p className="product-card-grade">Grade {product.grade}</p>
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
-
+import { NavLink, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { Scale } from "lucide-react";
 import api from "../api";
 import CutPreference from "./CutPreference";
 import CustomCutSheet from "./CustomCutSheet";
@@ -153,7 +153,8 @@ function ProductDetail({ product, onCartUpdated }) {
       setSpecialInstructions("");
     }
   };
-
+  const weightMatch = product.description?.match(/(\d+(?:\.\d+)?)\s*kg/i);
+  const productWeight = weightMatch ? `${weightMatch[1]} kg` : null;
   // Update the formatted selections received from the custom cut sheet.
   const handleSelectionsChange = useCallback((selections) => {
     setCutSelections(selections);
@@ -230,8 +231,21 @@ function ProductDetail({ product, onCartUpdated }) {
 
   return (
     <main className="product-detail-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link to="/">Home</Link>
+        <span>/</span>
+        <Link to="/products">Shop</Link>
+        <span>/</span>
+        <span>{product.name}</span>
+      </nav>
       <section className="product-detail">
         <div className="product-detail-image-container">
+          {productWeight && (
+            <div className="product-card-weight-d">
+              <Scale className="product-card-weight-icon" />
+              <span>{productWeight}</span>
+            </div>
+          )}
           <img
             className="product-detail-image"
             src={
@@ -243,6 +257,10 @@ function ProductDetail({ product, onCartUpdated }) {
             }
             alt={product.name}
           />
+          <div className="grade-stamp">
+            <span className="grade-letter">{product.grade}</span>
+            <span className="grade-label">GRADE</span>
+          </div>
         </div>
 
         <div className="product-detail-info">
