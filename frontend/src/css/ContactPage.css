@@ -1,300 +1,284 @@
-
-.SuccessFul{
-    position: absolute;
-display: flex;
-margin-left:200px;
-flex-direction: column;
-background-color: white;
-z-index: 10;
-background-color: #F2F1ED;
-margin-left: 225px;
-margin-top: 340px;
-border-radius: 10px;
-border-width: 1px;
-padding-right: 40px;
-padding-left: 20px;
-padding-top: 20px;
-background-color: rgba(0,0,0,0);
-animation: hideMe 0s ease-in 5s;
-animation-fill-mode: forwards;
+.SuccessFul {
+  position: absolute;
+  display: flex;
+  margin-left: 200px;
+  flex-direction: column;
+  background-color: white;
+  z-index: 10;
+  background-color: #f2f1ed;
+  margin-left: 225px;
+  margin-top: 340px;
+  border-radius: 10px;
+  border-width: 1px;
+  padding-right: 40px;
+  padding-left: 20px;
+  padding-top: 20px;
+  background-color: rgba(0, 0, 0, 0);
+  animation: hideMe 0s ease-in 5s;
+  animation-fill-mode: forwards;
 }
 
-.SuccessImage{
-width: 20px;
-height: 20px;
+.SuccessImage {
+  width: 20px;
+  height: 20px;
 
-margin-left: 85px;
+  margin-left: 85px;
 }
 
-.Sent{
-    margin-top: 2px;
-font-weight: bold;
-font-size: 19px; 
-white-space: nowrap;
-color: red;
-margin-left: 35px;
+.Sent {
+  margin-top: 2px;
+  font-weight: bold;
+  font-size: 19px;
+  white-space: nowrap;
+  color: red;
+  margin-left: 35px;
 
-/*animation: hideMe 0s ease-in 5s;
+  /*animation: hideMe 0s ease-in 5s;
 animation-fill-mode: forwards;
 */
 }
 
-.SuccessParagraph1{
-    white-space: nowrap;
-    color: black;
-    margin-top: -20px;
-    margin-left: 22px;
-    font-size: 12px; 
-       font-weight: bold;
+.SuccessParagraph1 {
+  white-space: nowrap;
+  color: black;
+  margin-top: -20px;
+  margin-left: 22px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
-.SuccessParagraph2{
-    white-space: nowrap;
-     color: black;
-      margin-top: -15px;
-      margin-left: 40px;
-      font-size: 12px; 
-      font-weight: bold;
+.SuccessParagraph2 {
+  white-space: nowrap;
+  color: black;
+  margin-top: -15px;
+  margin-left: 40px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
-
-@keyframes hideMe{
-to{
-     visibility: hidden;
+@keyframes hideMe {
+  to {
+    visibility: hidden;
     width: 0;
     height: 0;
     overflow: hidden;
     padding: 0;
-    margin: 0
+    margin: 0;
+  }
 }
 
+.Error {
+  font-weight: bold;
+  font-size: 20px;
+  position: absolute;
+  margin-left: 275px;
+  margin-top: 400px;
+  color: red;
 }
 
-
-.Error{
-    font-weight: bold;
-font-size: 20px;
-position: absolute; 
-margin-left: 275px;
-margin-top:400px;
-color: red;
+#ContactPhrase {
+  font-weight: normal;
 }
 
-    #ContactPhrase{
-    font-weight: normal;
+#MapLo {
+  display: flex;
+  justify-content: center;
 }
 
-#MapLo{
-display: flex;
-justify-content: center;
+.Map-Contact {
+  border-top: solid;
+  margin-top: 50px;
+  border-width: 1px;
+  border-color: #f2f1ed;
+  padding-top: 50px;
+  box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
 }
 
-.Map-Contact{
-    border-top: solid;
-margin-top: 50px;
-border-width: 1px;
-border-color: #F2F1ED;
-padding-top: 50px;
-box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
+.ContactBox {
+  background-color: #f2f1ed;
+  padding-right: 500px;
 }
 
-.ContactBox{
-    background-color:#F2F1ED;
-    padding-right: 500px;
+.ContactBoxTitle {
+  margin-left: 70px;
 }
 
-.ContactBoxTitle{
-   
-    margin-left: 70px;
+.ContactInputs {
+  display: inline-flex;
+  flex-direction: column;
 }
 
-#ContactPhrase{
-    margin-top:-30px;
+.ContactFName {
+  position: absolute;
+  margin-left: 70px;
+  height: 40px;
+  width: 250px;
+  font-size: 17px;
 }
 
-.ContactInputs{
-    display: inline-flex;
-    flex-direction: column;
-  
+.ContactLName {
+  position: absolute;
+  margin-left: 370px;
+  height: 40px;
+  width: 250px;
+  font-size: 17px;
 }
 
-
-.ContactFName{
-position: absolute;
-margin-left: 70px;
-height: 40px;
-width: 250px;
-font-size: 17px;
+.ContactEmail {
+  position: absolute;
+  margin-top: 100px;
+  margin-left: 70px;
+  width: 550px;
+  height: 40px;
+  z-index: 1;
+  font-size: 17px;
 }
 
-.ContactLName{
-position: absolute;
-margin-left: 370px;
-height: 40px;
-width: 250px;
-font-size: 17px;
+.ContactMessage {
+  position: absolute;
+  margin-top: 200px;
+  margin-left: 70px;
+  width: 550px;
+  height: 150px;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
 }
 
-.ContactEmail{
-position: absolute;
-margin-top: 100px;
-margin-left: 70px;
-width: 550px;
-height: 40px;
-z-index: 1;
-font-size: 17px;
+.MapBack {
+  background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
+  padding-bottom: 200px;
+  padding-left: 100px;
+  padding-right: 100px;
 }
 
-.ContactMessage{
-position: absolute;
-margin-top: 200px;
-margin-left: 70px;
-width: 550px;
-height: 150px;
-align-items: center;
-justify-content: center;
-font-size: 19px;
+.StoreMap {
+  margin-top: 100px;
+  border: solid;
+  border-width: 1px;
+  border-radius: 5px;
 }
 
-
-
-.MapBack{
-background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
-padding-bottom: 200px;
-padding-left: 100px;
-padding-right: 100px;
+.MapTitle {
+  color: white;
+  position: absolute;
+  margin-top: 50px;
+  margin-left: 100px;
 }
 
-
-.StoreMap{
-    
-    margin-top: 100px;
-    border: solid;
-    border-width: 1px;
-    border-radius: 5px;
+#StoreDetails {
+  position: absolute;
+  color: white;
+  font-weight: normal;
 }
 
-.MapTitle{
-    color: white;
-    position: absolute;
-    margin-top: 50px;
-    margin-left: 100px;
+.StoreDays {
+  margin-left: 110px;
+  margin-top: 50px;
 }
 
-#StoreDetails{
-    position: absolute;
-    color: white;
-    font-weight: normal;
+.StoreHours {
+  margin-left: 100px;
 }
 
-.StoreDays{
-margin-left: 110px;
-margin-top: 50px;
+.StoreAddress {
+  max-width: 375px;
+  margin-left: 100px;
+  margin-top: 80px;
 }
 
-.StoreHours{
-margin-left: 100px;
+.Bolder {
+  font-weight: Bold;
+  font-size: 20px;
 }
 
-.StoreAddress{
-    max-width: 375px;
-margin-left: 100px;
-margin-top: 80px;
-}
-
-.Bolder{
-    font-weight: Bold;
-    font-size: 20px;
-}
-
-.SubmitMessage{
-    color: white;
-    font-weight: bold;
-    position: absolute;
-    margin-top: 440px;
-    margin-left: 200px;
-    background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
-    padding-left: 100px;
-    padding-right: 100px;
-    padding-top: 15px;
-     padding-bottom: 15px;
-     border: none;
-     border-radius: 50px;
-     transition: transform 0.2s ease-in-out;
+.SubmitMessage {
+  color: white;
+  font-weight: bold;
+  position: absolute;
+  margin-top: 440px;
+  margin-left: 200px;
+  background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
+  padding-left: 100px;
+  padding-right: 100px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  border: none;
+  border-radius: 50px;
+  transition: transform 0.2s ease-in-out;
 }
 
 .SubmitMessage:hover {
-    opacity: 0.8;
-    cursor: pointer;
-    transform: scale(1.1);
+  opacity: 0.8;
+  cursor: pointer;
+  transform: scale(1.1);
 }
 
-.WhatsAppBox{
-    border-radius: 20px;
-    margin-top: 50px;
-    margin-left: 100px;
-    border: solid;
-    border-width: 2px;
-    border-color: #F2F1ED;
-    display: inline-flex;
-    flex-direction: column;
-    padding-left: 100px;
-      padding-right: 100px;
-      padding-top: 30px;
-      padding-bottom: 30px;
-      background-color: #F2F1ED;
-    max-width: 100px;
-    box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
+.WhatsAppBox {
+  border-radius: 20px;
+  margin-top: 50px;
+  margin-left: 100px;
+  border: solid;
+  border-width: 2px;
+  border-color: #f2f1ed;
+  display: inline-flex;
+  flex-direction: column;
+  padding-left: 100px;
+  padding-right: 100px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: #f2f1ed;
+  max-width: 100px;
+  box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
 }
 
-.WApp{
-    margin-left: 25px;
+.WApp {
+  margin-left: 25px;
   width: 60px;
-    object-fit: cover;
-    border-radius: 50px;
+  object-fit: cover;
+  border-radius: 50px;
 }
 
-.ContactTitle{
-    font-weight: black;
-    font-size: 18px;
-    white-space: nowrap;
+.ContactTitle {
+  font-weight: black;
+  font-size: 18px;
+  white-space: nowrap;
 }
 
-.ContactDetails{
-    font-size: 13px;
-    margin-left: 10px;
-    margin-top: -10px;
-    white-space: nowrap;
+.ContactDetails {
+  font-size: 13px;
+  margin-left: 10px;
+  margin-top: -10px;
+  white-space: nowrap;
 }
 
-#PApp{
+#PApp {
   margin-left: 2px;
 }
 
-#EApp{
-    margin-left: 23px;
+#EApp {
+  margin-left: 23px;
 }
 
-#ETitle{
-    margin-left: 15px;
+#ETitle {
+  margin-left: 15px;
 }
 
-#PhoneContact{
-margin-left: -1px;
+#PhoneContact {
+  margin-left: -1px;
 }
 
-#EmailContact{
-margin-left: -25px;
+#EmailContact {
+  margin-left: -25px;
 }
 
-.Contacted{
-    margin-left: 110px;
-    bottom: 0;
-    margin-bottom: 0;
+.Contacted {
+  margin-left: 110px;
+  bottom: 0;
+  margin-bottom: 0;
 }
 
 @media (max-width: 480px) {
-
   #MapLo {
     display: flex;
     flex-direction: column;
@@ -314,7 +298,6 @@ margin-left: -25px;
     padding: 30px 20px;
     box-sizing: border-box;
   }
-
 
   .MapTitle {
     position: relative;
@@ -401,7 +384,6 @@ margin-left: -25px;
     text-align: center;
   }
 
- 
   .Contacted {
     margin-left: 0;
     display: flex;
@@ -445,7 +427,6 @@ margin-left: -25px;
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
-
   #MapLo {
     display: flex;
     flex-direction: column;
@@ -465,7 +446,6 @@ margin-left: -25px;
     padding: 40px 30px;
     box-sizing: border-box;
   }
-
 
   .MapTitle {
     position: relative;
@@ -593,7 +573,6 @@ margin-left: -25px;
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-
   #MapLo {
     display: flex;
     flex-direction: column;
@@ -627,7 +606,6 @@ margin-left: -25px;
     margin-top: 0;
     display: flex;
     justify-content: center;
-
   }
 
   .StoreMap iframe {
@@ -701,7 +679,6 @@ margin-left: -25px;
     text-align: center;
   }
 
- 
   .Contacted {
     margin-left: 0;
     display: flex;
@@ -745,7 +722,6 @@ margin-left: -25px;
 }
 
 @media (min-width: 1025px) {
-
   #MapLo {
     display: flex;
     flex-direction: row;
@@ -764,10 +740,9 @@ margin-left: -25px;
     flex: 1;
     padding: 50px 60px;
     box-sizing: border-box;
-    padding-right: 60px; 
+    padding-right: 60px;
   }
 
- 
   .MapTitle {
     position: relative;
     margin: 0 0 30px 0;
@@ -802,7 +777,6 @@ margin-left: -25px;
     max-width: 100%;
   }
 
-  
   .ContactBoxTitle {
     text-align: left;
     margin: 0 0 30px 0;
@@ -864,7 +838,6 @@ margin-left: -25px;
     width: fit-content;
     text-align: center;
   }
-
 
   .Contacted {
     margin-left: 0;

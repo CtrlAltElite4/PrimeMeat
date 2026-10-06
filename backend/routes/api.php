@@ -8,12 +8,12 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ChatbotController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CutOptionController;
 use App\Http\Controllers\GroupOrderController;
 use App\Http\Controllers\MailerController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OrderController as CustomerOrderController;
+use App\Http\Controllers\ProductController as CustomerProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +54,10 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
 
 // Cut options
 Route::get('/cut-options', [CutOptionController::class, 'index']);
+
+// Public products
+Route::get('/products', [CustomerProductController::class, 'index']);
+Route::get('/products/{product}', [CustomerProductController::class, 'show']);
 
 // Contact
 Route::post('/contact', [MailerController::class, 'send']);
