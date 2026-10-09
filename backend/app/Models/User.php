@@ -23,7 +23,7 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-       protected function casts(): array
+    protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
@@ -40,5 +40,10 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
     }
 }

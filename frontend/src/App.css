@@ -231,7 +231,20 @@ footer {
     border-right-color: var(--border);
   }
 }
+/* === Scroll Reveal Animation === */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(80px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s ease;
+  will-change: opacity, transform;
+}
 
+.scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 /* === Footer Styles === */
 .footer {
   background-color: #161616;
@@ -293,6 +306,14 @@ footer {
     }
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-reveal,
+    .scroll-reveal-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
   /* Responsive tweaks */
   @media (max-width: 1024px) {
     .footer-container {

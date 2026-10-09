@@ -71,7 +71,7 @@ function Navbar({ user, onLogout, cartCount }) {
 
             <NavLink
               className="navbar-action navbar-account"
-              to="/login"
+              to={user ? "/account" : "/login"}
               aria-label="Account"
             >
               <User className="navbar-action-icon" />
@@ -187,7 +187,8 @@ function Navbar({ user, onLogout, cartCount }) {
 
             <NavLink
               className="navbar-mobile-action"
-              to="/login"
+              to={user ? "/account" : "/login"}
+              aria-label="Account"
               onClick={() => setMenuOpen(false)}
             >
               <User />

@@ -20,7 +20,9 @@ function Cart({ onCartUpdated }) {
     postalCode: "",
     instructions: "",
   });
-
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
   // Load the current user's cart.
   const fetchCart = async () => {
     try {
@@ -43,8 +45,73 @@ function Cart({ onCartUpdated }) {
 
   useEffect(() => {
     fetchCart();
-  }, []);
 
+    const fetchSavedAddresses = async () => {
+      try {
+        const { data } = await api.get("/api/addresses");
+
+        const addresses = data.addresses || [];
+
+        setSavedAddresses(addresses);
+
+        const defaultAddress = addresses.find((address) => address.is_default);
+
+        if (defaultAddress) {
+          setSelectedAddressId(String(defaultAddress.id));
+
+          setDeliveryAddress((current) => ({
+            ...current,
+            addressLine1: defaultAddress.address_line_1 || "",
+            addressLine2: defaultAddress.address_line_2 || "",
+            city: defaultAddress.city || "",
+            province: defaultAddress.province || "",
+            postalCode: defaultAddress.postal_code || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load saved addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, []);
+  const handleSavedAddressChange = (event) => {
+    const addressId = event.target.value;
+
+    setSelectedAddressId(addressId);
+
+    if (!addressId) {
+      setDeliveryAddress((current) => ({
+        ...current,
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        province: "",
+        postalCode: "",
+      }));
+
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find(
+      (address) => String(address.id) === addressId,
+    );
+
+    if (!selectedAddress) {
+      return;
+    }
+
+    setDeliveryAddress((current) => ({
+      ...current,
+      addressLine1: selectedAddress.address_line_1 || "",
+      addressLine2: selectedAddress.address_line_2 || "",
+      city: selectedAddress.city || "",
+      province: selectedAddress.province || "",
+      postalCode: selectedAddress.postal_code || "",
+    }));
+  };
   // Update the quantity of a cart item.
   const updateQuantity = async (itemId, quantity) => {
     if (quantity < 1) {
@@ -457,10 +524,50 @@ function Cart({ onCartUpdated }) {
               <div className="cart-delivery-address">
                 <h3>Delivery Address</h3>
 
-                <AddressForm
-                  address={deliveryAddress}
-                  onChange={setDeliveryAddress}
-                />
+                {loadingAddresses ? (
+                  <p>Loading saved addresses...</p>
+                ) : savedAddresses.length > 0 ? (
+                  <>
+                    <div className="cart-saved-address">
+                      <label htmlFor="cart-saved-address">
+                        Select Delivery Address
+                      </label>
+
+                      <select
+                        id="cart-saved-address"
+                        value={selectedAddressId}
+                        onChange={handleSavedAddressChange}
+                      >
+                        <option value="">Select a saved address</option>
+
+                        {savedAddresses.map((address) => (
+                          <option key={address.id} value={address.id}>
+                            {address.label || "Saved Address"}
+                            {address.is_default ? " — Default" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <Link
+                      to="/account/addresses/new"
+                      className="cart-add-address-button"
+                    >
+                      Add New Address
+                    </Link>
+                  </>
+                ) : (
+                  <div className="cart-no-address">
+                    <p>You do not have any saved delivery addresses.</p>
+
+                    <Link
+                      to="/account/addresses/new"
+                      className="cart-add-address-button"
+                    >
+                      Add Address
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </section>
