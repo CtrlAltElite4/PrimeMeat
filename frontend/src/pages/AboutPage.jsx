@@ -3,7 +3,7 @@ import CollageImage2 from '../assets/AnimalBreedImage2.jpg'
 import CollageImage3 from '../assets/DeliveryImage.jpg'
 import CollageImage4 from '../assets/PackagingImage.jpg'
 import ClientImage from '../assets/ClientImage2.jpg'
-import StoreImage from '../assets/RealButcherImage.jpg'
+//import StoreImage from '../assets/RealButcherImage.jpg'
 import '../css/AboutPage.css'
 
 
@@ -56,7 +56,7 @@ function AboutPage(){
     </section>
 
     <section className ="Story" id ="HistoryStory">
-<img className ="StorePic" src = {StoreImage} id ="MainStore"/>
+{/*<img className ="StorePic" src = {StoreImage} id ="MainStore"/> */}
 <p className ="StoryParagraph">
   <span className ="StoryTitle" id ="HistoryTitle">Our History</span>
   <br/>
