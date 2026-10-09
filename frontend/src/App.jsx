@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Link,
@@ -17,6 +18,8 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import Cart from "./pages/Cart";
 import GroupOrders from "./pages/GroupOrders";
 import GroupOrderCheckout from "./pages/GroupOrderCheckout";
+import SupportPage from "./pages/SupportPage";
+import ArticlePage from "./components/ArticlePage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -136,6 +139,12 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
 
           <Route path="/contact" element={<ContactPage />} />
+
+          <Route path="/contactpage" element={<ContactPage />} />
+
+          <Route path="/support" element={<SupportPage />} />
+
+          <Route path="/article/:id" element={<ArticlePage />} />
 
           <Route path="/group-orders" element={<GroupOrders />} />
 
