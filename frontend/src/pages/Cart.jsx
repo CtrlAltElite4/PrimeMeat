@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import AddressForm from "../components/AddressForm";
 import api from "../api";
 import "../styles/Cart.css";
 
 function Cart({ onCartUpdated }) {
+  const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -581,21 +582,26 @@ function Cart({ onCartUpdated }) {
               <strong>R{getCartTotal().toLocaleString("en-ZA")}</strong>
             </div>
 
-            <div className="cart-summary-row">
-              <span>Delivery</span>
-
-              <span>Calculated at checkout</span>
-            </div>
-
             <div className="cart-summary-total">
               <span>Total</span>
 
               <strong>R{getCartTotal().toLocaleString("en-ZA")}</strong>
             </div>
 
-            <Link to="/checkout" className="cart-checkout-button">
+            <button
+              type="button"
+              className="cart-checkout-button"
+              onClick={() =>
+                navigate("/checkout", {
+                  state: {
+                    deliveryMethod,
+                    deliveryAddress,
+                  },
+                })
+              }
+            >
               Proceed to Checkout
-            </Link>
+            </button>
 
             <Link to="/products" className="cart-continue-button">
               Continue Shopping

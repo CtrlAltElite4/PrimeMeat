@@ -12,9 +12,9 @@ use Illuminate\Validation\Rule;
 class GroupOrderController extends Controller
 {
     private const WEIGHT_RANGES = [
-        '400-440' => 17000,
-        '441-480' => 20750,
-        '481-520' => 23750,
+        '200-240' => 17000,
+        '241-280' => 20750,
+        '281-320' => 23750,
     ];
 
     public function store(Request $request): JsonResponse

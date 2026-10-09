@@ -21,6 +21,7 @@ import GroupOrderCheckout from "./pages/GroupOrderCheckout";
 import SupportPage from "./pages/SupportPage";
 import ArticlePage from "./components/ArticlePage";
 import AccountPage from "./pages/AccountPage";
+import Checkout from "./pages/Checkout";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -198,6 +199,8 @@ function App() {
               )
             }
           />
+
+          <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/account"
             element={
