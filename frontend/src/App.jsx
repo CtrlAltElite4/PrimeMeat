@@ -79,6 +79,7 @@ function App() {
 
   useEffect(() => {
     if (!checking) {
+      //eslint-disable-next-line react-hooks/set-state-in-effect
       fetchCartCount();
     }
   }, [user, checking]);
