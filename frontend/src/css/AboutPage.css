@@ -1,6 +1,4 @@
-
-
-.Nav{
+.Nav {
   background-color: white;
   color: grey;
   display: flex;
@@ -14,280 +12,228 @@
   font-family: sans-serif;
 }
 
-
-
-.Nav a{
+.Nav a {
   color: inherit;
-text-decoration: none;
+  text-decoration: none;
 }
 
-.Nav ul{
+.Nav ul {
   padding: 0;
   padding-left: 300px;
-  margin:0;
+  margin: 0;
   list-style: none;
   display: flex;
   gap: 4rem;
   padding-bottom: 30px;
-  padding-top: -20px;
-display: flex;
-align-items: center;
-justify-content: center;
-margin-top: 30px
+  padding-top: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
 }
 
-.NavButton{
+.NavButton {
   width: 145px;
   height: 45px;
   border-radius: 50px;
   font-weight: bold;
   font-size: 16px;
   font-family: sans-serif;
-   color: grey;
-   border: solid 2px black;
-   padding-left: 35px;
-   
+  color: grey;
+  border: solid 2px black;
+  padding-left: 35px;
 }
 
-.NavButton:hover{
+.NavButton:hover {
   background-color: grey;
   color: white;
 }
 
-.NavIcons{
+.NavIcons {
   position: absolute;
   margin-left: -25px;
 }
 
-
-#CartIcon{
+#CartIcon {
   margin-left: -35px;
   margin-top: -5px;
 }
 
-#SearchIcon{
-   margin-left: -32px;
+#SearchIcon {
+  margin-left: -32px;
   margin-top: -3px;
 }
 
-#UserIcon{
-  margin-top:-3px;
+#UserIcon {
+  margin-top: -3px;
 }
 
-#MainSearch{
-background-color: white;
+#MainSearch {
+  background-color: white;
 }
 
-#MainUser{
-background-color: white;
+#MainUser {
+  background-color: white;
 }
 
-#MainCart{
-background-color: #710014;
-color: white;
-border: none;
+#MainCart {
+  background-color: #710014;
+  color: white;
+  border: none;
 }
 
-
-#WebLogo{
+#WebLogo {
   position: absolute;
-margin-left: 160px;
-margin-top: -10px;
-left: 0;
-color: rgb(24, 24, 24);
+  margin-left: 160px;
+  margin-top: -10px;
+  left: 0;
+  color: rgb(24, 24, 24);
 }
 
-
-
-.site-title{
-align-items: center;
-
+.site-title {
+  align-items: center;
 }
 
-body{
-  margin:0;
+body {
+  margin: 0;
   padding: 0;
 }
 
-/*
-#HistoryTitle{
-  border-bottom: solid;
-  border-width: 2px;
-  border-color:#8B0000;
-  padding-bottom: 2px;
-  margin-bottom: 5px;
-}
-  */
-
-.Hero{
+.Hero {
   margin-top: 50px;
   border: solid;
-margin-left:auto;
-margin-right:auto;
-padding-left:710px;
-padding-right:710px;
-padding-top:50px;
-padding-bottom:50px;
-font-weight:bold;
-font-size: 20px;
-border-radius: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 710px;
+  padding-right: 710px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 10px;
 }
 
-.Mid{
-  display:flex;
-  
+.Mid {
+  display: flex;
 }
 
-.AboutHeroFinal{
+.AboutHeroFinal {
   width: 100%;
   background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
-padding-top: 50px;
-padding-bottom: 250px;
-   box-sizing: border-box; 
-   margin-top: 0;
+  padding: 45px 40px 110px;
+  box-sizing: border-box;
+  margin-top: 0;
   filter: brightness(85%);
 }
 
-#AboutHeroWords{
+.AboutHeroContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+.AboutHeroHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.AboutHeroTitle {
+  position: relative;
+  margin: 0;
+  font-size: 70px;
+  line-height: 1;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.AboutHeroPhrase {
+  position: relative;
+  margin: 15px 0 0;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: bold;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+#AboutHeroWords {
   max-width: 1200px;
   margin: 60px auto;
   padding: 0 20px;
 }
 
-.AboutHeroTitle{
-position: absolute;
-margin-top: 70px;
-font-size: 70px;
-color: white;
-font-weight: bold;
-  margin-left: 50px;
-}
-
-.AboutHeroPhrase{
-  position: absolute;
-  margin-top: 145px;
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-  margin-left: 50px;
-  white-space: nowrap;
-}
-
-#HistoryStory{
+#HistoryStory {
   margin-top: 20px;
   border-top: solid;
   border-width: 2px;
-  border-color: #F2F1ED;
+  border-color: #f2f1ed;
   padding-top: 30px;
 }
 
-.FullHistory{
+.FullHistory {
   position: relative;
   font-size: 20px;
   margin-top: 5px;
-
+  line-height: 1.6;
 }
 
-#Header{
-  margin-top:-10px;
-  padding-top:20px;
-padding-bottom:20px;
-color: white;
-font-weight:bold;
-font-size: 20px;
-background-color: black;
-padding-left:750px;
-padding-right:750px;
-border-color: black;
+.Story {
+  display: flex;
 }
 
-
-#Footer{
-  margin-top:50px;
-  padding-top:70px;
-padding-bottom:70px;
-color: white;
-font-weight:bold;
-font-size: 20px;
-background-color: black;
-padding-left:750px;
-padding-right:750px;
-margin-bottom: 0;
-border-radius: 0;
-
-}
-
-.FarmDot{
-  position: absolute;
-  margin-top: -27px;
-  margin-left: 20px;
-}
-
-.ProcessDot{
- position: absolute;
-  margin-top: 715px;
-  margin-left: 430px; 
-  z-index:1;
-}
-
-.PackageDot{
- position: absolute;
-  margin-top: 1165px;
-  margin-left: 980px; 
-}
-
-.DeliveryDot{
-   position: absolute;
-  margin-top: 1663px;
-  margin-left: 430px;
-}
-
-
-.Story{
-  display:flex;
-  
-}
-
-.StoryParagraph{
-  max-width:500px;
+.StoryParagraph {
+  max-width: 650px;
   justify-content: flex-end;
   margin-left: 30px;
   margin-top: 50px;
 }
 
-.StoryTitle{
+.StoryTitle {
   font-weight: bold;
   font-size: 40px;
-  
-
-
-}
-#MainStore{
-border-right: solid;
-padding-right: 20px;
- border-color: #F2F1ED;
- border-width: 2px;
+  color: #710014;
+  font-family: serif;
 }
 
-.StorePic{
+.StorePic {
+  width: 420px;
+  height: 420px;
+  min-width: 420px;
+  max-width: 420px;
+  min-height: 420px;
+  max-height: 420px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+#MainStore {
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+#OperationsParagraph {
   margin-left: 200px;
-  
-max-width: 500px;
 }
 
-
-
-
-
-#OperationsParagraph{
-  margin-left:200px;
-}
-
-#OperationsPic{
+#OperationsPic {
   margin-right: 100px;
 }
 
-.FullMission{
+.FullMission {
   margin-top: -500px;
   max-width: 950px;
   display: flex;
@@ -295,131 +241,122 @@ max-width: 500px;
   justify-content: center;
 }
 
-.Mission{
+.Mission {
   margin-left: auto;
   margin-right: auto;
 }
 
-#MissionTitle{
+#MissionTitle {
   margin-left: 350px;
+  color: #710014;
+  font-family: serif;
+  font-weight: bold;
 }
 
-
-
-#ProcessTitle{
+#ProcessTitle {
   position: absolute;
-margin-left: 680px;
-font-size: 50px;
-margin-bottom: 200px;
-margin-top: 90px;
+  margin-left: 680px;
+  font-size: 50px;
+  margin-bottom: 200px;
+  margin-top: 90px;
+  color: #710014;
+  font-family: serif;
+  font-weight: bold;
 }
 
-.TheProcess{
+.TheProcess {
   margin-top: 100px;
-
 }
 
-.collage-container{
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
- gap: 20px;
-  height: 2700px;    
-    overflow: hidden; 
-}
-#CollagePics{
-width: 300px;
-height: 300px;
-border: none;
-border-radius: 30px;
-box-shadow: 5px 10px 4px rgba(0, 0, 0, 0.274);
+.collage-container {
+  display: none;
 }
 
-.top{
-   position: relative;
+#CollagePics {
+  width: 300px;
+  height: 300px;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 5px 10px 4px rgba(0, 0, 0, 0.274);
+}
+
+.top {
+  position: relative;
   margin-top: 170px;
   margin-left: 200px;
-transform: rotate(-10deg);
-border-right: solid;
-border-color: black;
-transform: rotate(10deg);
+  transform: rotate(10deg);
 }
 
-.InfoLine{
-  margin-top:800px;
-  margin-left:450px;
+.InfoLine {
+  margin-top: 800px;
+  margin-left: 450px;
   padding-left: 500px;
-     position: absolute;
-    top: 50%;            
-    transform: translateY(-50%);
-    height: 2px;         
-    background-color: #8B0000;
-    width: 50px;          
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  background-color: #8b0000;
+  width: 50px;
 }
 
-.top .InfoLine{
-  right: -50px;         
+.top .InfoLine {
+  right: -50px;
 }
 
-
-
-.left{
+.left {
   position: absolute;
   margin-top: 580px;
-width: 300px;
-height: 300px;
-margin-left: 1000px;
-transform: rotate(10deg);
+  width: 300px;
+  height: 300px;
+  margin-left: 1000px;
+  transform: rotate(10deg);
 }
 
-#Line2{
+#Line2 {
   margin-top: 1195px;
-   padding-left: 520px;
+  padding-left: 520px;
 }
 
-.right{
+.right {
   margin-top: 1000px;
-width: 300px;
-height: 300px;
-margin-left:-1175px;
-transform: rotate(-10deg);
+  width: 300px;
+  height: 300px;
+  margin-left: -1175px;
+  transform: rotate(-10deg);
 }
 
-#Line3{
+#Line3 {
   margin-top: 1645px;
-  
 }
 
-.bottom{
+.bottom {
   margin-top: 1550px;
- width: 400px;
-height: 300px;
+  width: 400px;
+  height: 300px;
   margin-left: 500px;
-transform: rotate(10deg);
+  transform: rotate(10deg);
 }
 
-#Line4{
+#Line4 {
   margin-top: 2145px;
   padding-left: 650px;
 }
 
-
 .center-line {
-  padding-top:2000px;
+  padding-top: 2000px;
   margin-top: 1000px;
   margin-bottom: 1000px;
-    position: absolute;
-    top: 0;       
-    bottom: 0;   
-    left: 50%;    
-    transform: translateX(-50%); 
-    width: 2px;   
-   background: linear-gradient(rgb(113, 0, 20), rgb(180, 2, 34));
-    z-index: 9999 !important  
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  background: linear-gradient(rgb(113, 0, 20), rgb(180, 2, 34));
+  z-index: 9999 !important;
 }
-  
 
-.ProcessDescription{
+.ProcessDescription {
   font-weight: bold;
   font-size: 20px;
   max-width: 400px;
@@ -427,89 +364,78 @@ transform: rotate(10deg);
   margin-left: 600px;
 }
 
-.FullClient{
+.FullClient {
   margin-top: 50px;
   margin-left: 620px;
-     width: 300px;           
-    background-color: #F2F1ED;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+  width: 300px;
+  background-color: #f2f1ed;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.ClientImage{
+.ClientImage {
   width: 100%;
   height: 250px;
-   background: linear-gradient(rgb(113, 0, 20), rgb(180, 2, 34));
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   border-bottom: 1px solid #F2F1ED;
+  background: linear-gradient(rgb(113, 0, 20), rgb(180, 2, 34));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #f2f1ed;
 }
 
-.RealImage{
+.RealImage {
   width: 100%;
   object-fit: cover;
   height: 100%;
 }
 
-
-
-.ClientInfo{
-  padding:20px;
+.ClientInfo {
+  padding: 20px;
   background-color: white;
 }
 
-.ClientInfo h3{
-    margin: 0 0 5px 0;     
-    font-size: 1.2rem;
-    color: #1a1a1a;         
-    font-weight: bold;
+.ClientInfo h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+  color: #1a1a1a;
+  font-weight: bold;
 }
 
 .ClientInfo p {
-    margin: 0;
-    font-size: 0.95rem;
-    color: #8B0000;         
-    font-weight: 500;
+  margin: 0;
+  font-size: 0.95rem;
+  color: #8b0000;
+  font-weight: 500;
 }
 
-.MeatSource{
+.MeatSource {
   display: flex;
-  align-items: stretch;       
-  justify-content: center;    
-  gap: 60px;                  
-  max-width: 1100px; 
-      
-  margin: 0 auto; 
+  align-items: stretch;
+  justify-content: center;
+  gap: 60px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
-/*
-.SourceTitle{
-  position: absolute;
-   white-space: nowrap;
-    margin-top: -125px;
-    margin-left: px;
-     font-size: 20px;
-}
-*/
 
-.Source1{
-margin: 0 0 10px 0;
-  color:rgb(163, 0, 30);
+.Source1 {
+  margin: 0 0 10px 0;
+  color: #710014;
   font-size: 48px;
- white-space: nowrap;
- font-family:serif;
-font-weight: bold;
+  white-space: nowrap;
+  font-family: serif;
+  font-weight: bold;
 }
 
-.Source2{
+.Source2 {
   font-family: sans-serif;
   font-weight: bold;
   color: #5c5c5c;
   max-width: 500px;
-    font-size: 19px;
+  font-size: 19px;
+  line-height: 1.6;
 }
 
-.SourceImage{
+.SourceImage {
   width: 220px;
   height: 220px;
   object-fit: cover;
@@ -519,519 +445,230 @@ font-weight: bold;
   transform: rotate(10deg);
 }
 
-#rotate10{
- transform: rotate(10deg);
+#rotate10 {
+  transform: rotate(10deg);
 }
 
-#rotate-10{
- transform: rotate(-10deg);
+#rotate-10 {
+  transform: rotate(-10deg);
 }
 
 .SourceText {
-flex: 0 1 500px;            
+  flex: 0 1 500px;
   display: flex;
   flex-direction: column;
-  justify-content: center;   
+  justify-content: center;
   min-width: 0;
 }
 
-#FarmSource{
+#FarmSource {
   margin-top: 350px;
-margin-left: -50px;
-z-index: 9999;
+  margin-left: -50px;
+  z-index: 9999;
 }
 
-#ProcessSource{
-margin-top: 830px;
-margin-left: -50px;
+#ProcessSource {
+  margin-top: 830px;
+  margin-left: -50px;
 }
 
-#ProcessCut{
+#ProcessCut {
   margin-left: 130px;
   margin-bottom: 5px;
 }
 
-#ProcessCut2{
+#ProcessCut2 {
   margin-top: -135px;
 }
-#PackageSource{
+
+#PackageSource {
   margin-top: 1290px;
-  margin-left: 950px
+  margin-left: 950px;
 }
 
-#DeliverySource{
-   margin-top: 1800px;
-  margin-left: -70px
+#DeliverySource {
+  margin-top: 1800px;
+  margin-left: -70px;
 }
 
-.MissionStatement{
-   font-family:sans-serif;
-   font-weight: bold;
-  color:  #5c5c5c;
+.MissionStatement {
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #5c5c5c;
   font-size: 20px;
+  line-height: 1.6;
 }
 
+.FarmDot {
+  position: absolute;
+  margin-top: -27px;
+  margin-left: 20px;
+}
 
+.ProcessDot {
+  position: absolute;
+  margin-top: 715px;
+  margin-left: 430px;
+  z-index: 1;
+}
 
+.PackageDot {
+  position: absolute;
+  margin-top: 1165px;
+  margin-left: 980px;
+}
+
+.DeliveryDot {
+  position: absolute;
+  margin-top: 1663px;
+  margin-left: 430px;
+}
+
+.about-section-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 5px;
+  padding: 3px;
+  width: fit-content;
+  max-width: max-content;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 30px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.about-section-nav a {
+  padding: 10px 18px;
+  border-radius: 30px;
+  color: #710014;
+  font-family: "Inria Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.about-section-nav a:hover {
+  background-color: #710014;
+  color: #ffffff;
+}
+
+.about-section-nav a:focus-visible {
+  outline: 2px solid #710014;
+  outline-offset: 2px;
+}
 
 @media (max-width: 480px) {
-
-    .AboutHeroFinal {
-        padding: 40px 20px;
-    }
-
-    .AboutHeroTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 36px;
-    }
-
-    .AboutHeroPhrase {
-        position: relative;
-        margin-left: 0;
-          margin-top: -44px;
-        font-size: 14px;
-        white-space: normal;
-    }
-
-    .Story {
-        flex-direction: column;
-        padding: 20px;
-    }
-
-    .StorePic {
-        margin-left: 0;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    #MainStore {
-        border-right: none;
-        border-bottom: 2px solid #F2F1ED;
-        padding-right: 0;
-        padding-bottom: 20px;
-    }
-
-    .StoryParagraph {
-        margin-left: 0;
-        margin-top: 20px;
-        max-width: 100%;
-    }
-
-    .StoryTitle {
-        font-size: 28px;
-    }
-
-    #HistoryStory {
-        padding-top: 20px;
-    }
-
-  
-    .FullMission {
-        position: relative;
-        margin-top: 20px;
-        margin-left: 0;
-        max-width: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-        flex-direction: column;
-    }
-
-    #MissionTitle {
-        margin-left: 0;
-        text-align: center;
-        font-size: 24px;
-    }
-
-    .MissionStatement {
-        font-size: 14px;
-        text-align: left;
-    }
-    
-    .center-line,
-    .InfoLine,
-    .FarmDot,
-    .ProcessDot,
-    .PackageDot,
-    .DeliveryDot,
-    .collage-container {
-        display: none;
-    }
-
-    .TheProcess {
-        position: relative;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    #ProcessTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 28px;
-        text-align: center;
-        display: block;
-        margin-bottom: 30px;
-    }
-
-    .MeatSource,
-    #FarmSource,
-    #ProcessSource,
-    #PackageSource,
-    #DeliverySource {
-        position: relative;
-        margin: 0 0 30px 0;
-        width: 100%;
-        border-left: 3px solid #8B0000;
-        padding: 10px 15px;
-        box-sizing: border-box;
-    }
-
-    .Source1,
-    #ProcessCut {
-        position: relative;
-        margin: 0 0 8px 0;
-        font-size: 20px;
-        white-space: normal;
-        margin-left: 0;
-        margin-top: 0;
-    }
-
-    .Source2,
-    #ProcessCut2 {
-        position: relative;
-        margin: 0;
-        margin-top: 0;
-        width: 100%;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-   
-    .FullClient {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 30px;
-        width: 200px;
-    }
-
-   
-    #Footer {
-        padding: 40px 20px;
-        text-align: center;
-        font-size: 16px;
-        margin-top: 20px;
-    }
+  .AboutHeroFinal {
+    padding: 30px 20px 60px;
+  }
 }
 
-
-@media (min-width: 481px) and (max-width: 768px) {
-
-    .AboutHeroFinal {
-        padding: 50px 30px;
-    }
-
-    .AboutHeroTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 48px;
-    }
-
-    .AboutHeroPhrase {
-        position: relative;
-        margin-left: 0;
-          margin-top: -46px;
-        font-size: 16px;
-        white-space: normal;
-    }
-
-  
-    .Story {
-        flex-direction: column;
-        padding: 30px;
-        gap: 20px;
-    }
-
-    .StorePic {
-        margin-left: 0;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    #MainStore {
-        border-right: none;
-        border-bottom: 2px solid #F2F1ED;
-        padding-right: 0;
-        padding-bottom: 20px;
-    }
-
-    .StoryParagraph {
-        margin-left: 0;
-        margin-top: 20px;
-        max-width: 100%;
-    }
-
-    .StoryTitle {
-        font-size: 32px;
-    }
-
-    .FullMission {
-        position: relative;
-        margin-top: 30px;
-        margin-left: 0;
-        max-width: 100%;
-        padding: 30px;
-        box-sizing: border-box;
-        flex-direction: column;
-    }
-
-    #MissionTitle {
-        margin-left: 0;
-        text-align: center;
-        font-size: 28px;
-    }
-
-    .MissionStatement {
-        font-size: 16px;
-    }
-
-    
-    .center-line,
-    .InfoLine,
-    .FarmDot,
-    .ProcessDot,
-    .PackageDot,
-    .DeliveryDot,
-    .collage-container {
-        display: none;
-    }
-
-    .TheProcess {
-        position: relative;
-        padding: 30px;
-        margin-top: 30px;
-    }
-
-    #ProcessTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 38px;
-        text-align: center;
-        display: block;
-        margin-bottom: 40px;
-    }
-
-    .MeatSource,
-    #FarmSource,
-    #ProcessSource,
-    #PackageSource,
-    #DeliverySource {
-        position: relative;
-        margin: 0 0 40px 0;
-        width: 100%;
-        border-left: 3px solid #8B0000;
-        padding: 15px 20px;
-        box-sizing: border-box;
-    }
-
-    .Source1,
-    #ProcessCut {
-        position: relative;
-        margin: 0 0 10px 0;
-        font-size: 24px;
-        white-space: normal;
-        margin-left: 0;
-        margin-top: 0;
-    }
-
-    .Source2,
-    #ProcessCut2 {
-        position: relative;
-        margin: 0;
-        margin-top: 0;
-        width: 100%;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-
-    .FullClient {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 40px;
-    width: 200px;
-    }
-
-  
-    #Footer {
-        padding: 50px 30px;
-        text-align: center;
-        font-size: 18px;
-        margin-top: 30px;
-    }
+.AboutHeroContent {
+  padding: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 25px;
 }
 
-
-@media (min-width: 769px) and (max-width:1024px) {
-
-  
-    .AboutHeroFinal {
-        padding: 60px 40px;
-    }
-
-    .AboutHeroTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 56px;
-    }
-
-    .AboutHeroPhrase {
-        position: relative;
-        margin-left: 0;
-         margin-top: -48px;
-        font-size: 18px;
-        white-space: normal;
-    }
-
-    
-    .Story {
-        flex-direction: row;
-        padding: 40px;
-        gap: 30px;
-        align-items: center;
-    }
-
-    .StorePic {
-        margin-left: 0;
-        width: 45%;
-        max-width: 400px;
-    }
-
-    .StoryParagraph {
-        margin-left: 0;
-        margin-top: 0;
-        max-width: 100%;
-        flex: 1;
-    }
-
-    .StoryTitle {
-        font-size: 34px;
-    }
-
-    
-    .FullMission {
-        position: relative;
-        margin-top: 40px;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 800px;
-        padding: 0 40px;
-        box-sizing: border-box;
-    }
-
-    #MissionTitle {
-        margin-left: 0;
-        text-align: center;
-        font-size: 32px;
-    }
-
-    .MissionStatement {
-        font-size: 18px;
-        text-align: center;
-    }
-
-   
-    .center-line,
-    .InfoLine,
-    .FarmDot,
-    .ProcessDot,
-    .PackageDot,
-    .DeliveryDot,
-    .collage-container {
-        display: none;
-    }
-
-    .TheProcess {
-        position: relative;
-        padding: 40px;
-        margin-top: 40px;
-    }
-
-    #ProcessTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 36px;
-        text-align: center;
-        display: block;
-        margin-bottom: 50px;
-    }
-
-   
-    #FarmSource,
-    #ProcessSource,
-    #PackageSource,
-    #DeliverySource {
-        position: relative;
-        margin: 0 0 60px 0;
-        width: 100%;
-      
-        padding: 20px 60px;
-        box-sizing: border-box;
-    }
-
-#FarmSource, #PackageSource{
-   border-left: 3px solid #8B0000;
-     justify-content: flex-start;
-     margin-bottom: 120px;
+.AboutHeroTitle {
+  position: relative;
+  margin: 0;
+  font-size: 36px;
 }
 
-    #DeliverySource, #ProcessSource{
-      flex-direction: row-reverse;
-       border-right: 3px solid #8B0000;
-        justify-content: flex-end;
-    }
-
-    .Source1,
-    #ProcessCut {
-        position: relative;
-        margin: 0 0 10px 0;
-        font-size: 28px;
-        white-space: normal;
-        margin-left: 0;
-        margin-top: 0;
-    }
-
-    .Source2,
-    #ProcessCut2 {
-        position: relative;
-        margin: 0;
-        margin-top: 0;
-        width: 100%;
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-  
-    .FullClient {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 50px;
-        width: 200px;
-    }
-
-  
-    #Footer {
-        padding: 60px 40px;
-        text-align: center;
-        font-size: 18px;
-        margin-top: 40px;
-    }
+.AboutHeroPhrase {
+  position: relative;
+  margin: 12px 0 0;
+  font-size: 14px;
+  white-space: normal;
 }
 
+.about-section-nav {
+  width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  justify-content: flex-start;
+  scrollbar-width: none;
+}
+
+.about-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.about-section-nav a {
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+.Story {
+  flex-direction: column;
+  padding: 20px;
+}
+
+.StorePic {
+  margin-left: auto;
+  margin-right: auto;
+  width: 280px;
+  height: 280px;
+  max-width: 280px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+#MainStore {
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.StoryParagraph {
+  margin-left: 0;
+  margin-top: 20px;
+  max-width: 100%;
+}
+
+.StoryTitle {
+  font-size: 28px;
+}
+
+.FullHistory {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#HistoryStory {
+  padding-top: 20px;
+}
+
+.FullMission {
+  position: relative;
+  margin-top: 20px;
+  margin-left: 0;
+  max-width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+#MissionTitle {
+  margin-left: 0;
+  text-align: center;
+  font-size: 28px;
+}
+
+.MissionStatement {
+  font-size: 14px;
+  text-align: left;
+}
 
 .center-line,
 .InfoLine,
@@ -1040,170 +677,667 @@ margin-left: -50px;
 .PackageDot,
 .DeliveryDot,
 .collage-container {
-    display: none;
+  display: none;
 }
 
+.TheProcess {
+  position: relative;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+#ProcessTitle {
+  position: relative;
+  margin-left: 0;
+  margin-top: 0;
+  font-size: 28px;
+  text-align: center;
+  display: block;
+  margin-bottom: 30px;
+}
+
+.MeatSource,
+#FarmSource,
+#ProcessSource,
+#PackageSource,
+#DeliverySource {
+  position: relative;
+  margin: 0 0 30px 0;
+  width: 100%;
+  border-left: 3px solid #8b0000;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  display: block;
+}
+
+.Source1,
+#ProcessCut {
+  position: relative;
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  white-space: normal;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.Source2,
+#ProcessCut2 {
+  position: relative;
+  margin: 0;
+  margin-top: 0;
+  width: 100%;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.SourceImage {
+  width: 150px;
+  height: 150px;
+  margin-top: 15px;
+}
+
+.FullClient {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 30px;
+  width: 200px;
+}
+
+#Footer {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .AboutHeroFinal {
+    padding: 40px 20px 80px;
+  }
+
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 25px;
+  }
+
+  .AboutHeroTitle {
+    position: relative;
+    margin: 0;
+    font-size: 48px;
+  }
+
+  .AboutHeroPhrase {
+    position: relative;
+    margin: 12px 0 0;
+    font-size: 16px;
+    white-space: normal;
+  }
+
+  .about-section-nav {
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .about-section-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .about-section-nav a {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .Story {
+    flex-direction: column;
+    padding: 30px;
+    gap: 20px;
+  }
+
+  .StorePic {
+    margin-left: auto;
+    margin-right: auto;
+    width: 350px;
+    height: 350px;
+    max-width: 350px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  #MainStore {
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+
+  .StoryParagraph {
+    margin-left: 0;
+    margin-top: 20px;
+    max-width: 100%;
+  }
+
+  .StoryTitle {
+    font-size: 32px;
+  }
+
+  .FullHistory {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .FullMission {
+    position: relative;
+    margin-top: 30px;
+    margin-left: 0;
+    max-width: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+    flex-direction: column;
+  }
+
+  #MissionTitle {
+    margin-left: 0;
+    text-align: center;
+    font-size: 28px;
+  }
+
+  .MissionStatement {
+    font-size: 16px;
+  }
+
+  .center-line,
+  .InfoLine,
+  .FarmDot,
+  .ProcessDot,
+  .PackageDot,
+  .DeliveryDot,
+  .collage-container {
+    display: none;
+  }
+
+  .TheProcess {
+    position: relative;
+    padding: 30px;
+    margin-top: 30px;
+  }
+
+  #ProcessTitle {
+    position: relative;
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 38px;
+    text-align: center;
+    display: block;
+    margin-bottom: 40px;
+  }
+
+  .MeatSource,
+  #FarmSource,
+  #ProcessSource,
+  #PackageSource,
+  #DeliverySource {
+    position: relative;
+    margin: 0 0 40px 0;
+    width: 100%;
+    border-left: 3px solid #8b0000;
+    padding: 15px 20px;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .Source1,
+  #ProcessCut {
+    position: relative;
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    white-space: normal;
+    margin-left: 0;
+    margin-top: 0;
+  }
+
+  .Source2,
+  #ProcessCut2 {
+    position: relative;
+    margin: 0;
+    margin-top: 0;
+    width: 100%;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .SourceImage {
+    width: 180px;
+    height: 180px;
+    margin-top: 15px;
+  }
+
+  .FullClient {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 40px;
+    width: 200px;
+  }
+
+  #Footer {
+    padding: 50px 30px;
+    text-align: center;
+    font-size: 18px;
+    margin-top: 30px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .AboutHeroFinal {
+    padding: 50px 40px 110px;
+  }
+
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 30px;
+  }
+
+  .AboutHeroTitle {
+    position: relative;
+    margin: 0;
+    font-size: 56px;
+  }
+
+  .AboutHeroPhrase {
+    position: relative;
+    margin: 12px 0 0;
+    font-size: 18px;
+    white-space: normal;
+  }
+
+  .about-section-nav {
+    flex-shrink: 0;
+  }
+
+  .Story {
+    flex-direction: row;
+    padding: 40px;
+    gap: 30px;
+    align-items: center;
+  }
+
+  .StorePic {
+    margin-left: 0;
+    width: 360px;
+    height: 360px;
+    max-width: 360px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .StoryParagraph {
+    margin-left: 0;
+    margin-top: 0;
+    max-width: 100%;
+    flex: 1;
+  }
+
+  .StoryTitle {
+    font-size: 34px;
+  }
+
+  .FullHistory {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .FullMission {
+    position: relative;
+    margin-top: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 800px;
+    padding: 0 40px;
+    box-sizing: border-box;
+  }
+
+  #MissionTitle {
+    margin-left: 0;
+    text-align: center;
+    font-size: 32px;
+  }
+
+  .MissionStatement {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .center-line,
+  .InfoLine,
+  .FarmDot,
+  .ProcessDot,
+  .PackageDot,
+  .DeliveryDot,
+  .collage-container {
+    display: none;
+  }
+
+  .TheProcess {
+    position: relative;
+    padding: 40px;
+    margin-top: 40px;
+  }
+
+  #ProcessTitle {
+    position: relative;
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 36px;
+    text-align: center;
+    display: block;
+    margin-bottom: 50px;
+  }
+
+  #FarmSource,
+  #ProcessSource,
+  #PackageSource,
+  #DeliverySource {
+    position: relative;
+    margin: 0 0 60px 0;
+    width: 100%;
+    padding: 20px 60px;
+    box-sizing: border-box;
+  }
+
+  #FarmSource,
+  #PackageSource {
+    border-left: 3px solid #8b0000;
+    justify-content: flex-start;
+    margin-bottom: 120px;
+  }
+
+  #DeliverySource,
+  #ProcessSource {
+    flex-direction: row-reverse;
+    border-right: 3px solid #8b0000;
+    justify-content: flex-end;
+  }
+
+  .Source1,
+  #ProcessCut {
+    position: relative;
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    white-space: normal;
+    margin-left: 0;
+    margin-top: 0;
+  }
+
+  .Source2,
+  #ProcessCut2 {
+    position: relative;
+    margin: 0;
+    margin-top: 0;
+    width: 100%;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .FullClient {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+    width: 200px;
+  }
+
+  #Footer {
+    padding: 60px 40px;
+    text-align: center;
+    font-size: 18px;
+    margin-top: 40px;
+  }
+}
 
 @media (min-width: 1025px) {
-    .AboutHeroFinal {
-        padding: 60px 40px;
-    }
+  .AboutHeroFinal {
+    padding: 45px 40px 110px;
+  }
 
-    .AboutHeroTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 56px;
-    }
+  .AboutHeroContent {
+    padding: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 50px;
+  }
 
-    .AboutHeroPhrase {
-        position: relative;
-        margin-left: 0;
-        margin-top: -48px;
-        font-size: 18px;
-        white-space: normal;
-    }
+  .AboutHeroTitle {
+    position: relative;
+    margin: 0;
+    font-size: 70px;
+  }
 
-    
-    .Story {
-        flex-direction: row;
-        padding: 40px;
-        gap: 30px;
-        align-items: center;
-        margin-left: 100px;
-    }
+  .AboutHeroPhrase {
+    position: relative;
+    margin: 15px 0 0;
+    font-size: 20px;
+    white-space: nowrap;
+  }
 
-    .StorePic {
-        margin-left: 0;
-        width: 45%;
-        max-width: 400px;
-    }
+  .about-section-nav {
+    margin-top: 5px;
+  }
 
-    .StoryParagraph {
-        margin-left: 0;
-        margin-top: 0;
-        max-width: 650px;
-        flex: 1;
-    }
+  .Story {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 80px;
+    width: calc(100% - 160px);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 0;
+    box-sizing: border-box;
+  }
 
-    .StoryTitle {
-        font-size: 34px;
-    }
+  .StorePic {
+    margin-left: 0;
+    width: 420px;
+    height: 420px;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
 
-    
-    .FullMission {
-        position: relative;
-        margin-top: -30px;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 800px;
-        padding: 0 40px;
-        box-sizing: border-box;
-    }
+  #MainStore {
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
 
-    #MissionTitle {
-        margin-left: 0;
-        text-align: center;
-        font-size: 40px;
+  .StoryParagraph {
+    margin-left: 0;
+    margin-top: 0;
+    max-width: 650px;
+    flex: 1;
+  }
 
-    }
+  .StoryTitle {
+    font-size: 40px;
+  }
 
-    .MissionStatement {
-        font-size: 18px;
-        text-align: center;
-    }
+  .FullHistory {
+    font-size: 19px;
+    line-height: 1.6;
+  }
 
-   
-    .center-line,
-    .InfoLine,
-    .FarmDot,
-    .ProcessDot,
-    .PackageDot,
-    .DeliveryDot,
-    .collage-container {
-        display: none;
-    }
+  .TheProcess {
+    position: relative;
+    width: calc(100% - 160px);
+    max-width: 1400px;
+    padding: 40px 0;
+    margin: 40px auto 0;
+    box-sizing: border-box;
+  }
 
-    .TheProcess {
-        position: relative;
-        padding: 40px;
-        margin-top: 40px;
-           margin-left: 150px; 
-    }
+  #ProcessTitle {
+    position: relative;
+    margin: 0 0 80px 0;
+    font-size: 50px;
+    text-align: center;
+    display: block;
+  }
 
-    #ProcessTitle {
-        position: relative;
-        margin-left: 0;
-        margin-top: 0;
-        font-size: 40px;
-        text-align: center;
-        display: block;
-        margin-bottom: 50px;
-    }
+  .MeatSource,
+  #FarmSource,
+  #ProcessSource,
+  #PackageSource,
+  #DeliverySource {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 260px;
+    margin: 0 auto 100px auto;
+    padding: 30px 40px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 35px;
+  }
 
-   
-    #FarmSource,
-    #ProcessSource,
-    #PackageSource,
-    #DeliverySource {
-        position: relative;
-        margin: 0 0 60px 0;
-        width: 100%;
-      
-        padding: 20px 60px;
-        box-sizing: border-box;
-    }
+  #FarmSource,
+  #PackageSource {
+    flex-direction: row;
+    justify-content: flex-start;
+    border-left: 3px solid #8b0000;
+  }
 
-#FarmSource, #PackageSource{
-   border-left: 3px solid #8B0000;
-     justify-content: flex-start;
-     padding-left: 25px;
-      margin-bottom: 120px;
+  #ProcessSource,
+  #DeliverySource {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    border-right: 3px solid #8b0000;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #FarmSource .MainSource,
+  #PackageSource .MainSource,
+  #ProcessSource .MainSource,
+  #DeliverySource .MainSource {
+    width: 50%;
+    max-width: 550px;
+    flex: 1;
+  }
+
+  #FarmSource .SourceImage,
+  #PackageSource .SourceImage,
+  #ProcessSource .SourceImage,
+  #DeliverySource .SourceImage {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .Source1,
+  #ProcessCut {
+    margin: 0 0 15px 0;
+    font-size: 42px;
+    white-space: normal;
+    line-height: 1.1;
+  }
+
+  #ProcessCut {
+    margin-left: 0;
+  }
+
+  .Source2,
+  #ProcessCut2 {
+    margin: 0;
+    max-width: 550px;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  #ProcessSource .MainSource,
+  #DeliverySource .MainSource {
+    text-align: right;
+  }
+
+  #ProcessSource .Source2,
+  #DeliverySource .Source2 {
+    margin-left: auto;
+  }
+
+  .SourceImage {
+    width: 260px;
+    height: 260px;
+    object-fit: cover;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  #FarmSource {
+    margin-top: 0;
+  }
+
+  #ProcessSource {
+    margin-top: 0;
+  }
+
+  #PackageSource {
+    margin-top: 0;
+  }
+
+  #DeliverySource {
+    margin-top: 0;
+  }
+
+  .FullMission {
+    position: relative;
+    width: calc(100% - 160px);
+    max-width: 1000px;
+    margin: 40px auto 0;
+    padding: 60px 0;
+    box-sizing: border-box;
+  }
+
+  #MissionTitle {
+    margin-left: 0;
+    text-align: center;
+    font-size: 40px;
+  }
+
+  .MissionStatement {
+    display: block;
+    font-size: 18px;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .FullClient {
+    margin: 50px auto;
+    width: 300px;
+  }
+
+  .center-line,
+  .InfoLine,
+  .FarmDot,
+  .ProcessDot,
+  .PackageDot,
+  .DeliveryDot,
+  .collage-container {
+    display: none;
+  }
+
+  #Footer {
+    padding: 60px 40px;
+    text-align: center;
+    font-size: 18px;
+    margin-top: 40px;
+  }
 }
-
-    #DeliverySource, #ProcessSource{
-      flex-direction: row-reverse;
-       border-right: 3px solid #8B0000;
-        margin-left: 41px;
-        justify-content: flex-start;
-         padding-right: 25px;
-         margin-bottom: 120px;
-    }
-
-    .Source1,
-    #ProcessCut {
-        position: relative;
-        margin: 0 0 10px 0;
-        font-size: 28px;
-        white-space: normal;
-        margin-left: 0;
-        margin-top: 0;
-    }
-
-    .Source2,
-    #ProcessCut2 {
-        position: relative;
-        margin: 0;
-        margin-top: 0;
-        width: 100%;
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-  
-    .FullClient {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 50px;
-        width: 200px;
-    }
-
-  
-    #Footer {
-        padding: 60px 40px;
-        text-align: center;
-        font-size: 18px;
-        margin-top: 40px;
-    }
-}
-

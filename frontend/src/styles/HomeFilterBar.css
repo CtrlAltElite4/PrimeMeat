@@ -1,0 +1,53 @@
+.home-filter-bar {
+  margin-top: 45px;
+  background: #d8d0bf;
+  border-bottom: 1px solid #c8c0b0;
+}
+
+.home-filter-container {
+  display: flex;
+  align-items: stretch;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-filter-link {
+  flex: 1;
+  padding: 24px 20px;
+  color: #161616;
+  text-decoration: none;
+  text-align: center;
+  font-family: "Inria Serif", serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid #b8af9d;
+  margin-right: -1px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.home-filter-link:hover {
+  background: #710014;
+  color: #ffffff;
+}
+
+.home-filter-link:focus-visible {
+  outline: 3px solid #710014;
+  outline-offset: -3px;
+}
+
+@media (max-width: 600px) {
+  .home-filter-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-filter-link {
+    padding: 18px 10px;
+    font-size: 16px;
+    border: 1px solid #b8af9d;
+    margin-right: 0;
+  }
+}

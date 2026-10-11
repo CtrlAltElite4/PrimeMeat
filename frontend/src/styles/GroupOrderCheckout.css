@@ -1,0 +1,376 @@
+.group-order-checkout-page {
+  min-height: 100vh;
+  background: #f7f6f2;
+  padding-bottom: 80px;
+}
+
+/* Header */
+
+.group-order-checkout-header {
+  background: #710014;
+  color: white;
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.group-order-checkout-header span {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.group-order-checkout-header h1 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.group-order-checkout-header p {
+  margin: 16px auto 0;
+  max-width: 600px;
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Main content */
+
+.group-order-checkout-content {
+  width: min(100% - 40px, 1000px);
+  margin: 50px auto 0;
+}
+
+/* Cards */
+
+.group-order-checkout-card {
+  margin-bottom: 24px;
+  padding: 32px;
+  background: white;
+  border: 1px solid #e3e0d8;
+  border-radius: 4px;
+}
+
+.group-order-checkout-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e2da;
+}
+
+.group-order-checkout-card-heading span {
+  display: block;
+  margin-bottom: 7px;
+  color: #938f6f;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.group-order-checkout-card-heading h2 {
+  margin: 0;
+  color: #161616;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.group-order-checkout-card-heading > strong {
+  color: #710014;
+  font-size: 18px;
+}
+
+/* Order details */
+
+.group-order-checkout-details {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding-top: 26px;
+}
+
+.group-order-checkout-details div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.group-order-checkout-details span {
+  color: #777;
+  font-size: 13px;
+}
+
+.group-order-checkout-details strong {
+  color: #161616;
+  font-size: 15px;
+}
+
+/* Members */
+
+.group-order-checkout-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 8px;
+}
+
+.group-order-checkout-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e5e2da;
+}
+
+.group-order-checkout-member:last-child {
+  border-bottom: none;
+}
+
+.group-order-checkout-member > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.group-order-checkout-member strong {
+  color: #161616;
+  font-size: 16px;
+}
+
+.group-order-checkout-member span {
+  color: #777;
+  font-size: 14px;
+}
+
+.group-order-checkout-recipient {
+  padding: 7px 12px;
+  background: #f1efe8;
+  border-radius: 3px;
+  color: #710014 !important;
+  font-size: 12px !important;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Delivery address */
+
+.group-order-checkout-address {
+  padding-top: 22px;
+}
+
+.group-order-checkout-address p {
+  margin: 0 0 6px;
+  color: #444;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.group-order-checkout-instructions {
+  margin-top: 22px;
+  padding: 16px;
+  background: #f7f6f2;
+  border-left: 3px solid #938f6f;
+}
+
+.group-order-checkout-instructions span {
+  display: block;
+  margin-bottom: 7px;
+  color: #710014;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.group-order-checkout-instructions p {
+  margin: 0;
+}
+
+/* Collection */
+
+.group-order-checkout-collection {
+  margin: 22px 0 0;
+  color: #555;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Summary */
+
+.group-order-checkout-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 32px;
+  padding: 30px 32px;
+  background: #161616;
+  border-radius: 4px;
+  color: white;
+}
+
+.group-order-checkout-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.group-order-checkout-summary span {
+  color: #d2d0c9;
+  font-size: 13px;
+}
+
+.group-order-checkout-summary strong {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.group-order-checkout-payment {
+  padding: 15px 28px;
+  border: none;
+  border-radius: 3px;
+  background: #710014;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.group-order-checkout-payment:hover {
+  background: #8a0019;
+  transform: translateY(-1px);
+}
+
+/* Loading */
+
+.group-order-checkout-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  color: #555;
+}
+
+.group-order-checkout-loading p {
+  font-size: 16px;
+}
+
+/* Error */
+
+.group-order-checkout-error {
+  width: min(100% - 40px, 600px);
+  margin: 100px auto;
+  padding: 40px;
+  background: white;
+  border: 1px solid #e3e0d8;
+  text-align: center;
+}
+
+.group-order-checkout-error h1 {
+  margin: 0 0 12px;
+  color: #161616;
+  font-size: 28px;
+}
+
+.group-order-checkout-error p {
+  margin: 0 0 25px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.group-order-checkout-error button {
+  padding: 13px 24px;
+  border: none;
+  border-radius: 3px;
+  background: #710014;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+  .group-order-checkout-header {
+    padding: 60px 25px;
+  }
+
+  .group-order-checkout-header h1 {
+    font-size: 34px;
+  }
+
+  .group-order-checkout-content {
+    width: min(100% - 30px, 1000px);
+    margin-top: 30px;
+  }
+
+  .group-order-checkout-card {
+    padding: 24px;
+  }
+
+  .group-order-checkout-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .group-order-checkout-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .group-order-checkout-payment {
+    width: 100%;
+  }
+}
+
+@media (max-width: 500px) {
+  .group-order-checkout-header {
+    padding: 45px 20px;
+  }
+
+  .group-order-checkout-header h1 {
+    font-size: 28px;
+  }
+
+  .group-order-checkout-header p {
+    font-size: 14px;
+  }
+
+  .group-order-checkout-content {
+    width: calc(100% - 20px);
+  }
+
+  .group-order-checkout-card {
+    padding: 20px;
+  }
+
+  .group-order-checkout-card-heading {
+    flex-direction: column;
+  }
+
+  .group-order-checkout-details {
+    grid-template-columns: 1fr;
+  }
+
+  .group-order-checkout-member {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .group-order-checkout-recipient {
+    white-space: normal;
+  }
+
+  .group-order-checkout-summary {
+    padding: 24px;
+  }
+
+  .group-order-checkout-summary strong {
+    font-size: 24px;
+  }
+}
