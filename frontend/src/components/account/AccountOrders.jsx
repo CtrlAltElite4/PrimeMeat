@@ -1,14 +1,27 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import api from "../../api";
 
-function AccountOrders() {
+function AccountOrders({ initialOrderId }) {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchOrderId, setSearchOrderId] = useState("");
+  const ordersPerPage = 12;
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
 
+  const filteredOrders = orders.filter((order) =>
+    order.order_number
+      ?.toLowerCase()
+      .includes(searchOrderId.trim().toLowerCase()),
+  );
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ordersPerPage,
+    currentPage * ordersPerPage,
+  );
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -30,8 +43,7 @@ function AccountOrders() {
 
     fetchOrders();
   }, []);
-
-  const viewOrder = async (orderId) => {
+  const viewOrder = useCallback(async (orderId) => {
     try {
       setDetailsLoading(true);
       setError("");
@@ -46,8 +58,12 @@ function AccountOrders() {
     } finally {
       setDetailsLoading(false);
     }
-  };
-
+  }, []);
+  useEffect(() => {
+    if (initialOrderId) {
+      viewOrder(initialOrderId);
+    }
+  }, [initialOrderId, viewOrder]);
   const closeOrderDetails = () => {
     setSelectedOrder(null);
   };
@@ -201,7 +217,12 @@ function AccountOrders() {
           <h2>Order Information</h2>
 
           <p>
-            <strong>Status:</strong> {formatStatus(selectedOrder.status)}
+            <strong>Status:</strong>{" "}
+            <span
+              className={`account-status account-status--${selectedOrder.status}`}
+            >
+              {formatStatus(selectedOrder.status)}
+            </span>
           </p>
 
           <p>
@@ -212,7 +233,7 @@ function AccountOrders() {
           </p>
 
           <p>
-            <strong>Total:</strong> {formatAmount(selectedOrder.total_amount)}
+            <strong>Total:</strong> {formatAmount(selectedOrder.total)}
           </p>
         </div>
 
@@ -250,11 +271,28 @@ function AccountOrders() {
         <p>View and track your orders.</p>
       </div>
 
+      <div className="account-orders-search">
+        <input
+          type="text"
+          value={searchOrderId}
+          onChange={(event) => {
+            setSearchOrderId(event.target.value);
+            setCurrentPage(1);
+          }}
+          placeholder="Search by order ID..."
+          aria-label="Search orders by order ID"
+        />
+      </div>
+
       {error && <p>{error}</p>}
 
       {orders.length === 0 ? (
         <div className="account-empty-state">
           <p>You have not placed any orders yet.</p>
+        </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="account-empty-state">
+          <p>No orders found matching "{searchOrderId}".</p>
         </div>
       ) : (
         <div className="account-orders-table-wrapper">
@@ -270,15 +308,21 @@ function AccountOrders() {
             </thead>
 
             <tbody>
-              {orders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.order_number}</td>
+                  <td>#{order.order_number}</td>
 
                   <td>{formatDate(order.created_at)}</td>
 
-                  <td>{formatAmount(order.total_amount)}</td>
+                  <td>{formatAmount(order.total)}</td>
 
-                  <td>{formatStatus(order.status)}</td>
+                  <td>
+                    <span
+                      className={`account-status account-status--${order.status}`}
+                    >
+                      {formatStatus(order.status)}
+                    </span>
+                  </td>
 
                   <td>
                     <button
@@ -293,6 +337,31 @@ function AccountOrders() {
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="account-pagination">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => page - 1)}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+              >
+                &lt;
+              </button>
+
+              <span>
+                {currentPage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => page + 1)}
+                disabled={currentPage === totalPages}
+                aria-label="Next page"
+              >
+                &gt;
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>

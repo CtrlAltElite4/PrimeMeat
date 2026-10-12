@@ -3,11 +3,7 @@ import { Link } from "react-router-dom";
 import {
   FiBell,
   FiChevronDown,
-  FiClipboard,
-  FiHome,
-  FiLock,
   FiLogOut,
-  FiMapPin,
   FiMenu,
   FiUser,
 } from "react-icons/fi";
@@ -28,18 +24,36 @@ function AccountPage({
   openAddAddress = false,
 }) {
   const [activeSection, setActiveSection] = useState(initialSection);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleSectionChange = (section) => {
+  const handleSectionChange = (section, orderId = null) => {
     setActiveSection(section);
     setSidebarOpen(false);
+    setMenuOpen(false);
+
+    if (section === "orders") {
+      setSelectedOrderId(orderId);
+    }
+  };
+
+  const handleLogout = () => {
+    setMenuOpen(false);
+
+    if (typeof onLogout === "function") {
+      onLogout();
+    } else {
+      console.error(
+        "Logout handler is missing. Pass onLogout from the parent component.",
+      );
+    }
   };
 
   const renderSection = () => {
     switch (activeSection) {
       case "orders":
-        return <AccountOrders />;
+        return <AccountOrders initialOrderId={selectedOrderId} />;
 
       case "profile":
         return <AccountProfile user={user} onUserUpdate={onUserUpdate} />;
@@ -54,8 +68,10 @@ function AccountPage({
         return (
           <section className="account-section">
             <div className="account-section-header">
-              <h1>Notifications</h1>
-              <p>Manage your account notifications.</p>
+              <div>
+                <h1>Notifications</h1>
+                <p>Manage your account notifications.</p>
+              </div>
             </div>
           </section>
         );
@@ -68,7 +84,6 @@ function AccountPage({
 
   return (
     <div className="account-page">
-      {/* Top navbar */}
       <header className="account-top">
         <button
           type="button"
@@ -80,7 +95,11 @@ function AccountPage({
           <FiMenu />
         </button>
 
-        <Link to="/" className="account-top__logo"></Link>
+        <Link
+          to="/"
+          className="account-top__logo"
+          aria-label="PrimeMeat home"
+        />
 
         <p className="account-top__title">My Account</p>
 
@@ -106,7 +125,9 @@ function AccountPage({
                 <FiUser />
               </span>
 
-              <span className="account-user__name">{user?.name}</span>
+              <span className="account-user__name">
+                {user?.name || "My Account"}
+              </span>
 
               <FiChevronDown />
             </button>
@@ -117,19 +138,16 @@ function AccountPage({
                   View shop
                 </Link>
 
-                {onLogout && (
-                  <button type="button" role="menuitem" onClick={onLogout}>
-                    <FiLogOut />
-                    Sign out
-                  </button>
-                )}
+                <button type="button" role="menuitem" onClick={handleLogout}>
+                  <FiLogOut />
+                  Sign out
+                </button>
               </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Account body */}
       <div className="account-body">
         <AccountSidebar
           user={user}

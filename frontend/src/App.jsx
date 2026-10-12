@@ -191,6 +191,7 @@ function App() {
                 <AccountPage
                   user={user}
                   onUserUpdate={setUser}
+                  onLogout={logout}
                   initialSection="addresses"
                   openAddAddress
                 />
@@ -208,7 +209,11 @@ function App() {
                 user.is_admin ? (
                   <Navigate to="/admin" replace />
                 ) : (
-                  <AccountPage user={user} onUserUpdate={setUser} />
+                  <AccountPage
+                    user={user}
+                    onUserUpdate={setUser}
+                    onLogout={logout}
+                  />
                 )
               ) : (
                 <Navigate to="/login" replace />
