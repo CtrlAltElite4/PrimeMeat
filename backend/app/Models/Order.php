@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     public const FULFILLMENT_DELIVERY = 'delivery';
+
     public const FULFILLMENT_COLLECTION = 'collection';
 
     public const FULFILLMENT_TYPES = [
@@ -17,11 +18,17 @@ class Order extends Model
     ];
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_READY_FOR_COLLECTION = 'ready_for_collection';
+
     public const STATUS_OUT_FOR_DELIVERY = 'out_for_delivery';
+
     public const STATUS_COLLECTED = 'collected';
+
     public const STATUS_DELIVERED = 'delivered';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
