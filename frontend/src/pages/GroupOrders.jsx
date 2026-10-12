@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
@@ -55,8 +55,43 @@ function GroupOrders() {
     postalCode: "",
     instructions: "",
   });
-
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchSavedAddresses = async () => {
+      try {
+        const { data } = await api.get("/api/addresses");
+
+        const addresses = data.addresses || [];
+
+        setSavedAddresses(addresses);
+
+        const defaultAddress = addresses.find((address) => address.is_default);
+
+        if (defaultAddress) {
+          setSelectedAddressId(String(defaultAddress.id));
+
+          setDeliveryAddress((current) => ({
+            ...current,
+            addressLine1: defaultAddress.address_line_1 || "",
+            addressLine2: defaultAddress.address_line_2 || "",
+            city: defaultAddress.city || "",
+            province: defaultAddress.province || "",
+            postalCode: defaultAddress.postal_code || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load saved addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, []);
 
   const selectedRange = WEIGHT_RANGES.find(
     (range) => range.id === selectedWeightRange,
@@ -98,7 +133,41 @@ function GroupOrders() {
       setDeliveryMemberIndex(0);
     }
   };
+  const handleSavedAddressChange = (event) => {
+    const addressId = event.target.value;
 
+    setSelectedAddressId(addressId);
+
+    if (!addressId) {
+      setDeliveryAddress((current) => ({
+        ...current,
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        province: "",
+        postalCode: "",
+      }));
+
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find(
+      (address) => String(address.id) === addressId,
+    );
+
+    if (!selectedAddress) {
+      return;
+    }
+
+    setDeliveryAddress((current) => ({
+      ...current,
+      addressLine1: selectedAddress.address_line_1 || "",
+      addressLine2: selectedAddress.address_line_2 || "",
+      city: selectedAddress.city || "",
+      province: selectedAddress.province || "",
+      postalCode: selectedAddress.postal_code || "",
+    }));
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -393,6 +462,27 @@ function GroupOrders() {
                     `Person ${deliveryMemberIndex + 1}`}
                 </strong>
               </div>
+
+              {!loadingAddresses && savedAddresses.length > 0 && (
+                <div className="group-orders-saved-address">
+                  <label htmlFor="group-saved-address">Saved Address</label>
+
+                  <select
+                    id="group-saved-address"
+                    value={selectedAddressId}
+                    onChange={handleSavedAddressChange}
+                  >
+                    <option value="">Enter a different address</option>
+
+                    {savedAddresses.map((address) => (
+                      <option key={address.id} value={address.id}>
+                        {address.label || "Saved Address"}
+                        {address.is_default ? " — Default" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <AddressForm
                 address={deliveryAddress}

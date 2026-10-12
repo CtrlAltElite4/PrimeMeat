@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -45,7 +46,12 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::post('/group-orders/checkout', [GroupOrderController::class, 'checkout']);
     Route::get('/group-orders/{groupOrder}', [GroupOrderController::class, 'show']);
     Route::delete('/group-orders', [GroupOrderController::class, 'destroy']);
-
+    // Addresses
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::put('/addresses/{address}', [AddressController::class, 'update']);
+    Route::delete('/addresses/{address}', [AddressController::class, 'destroy']);
+    Route::put('/addresses/{address}/default', [AddressController::class, 'setDefault']);
     // Own profile
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])

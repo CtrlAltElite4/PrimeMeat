@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import {
   Link,
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -20,6 +20,8 @@ import GroupOrders from "./pages/GroupOrders";
 import GroupOrderCheckout from "./pages/GroupOrderCheckout";
 import SupportPage from "./pages/SupportPage";
 import ArticlePage from "./components/ArticlePage";
+import AccountPage from "./pages/AccountPage";
+import Checkout from "./pages/Checkout";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -28,6 +30,7 @@ import AuthPage from "./components/AuthPage";
 import PageTransitionLoader from "./components/PageTransitionLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
+import ScrollReveal from "./components/ScrollReveal";
 
 import AdminLayout from "./admin/AdminLayout";
 import Dashboard from "./admin/Dashboard";
@@ -45,7 +48,9 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const isAccountPage = location.pathname.startsWith("/account");
   // Restore an existing session on page load
   useEffect(() => {
     api
@@ -114,13 +119,12 @@ function App() {
       <BackToTop />
       <PageTransitionLoader />
 
-      <Navbar
-        user={user}
-        onLogout={logout}
-        cartCount={cartCount}
-      />
+      {!isAccountPage && (
+        <Navbar user={user} onLogout={logout} cartCount={cartCount} />
+      )}
 
       <main className="main-content">
+        <ScrollReveal />
         <Routes>
           <Route path="/" element={<Home />} />
 
@@ -131,9 +135,7 @@ function App() {
 
           <Route
             path="/products/:id"
-            element={
-              <ProductDetailPage onCartUpdated={fetchCartCount} />
-            }
+            element={<ProductDetailPage onCartUpdated={fetchCartCount} />}
           />
 
           <Route path="/about" element={<AboutPage />} />
@@ -182,6 +184,42 @@ function App() {
               )
             }
           />
+          <Route
+            path="/account/addresses/new"
+            element={
+              user ? (
+                <AccountPage
+                  user={user}
+                  onUserUpdate={setUser}
+                  onLogout={logout}
+                  initialSection="addresses"
+                  openAddAddress
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/account"
+            element={
+              user ? (
+                user.is_admin ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <AccountPage
+                    user={user}
+                    onUserUpdate={setUser}
+                    onLogout={logout}
+                  />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Routes>
       </main>
 
@@ -192,11 +230,7 @@ function App() {
 
   // The admin panel has its own top bar and sidebar.
   let admin = (
-    <AdminLayout
-      user={user}
-      onLogout={logout}
-      onUserUpdate={setUser}
-    />
+    <AdminLayout user={user} onLogout={logout} onUserUpdate={setUser} />
   );
 
   if (!user) {
