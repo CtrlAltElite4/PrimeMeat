@@ -1,9 +1,11 @@
 import {useState, useEffect, useRef} from 'react'
 import '../css/SupportPage.css'
 import {pipeline} from '@huggingface/transformers'
-import { AllMainSections, MainSubCats } from '../components/SearchData'
+//import { AllMainSections, MainSubCats } from '../components/SearchData'
 import SearchIcon from '../assets/search-icon.svg'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
+import api from '../api';
+import FaqAnswer from '../components/FaqAnswer'
 
 
 
@@ -18,6 +20,7 @@ const [load, setLoad] = useState(true);
 const [helplist, setHelpList] = useState([]);
 const [showmore, setShowMore] = useState(false);
 const [dropdownOpen, setDropDownOpen] = useState(true);
+const [sections, setSections] = useState([]);
 const searchWrapRef = useRef(null);
 const searchTimer = useRef(null);
 
@@ -25,23 +28,48 @@ const searchTimer = useRef(null);
 const extractor = useRef(null);
 const embeddingRef = useRef([]);
 
-useEffect(() => {
-    async function loadModel() {
-extractor.current = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+ useEffect(() => {
+    api.get('/api/helpfaqs').then(({ data }) => {
+      const grouped = data.reduce((acc, faq) => {
+        (acc[faq.category] ??= []).push(faq);
+        return acc;
+      }, {});
 
-const precomputed = [];
-for(const item of MainSubCats){
-    const output = await extractor.current(item.search, {
-        pooling: 'mean',
-        normalize: true
+      const built = Object.entries(grouped).map(([category, faqs]) => ({
+        Cat: category,
+        icon: null,                       
+        subCats: faqs.map((faq) => ({
+          id: String(faq.id),             
+          title: faq.title,
+          content: <FaqAnswer text = {faq.answer} />,
+          keywords: faq.keywords ?? [],
+        })),
+      }));
+
+      setSections(built);
     });
-        precomputed.push({item, vector: Array.from(output.data)});
+  }, []);
+useEffect(() => {
+    if (sections.length === 0) return;
+    async function loadModel() {
+      setLoad(true);
+      extractor.current = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      const precomputed = [];
+      for (const cat of sections) {
+        for (const sub of cat.subCats) {
+          const text = `${sub.title} ${sub.keywords.join(' ')}`;
+          const output = await extractor.current(text, {
+            pooling: 'mean',
+            normalize: true,
+          });
+          precomputed.push({ item: sub, vector: Array.from(output.data) });
+        }
+      }
+      embeddingRef.current = precomputed;
+      setLoad(false);
     }
-    embeddingRef.current =precomputed;
-    setLoad(false);
-    }
-loadModel();
-}, []);
+    loadModel();
+  }, [sections]);
 
 useEffect(()=>{
     const OutClick = (e) =>{
@@ -95,12 +123,10 @@ searchTimer.current = setTimeout(()=> runSearch(HelpValue), DropDelay)
 };
 
 const showResults = helpsearch.trim().length > 0 && helplist.length > 0 && dropdownOpen;
-const tiles = showmore ? AllMainSections : AllMainSections.slice(0, HelpCards);
+const tiles = showmore ? sections : sections.slice(0, HelpCards);
     
     return (
 <>
-
-
 <section className ="MidSupport">
 <div className ="SupportHeroContent">
     <div className ="MidTitle">
@@ -140,7 +166,6 @@ className = "HelpDropDownItem">
     {tiles.map((cat) => (
         <section key = {cat.Cat} className = "HelpHeaderandList">
             <h2 className = "TileHeader">
-                {cat.icon}
                 {cat.Cat}
                 </h2>
             <ul className =" CardList">
@@ -156,7 +181,7 @@ className = "HelpDropDownItem">
         </section>
     ))}
     </div>
-    {AllMainSections.length > HelpCards && (
+    {sections.length > HelpCards && (
         <button className ="MoreTopics" onClick={()=> setShowMore((v) =>
                !v)}>
                 {showmore ? 'Show Less' : 'Show More'}
@@ -170,6 +195,8 @@ className = "HelpDropDownItem">
     );
 
 }
+
+
 
 
 

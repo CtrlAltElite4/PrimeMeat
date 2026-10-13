@@ -14,7 +14,8 @@ import Products from "./pages/Products";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
   import SupportPage from "./pages/SupportPage";
-   import ArticlePage from "./components/ArticlePage";
+
+ import ArticlePage from "./components/ArticlePage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import Cart from "./pages/Cart";
 import GroupOrders from "./pages/GroupOrders";
@@ -32,6 +33,7 @@ import AdminLayout from "./admin/AdminLayout";
 import Dashboard from "./admin/Dashboard";
 import Orders from "./admin/Orders";
 import Payments from "./admin/Payments";
+import AdminHelpFaqPage from "./admin/AdminHelpFaqPage";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
@@ -137,6 +139,7 @@ function App() {
           />
 
           <Route path="/about" element={<AboutPage />} />
+           
               <Route path="/Support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
            <Route path = "/article/:id" element = {<ArticlePage />} />
@@ -204,6 +207,7 @@ function App() {
       <Route path="/admin" element={admin}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<AdminProducts />} />
+         <Route path ="helpfaqs" element ={<AdminHelpFaqPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />

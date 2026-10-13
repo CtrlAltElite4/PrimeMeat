@@ -11,6 +11,7 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\CutOptionController;
 use App\Http\Controllers\GroupOrderController;
 use App\Http\Controllers\MailerController;
+use App\Http\Controllers\HelpfaqController;
 use App\Http\Controllers\OrderController as CustomerOrderController;
 use App\Http\Controllers\ProductController as CustomerProductController;
 use App\Http\Controllers\ProfileController;
@@ -61,6 +62,18 @@ Route::get('/products/{product}', [CustomerProductController::class, 'show']);
 
 // Contact
 Route::post('/contact', [MailerController::class, 'send']);
+
+//HelpCenter FAQs Accessed only by admin
+Route::get('/helpfaqs', [HelpfaqController::class, 'index']);
+Route::middleware(['auth:sanctum',
+'admin'
+])
+->prefix('admin')->group(function(){
+Route::post('/helpfaqs',[HelpfaqController::class, 'store']);
+Route::put('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'update']);
+Route::delete('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'destroy']);
+});
+
 
 // Chatbot
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask']);
