@@ -17,6 +17,8 @@ use App\Http\Controllers\ProductController as CustomerProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\NotificationPreferenceController;
 
 // 5 attempts per minute per IP to slow down brute forcing / spam signups
 Route::middleware('throttle:5,1')->group(function () {
@@ -88,6 +90,13 @@ Route::middleware([
         ->whereNumber('order');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
         ->whereNumber('order');
+    Route::get('/notification-preferences', [NotificationPreferenceController::class, 'show']);
+    Route::put('/notification-preferences', [NotificationPreferenceController::class, 'update']);
+    Route::get('/faqs', [FaqController::class, 'index']);
+    Route::get('/faqs/stats', [FaqController::class, 'stats']);
+    Route::post('/faqs', [FaqController::class, 'store']);
+    Route::put('/faqs/{faq}', [FaqController::class, 'update'])->whereNumber('faq');
+    Route::delete('/faqs/{faq}', [FaqController::class, 'destroy'])->whereNumber('faq');
 
     // Payments
     Route::get('/payments', [PaymentController::class, 'index']);

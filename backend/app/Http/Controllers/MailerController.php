@@ -18,8 +18,8 @@ class MailerController extends Controller
         ]);
         try {
             Mail::send([], [], function ($mail) use ($request) {
-                $mail->to('tdbackup.letsoalo@gmail.com')
-                    ->from('tdbackup.letsoalo@gmail.com', 'PrimeMeat')
+                $mail->to('khutsomoabelo1@gmail.com')
+                    ->from('khutsomoabelo1@gmail.com', 'PrimeMeat')
                     ->replyTo($request->email, $request->fName.' '.$request->lName)
                     ->subject('Contact Form - '.$request->fName.' '.$request->lName)
                     ->html("<h2>New message from {$request->fName} {$request->lName}</h2>
