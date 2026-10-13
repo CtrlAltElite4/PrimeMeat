@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import {
   FiBell, FiBox, FiChevronDown, FiCreditCard, FiHome, FiLogOut, FiMenu,
-  FiMessageCircle, FiSettings, FiShoppingCart, FiUser, FiUsers,
+  FiMessageCircle, FiSettings, FiShoppingCart, FiUser, FiUsers, FiHelpCircle
 } from 'react-icons/fi';
 import api from '../api';
 import './admin.css';
@@ -13,8 +13,10 @@ const NAV = [
   { to: '/admin/orders', label: 'Orders', icon: FiShoppingCart },
   { to: '/admin/payments', label: 'Payments log', icon: FiCreditCard },
   { to: '/admin/users', label: 'Users', icon: FiUsers },
+  { to:  '/admin/helpfaqs', label: 'Help Center', icon: FiHelpCircle},
   { to: '/admin/chatbot', label: 'Chatbot content', icon: FiMessageCircle },
   { to: '/admin/settings', label: 'Settings', icon: FiSettings },
+  
 ];
 
 export default function AdminLayout({ user: initialUser, onLogout, onUserUpdate }) {
