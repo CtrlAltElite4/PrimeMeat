@@ -25,27 +25,14 @@ class AdminNotificationServiceProvider extends ServiceProvider
             return;
         }
 
-        // New orders
-        Order::created(function (Order $order) {
-            $id = $order->id;
-            AdminNotifier::send('new_orders', function () use ($id) {
-                $order = Order::with(['user:id,name', 'items'])->find($id);
-
-                return $order ? new AdminAlert(
-                    'New order '.$order->order_number,
-                    [
-                        ($order->user?->name ?? 'A customer').' placed order '.$order->order_number.'.',
-                        'Items: '.$order->items->count().' · Total: R'.number_format(self::orderTotal($order), 2),
-                    ],
-                    'View orders',
-                    '/admin/orders',
-                ) : null;
-            });
-        });
-
-        // Payment updates: a new payment, or a payment's status changing
-        $paymentAlert = function (Payment $payment) {
+        // Payments: email on every status change; a completed payment is also a new (paid) order.
+        // Nothing is sent when checkout starts, so unpaid/abandoned checkouts don't email anyone.
+        Payment::updated(function (Payment $payment) {
+            if (! $payment->wasChanged('status')) {
+                return;
+            }
             $id = $payment->id;
+
             AdminNotifier::send('payment_updates', function () use ($id) {
                 $payment = Payment::with('order:id,order_number')->find($id);
 
@@ -59,9 +46,25 @@ class AdminNotificationServiceProvider extends ServiceProvider
                     '/admin/payments',
                 ) : null;
             });
-        };
-        Payment::created($paymentAlert);
-        Payment::updated(fn (Payment $payment) => $payment->wasChanged('status') ? $paymentAlert($payment) : null);
+
+            if ($payment->status === Payment::STATUS_COMPLETED) {
+                $orderId = $payment->order_id;
+                AdminNotifier::send('new_orders', function () use ($orderId) {
+                    $order = Order::with(['user:id,name', 'items'])->find($orderId);
+
+                    return $order ? new AdminAlert(
+                        'New paid order '.$order->order_number,
+                        [
+                            ($order->user?->name ?? 'A customer').' paid for order '.$order->order_number.'.',
+                            'Items: '.$order->items->count().' · Total: R'.number_format(self::orderTotal($order), 2)
+                                .' · '.ucfirst((string) $order->fulfillment_type),
+                        ],
+                        'View orders',
+                        '/admin/orders',
+                    ) : null;
+                });
+            }
+        });
 
         // New user registrations
         User::created(function (User $user) {

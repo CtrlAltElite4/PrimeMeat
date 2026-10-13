@@ -19,6 +19,7 @@ use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\NotificationPreferenceController;
+use App\Http\Controllers\PayFastController;
 
 // 5 attempts per minute per IP to slow down brute forcing / spam signups
 Route::middleware('throttle:5,1')->group(function () {
@@ -30,6 +31,10 @@ Route::middleware('throttle:5,1')->group(function () {
 Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/checkout/payfast', [PayFastController::class, 'start']);
+    Route::get('/checkout/payments/{paymentNumber}', [PayFastController::class, 'status']);
+    Route::post('/checkout/payments/{paymentNumber}/cancel', [PayFastController::class, 'cancel']);
+
 
     // Cart
     Route::get('/cart', [CartController::class, 'index']);
@@ -42,6 +47,11 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::post('/orders', [CustomerOrderController::class, 'store']);
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
+           
+    // PayFast checkout
+       Route::post('/checkout/payfast', [PayFastController::class, 'start']);
+       Route::get('/checkout/payments/{paymentNumber}', [PayFastController::class, 'status']);
+       Route::post('/checkout/payments/{paymentNumber}/cancel', [PayFastController::class, 'cancel']);
 
     // Group orders
     Route::post('/group-orders', [GroupOrderController::class, 'store']);
@@ -72,6 +82,12 @@ Route::post('/contact', [MailerController::class, 'send']);
 
 // Chatbot
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask']);
+
+// PayFast payment notifications (ITN). Called by PayFast's server
+   Route::post('/payfast/notify', [PayFastController::class, 'notify'])->middleware('throttle:60,1');
+
+// PayFast payment notifications (ITN). Called by PayFast's server, checked in PayFastController
+Route::post('/payfast/notify', [PayFastController::class, 'notify'])->middleware('throttle:60,1');
 
 // Admin panel: must be logged in, not suspended, AND an admin
 Route::middleware([

@@ -11,6 +11,8 @@ function Checkout() {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
 
   const deliveryMethod = location.state?.deliveryMethod || "delivery";
 
@@ -55,6 +57,48 @@ function Checkout() {
         0,
       ) + Number(cart.group_order?.price || 0)
     : 0;
+
+  // Ask Laravel for a signed PayFast form, then send the customer to PayFast with it.
+  // The amount is worked out on the server from the database, never taken from this page.
+  const startPayment = async () => {
+    setPaying(true);
+    setPayError("");
+
+    try {
+      const { data } = await api.post("/api/checkout/payfast", {
+        fulfillment_type: deliveryMethod,
+        address_line_1: deliveryAddress.addressLine1,
+        address_line_2: deliveryAddress.addressLine2,
+        city: deliveryAddress.city,
+        province: deliveryAddress.province,
+        postal_code: deliveryAddress.postalCode,
+        instructions: deliveryAddress.instructions,
+      });
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.url;
+
+      Object.entries(data.fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (requestError) {
+      const fieldErrors = requestError.response?.data?.errors;
+      setPayError(
+        (fieldErrors && Object.values(fieldErrors)[0]?.[0]) ||
+          requestError.response?.data?.message ||
+          "Couldn't start the payment. Please try again.",
+      );
+      setPaying(false);
+    }
+  };
 
   const getItemCuts = (item) => {
     if (item.cut_type !== "custom" || !item.cut_selections) {
@@ -291,18 +335,19 @@ function Checkout() {
           <button
             type="button"
             className="group-order-checkout-payment"
-            onClick={() =>
-              setError(
-                "Payment has not been connected yet. Your order has not been submitted.",
-              )
-            }
+            onClick={startPayment}
+            disabled={paying}
           >
-            Continue to Payment
+            {paying ? "Taking you to PayFast…" : "Pay with PayFast"}
           </button>
 
-          {error && (
-            <p role="alert" className="group-order-checkout-error">
-              {error}
+          <p className="group-order-checkout-secure">
+            You'll be taken to PayFast to pay securely. PrimeMeat never sees your card details.
+          </p>
+
+          {payError && (
+            <p role="alert" style={{ color: "#ffd2d2", maxWidth: 260, margin: 0 }}>
+              {payError}
             </p>
           )}
 
@@ -320,3 +365,4 @@ function Checkout() {
 }
 
 export default Checkout;
+
