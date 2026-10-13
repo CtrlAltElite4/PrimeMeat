@@ -10,14 +10,32 @@ function SearchBar() {
   const handleSearch = (event) => {
     event.preventDefault();
 
-    const searchTerm = search.trim();
+    const searchTerm = search.trim().toLowerCase();
 
     if (!searchTerm) {
       navigate("/products");
       return;
     }
 
-    navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+    const groupPurchaseTerms = [
+      "group purchase",
+      "group purchases",
+      "group order",
+      "group orders",
+      "group buying",
+      "group",
+    ];
+
+    const isGroupPurchase = groupPurchaseTerms.some((term) =>
+      searchTerm.includes(term),
+    );
+
+    if (isGroupPurchase) {
+      navigate("/group-orders");
+      return;
+    }
+
+    navigate(`/products?search=${encodeURIComponent(search.trim())}`);
   };
 
   return (

@@ -79,6 +79,7 @@ function Navbar({ user, onLogout, cartCount }) {
               </NavLink>
             ) : (
               <NavLink to="/login" className="navbar-action navbar-login">
+                <User className="navbar-action-icon" />
                 Login
               </NavLink>
             )}
