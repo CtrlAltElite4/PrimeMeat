@@ -40,6 +40,7 @@ import Payments from "./admin/Payments";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
+import CheckoutResult from "./pages/CheckoutResult";
 
 import "./App.css";
 
@@ -201,6 +202,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/checkout/success"
+            element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />}
+          />
+          <Route
+            path="/checkout/cancelled"
+            element={<CheckoutResult outcome="cancelled" onCartUpdated={fetchCartCount} />}
+          />
+
           <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/account"
@@ -220,6 +230,8 @@ function App() {
               )
             }
           />
+          <Route path="/checkout/success" element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />} />
+          <Route path="/checkout/cancelled" element={<CheckoutResult outcome="cancelled" />} />
         </Routes>
       </main>
 
