@@ -33,13 +33,13 @@ import BackToTop from "./components/BackToTop";
 import ScrollReveal from "./components/ScrollReveal";
 
 import AdminLayout from "./admin/AdminLayout";
+import ChatbotContent from "./admin/ChatbotContent";
 import Dashboard from "./admin/Dashboard";
 import Orders from "./admin/Orders";
 import Payments from "./admin/Payments";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
-import ComingSoon from "./admin/ComingSoon";
 
 import "./App.css";
 
@@ -247,10 +247,7 @@ function App() {
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />
-        <Route
-          path="chatbot"
-          element={<ComingSoon title="Chatbot content" />}
-        />
+        <Route path="chatbot" element={<ChatbotContent />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

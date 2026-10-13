@@ -1,6 +1,5 @@
 import {useState, useEffect, useRef} from 'react'
 import '../css/SupportPage.css'
-import {pipeline} from '@huggingface/transformers'
 import { AllMainSections, MainSubCats } from '../components/SearchData'
 import SearchIcon from '../assets/search-icon.svg'
 import { Link } from 'react-router'
@@ -26,8 +25,10 @@ const extractor = useRef(null);
 const embeddingRef = useRef([]);
 
 useEffect(() => {
-    async function loadModel() {
-extractor.current = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        async function loadModel() {
+      const { pipeline } = await import('@huggingface/transformers');
+      extractor.current = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+
 
 const precomputed = [];
 for(const item of MainSubCats){
