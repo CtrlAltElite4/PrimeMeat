@@ -231,6 +231,7 @@ footer {
     border-right-color: var(--border);
   }
 }
+
 /* === Scroll Reveal Animation === */
 .scroll-reveal {
   opacity: 0;

@@ -18,6 +18,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import Cart from "./pages/Cart";
 import GroupOrders from "./pages/GroupOrders";
 import GroupOrderCheckout from "./pages/GroupOrderCheckout";
+
 import SupportPage from "./pages/SupportPage";
 import ArticlePage from "./components/ArticlePage";
 import AccountPage from "./pages/AccountPage";
@@ -37,6 +38,7 @@ import ChatbotContent from "./admin/ChatbotContent";
 import Dashboard from "./admin/Dashboard";
 import Orders from "./admin/Orders";
 import Payments from "./admin/Payments";
+import AdminHelpFaqPage from "./admin/AdminHelpFaqPage";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
@@ -86,6 +88,7 @@ function App() {
 
   useEffect(() => {
     if (!checking) {
+      //eslint-disable-next-line react-hooks/set-state-in-effect
       fetchCartCount();
     }
   }, [user, checking]);
@@ -140,15 +143,10 @@ function App() {
           />
 
           <Route path="/about" element={<AboutPage />} />
-
+           
+              <Route path="/Support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
-
-          <Route path="/contactpage" element={<ContactPage />} />
-
-          <Route path="/support" element={<SupportPage />} />
-
-          <Route path="/article/:id" element={<ArticlePage />} />
-
+           <Route path = "/article/:id" element = {<ArticlePage />} />
           <Route path="/group-orders" element={<GroupOrders />} />
 
           <Route
@@ -256,6 +254,7 @@ function App() {
       <Route path="/admin" element={admin}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<AdminProducts />} />
+         <Route path ="helpfaqs" element ={<AdminHelpFaqPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />
