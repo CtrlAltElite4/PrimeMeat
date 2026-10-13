@@ -2,6 +2,7 @@ import ContactSuccess from '../assets/ContactSucImage3.png';
 import {useState} from 'react';
 import '../css/ContactPage.css'
 import '../css/AboutPage.css'
+import api from '../api';
 
 function ContactForm(){
 const [submit, setSubmit] = useState({
@@ -23,19 +24,16 @@ setStatus('Sending');
 
 
 try {
-            const response = await fetch('http://localhost:8000/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(submit)
-            });
+    // Get the CSRF cookie first (same as the login page), then send
+    await api.get('/sanctum/csrf-cookie');
+    const { data: result } = await api.post('/api/contact', submit);
 
-            const result = await response.json();
-if(result.success){
-                setStatus('sent');
-                setSubmit({ fName: '', lName: '', email: '', message: '' });
-            } else {
-                setStatus('error');
-            }
+    if (result.success) {
+        setStatus('sent');
+        setSubmit({ fName: '', lName: '', email: '', message: '' });
+    } else {
+        setStatus('error');
+    }
         } catch
          {
             setStatus('error');

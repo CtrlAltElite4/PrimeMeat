@@ -45,7 +45,7 @@ const Footer = () => {
 
           <ul>
             <li>
-              <NavLink to="/faq">FAQ</NavLink>
+              <NavLink to="/support">FAQ</NavLink>
             </li>
 
             <li>

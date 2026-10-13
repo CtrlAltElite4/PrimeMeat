@@ -19,7 +19,7 @@ class ChatbotController extends Controller
         $userQuestion = trim($request->input('question'));
 
         $messages = $request->input('messages', []);
-        $messages = array_slice($messages, -10);
+        $messages = array_slice($messages, -6); // Keep only the last 6 messages for context
 
         $faqs = Faq::all();
 
@@ -804,7 +804,7 @@ PROMPT;
             'content' => $userQuestion,
         ];
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(60)
             ->withToken(
                 config('services.openrouter.api_key')
             )
@@ -839,6 +839,12 @@ PROMPT;
                 'response' => $data,
             ], 500);
         }
+
+        $answer = preg_replace(
+            '/User Safety:\s*safe\s*Response Safety:\s*safe\s*/i',
+            '',
+            $answer
+        );
 
         return response()->json([
             'answer' => trim($answer),

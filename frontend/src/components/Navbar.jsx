@@ -68,15 +68,20 @@ function Navbar({ user, onLogout, cartCount }) {
               <Search className="navbar-action-icon" />
               <span className="navbar-action-label">Search</span>
             </button>
-
-            <NavLink
-              className="navbar-action navbar-account"
-              to="/login"
-              aria-label="Account"
-            >
-              <User className="navbar-action-icon" />
-              <span className="navbar-action-label">Account</span>
-            </NavLink>
+            {user ? (
+              <NavLink
+                className="navbar-action navbar-account"
+                to="/account"
+                aria-label="Account"
+              >
+                <User className="navbar-action-icon" />
+                <span className="navbar-action-label">Account</span>
+              </NavLink>
+            ) : (
+              <NavLink to="/login" className="navbar-action navbar-login">
+                Login
+              </NavLink>
+            )}
 
             <NavLink
               className="navbar-action navbar-cart"
@@ -89,7 +94,6 @@ function Navbar({ user, onLogout, cartCount }) {
                 <span className="navbar-cart-count">{cartCount}</span>
               )}
             </NavLink>
-
             {user && (
               <div className="navbar-user">
                 <span className="navbar-user-name">{user.name}</span>
@@ -187,7 +191,8 @@ function Navbar({ user, onLogout, cartCount }) {
 
             <NavLink
               className="navbar-mobile-action"
-              to="/login"
+              to={user ? "/account" : "/login"}
+              aria-label="Account"
               onClick={() => setMenuOpen(false)}
             >
               <User />

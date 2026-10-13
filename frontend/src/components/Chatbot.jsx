@@ -98,108 +98,110 @@ function Chatbot() {
 
   return (
     <div className="chatbot">
-      {isOpen && (
-        <aside className="chatbot-sidebar">
-          <div className="chatbot-header">
-            <div className="chatbot-header-content">
-              <h2 className="chatbot-title">PrimeMeat Assistant</h2>
+      <aside
+        className={`chatbot-sidebar ${isOpen ? "chatbot-sidebar-open" : ""}`}
+      >
+        <div className="chatbot-header">
+          <div className="chatbot-header-content">
+            <h2 className="chatbot-title">PrimeMeat Assistant</h2>
 
-              <p className="chatbot-status">Online</p>
-            </div>
-
-            <button
-              className="chatbot-close-button"
-              type="button"
-              onClick={() => setIsOpen(false)}
-              aria-label="Close chatbot"
-            >
-              ×
-            </button>
+            <p className="chatbot-status">Online</p>
           </div>
 
-          <div className="chatbot-messages">
-            {messages.length === 0 && (
-              <div className="chatbot-welcome-message">
-                <p>Hello! How can I help you with PrimeMeat?</p>
+          <button
+            className="chatbot-close-button"
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close chatbot"
+          >
+            ×
+          </button>
+        </div>
 
-                <p>
-                  Ask me about our products, ordering process, delivery or other
-                  PrimeMeat information.
-                </p>
-              </div>
-            )}
+        <div className="chatbot-messages">
+          {messages.length === 0 && (
+            <div className="chatbot-welcome-message">
+              <p>Hello! How can I help you with PrimeMeat?</p>
 
-            {messages.map((message, index) => (
+              <p>
+                Ask me about our products, ordering process, delivery or other
+                PrimeMeat information.
+              </p>
+            </div>
+          )}
+
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`chatbot-message-row ${
+                message.sender === "user"
+                  ? "chatbot-message-row-user"
+                  : "chatbot-message-row-bot"
+              }`}
+            >
               <div
-                key={index}
-                className={`chatbot-message-row ${
+                className={`chatbot-message ${
                   message.sender === "user"
-                    ? "chatbot-message-row-user"
-                    : "chatbot-message-row-bot"
+                    ? "chatbot-message-user"
+                    : "chatbot-message-bot"
                 }`}
               >
-                <div
-                  className={`chatbot-message ${
-                    message.sender === "user"
-                      ? "chatbot-message-user"
-                      : "chatbot-message-bot"
-                  }`}
-                >
-                  {message.sender === "user" ? (
-                    message.text
-                  ) : (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {message.text}
-                    </ReactMarkdown>
-                  )}
-                </div>
+                {message.sender === "user" ? (
+                  message.text
+                ) : (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.text}
+                  </ReactMarkdown>
+                )}
               </div>
-            ))}
+            </div>
+          ))}
 
-            {loading && (
-              <div className="chatbot-message-row chatbot-message-row-bot">
-                <div className="chatbot-message chatbot-message-bot">
-                  {loadingText}
-                </div>
+          {loading && (
+            <div className="chatbot-message-row chatbot-message-row-bot">
+              <div className="chatbot-message chatbot-message-bot">
+                {loadingText}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          <div className="chatbot-input-container">
-            <input
-              className="chatbot-input"
-              type="text"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask a question..."
-              disabled={loading}
-            />
+        <div className="chatbot-input-container">
+          <input
+            className="chatbot-input"
+            type="text"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask a question..."
+            disabled={loading}
+          />
 
-            <button
-              className="chatbot-send-button"
-              type="button"
-              onClick={askQuestion}
-              disabled={loading}
-            >
-              {loading ? "..." : "Ask"}
-            </button>
-          </div>
-        </aside>
-      )}
-
-      <button
-        className="chatbot-bubble"
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Close chatbot" : "Open chatbot"}
-      >
-        {isOpen ? (
-          "×"
-        ) : (
-          <img src="/images/bubble.png" alt="Open PrimeMeat chatbot" />
-        )}
-      </button>
+          <button
+            className="chatbot-send-button"
+            type="button"
+            onClick={askQuestion}
+            disabled={loading}
+          >
+            {loading ? "..." : "Ask"}
+          </button>
+        </div>
+      </aside>
+      <div className="chatbot-bubble-container">
+        {!isOpen && <div className="chatbot-prompt">Ask BUTCHER</div>}
+        <button
+          className="chatbot-bubble"
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? "Close chatbot" : "Open chatbot"}
+        >
+          {isOpen ? (
+            "×"
+          ) : (
+            <img src="/images/bubble.png" alt="Open PrimeMeat chatbot" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }

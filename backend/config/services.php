@@ -17,6 +17,16 @@ return [
         'api_key' => env('OPENROUTER_API_KEY'),
     ],
 
+        'payfast' => [
+        'merchant_id' => env('PAYFAST_MERCHANT_ID'),
+        'merchant_key' => env('PAYFAST_MERCHANT_KEY'),
+        'passphrase' => env('PAYFAST_PASSPHRASE'),
+        'sandbox' => env('PAYFAST_SANDBOX', true),
+        'notify_url' => env('PAYFAST_NOTIFY_URL'),
+        'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+        'trust_forwarded_ip' => env('PAYFAST_TRUST_FORWARDED_IP', false),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

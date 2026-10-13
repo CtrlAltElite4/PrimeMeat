@@ -527,3 +527,56 @@
     justify-content: space-between;
   }
 }
+/* Saved delivery address selector */
+.cart-saved-address {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 18px 0;
+  width: 100%;
+}
+
+.cart-saved-address label {
+  display: block;
+  color: #161616;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.cart-saved-address select {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 42px 12px 15px;
+  border: 1px solid #c8c0b0;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #161616;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cart-saved-address select:hover {
+  border-color: #938f6f;
+}
+
+.cart-saved-address select:focus {
+  outline: none;
+  border-color: #710014;
+  box-shadow: 0 0 0 3px rgba(113, 0, 20, 0.12);
+}
+
+.cart-saved-address select option {
+  padding: 10px;
+  background-color: #ffffff;
+  color: #161616;
+}
+
+.cart-saved-address select option:checked {
+  background-color: #f0ede5;
+  color: #710014;
+}

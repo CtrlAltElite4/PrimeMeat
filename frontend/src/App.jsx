@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import {
   Link,
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -14,14 +14,15 @@ import Home from "./pages/Home";
 import Products from "./pages/Products";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
-  import SupportPage from "./pages/SupportPage";
-
- import ArticlePage from "./components/ArticlePage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import Cart from "./pages/Cart";
 import GroupOrders from "./pages/GroupOrders";
 import GroupOrderCheckout from "./pages/GroupOrderCheckout";
 
+import SupportPage from "./pages/SupportPage";
+import ArticlePage from "./components/ArticlePage";
+import AccountPage from "./pages/AccountPage";
+import Checkout from "./pages/Checkout";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -30,8 +31,10 @@ import AuthPage from "./components/AuthPage";
 import PageTransitionLoader from "./components/PageTransitionLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
+import ScrollReveal from "./components/ScrollReveal";
 
 import AdminLayout from "./admin/AdminLayout";
+import ChatbotContent from "./admin/ChatbotContent";
 import Dashboard from "./admin/Dashboard";
 import Orders from "./admin/Orders";
 import Payments from "./admin/Payments";
@@ -39,7 +42,7 @@ import AdminHelpFaqPage from "./admin/AdminHelpFaqPage";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
-import ComingSoon from "./admin/ComingSoon";
+import CheckoutResult from "./pages/CheckoutResult";
 
 import "./App.css";
 
@@ -48,7 +51,9 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const isAccountPage = location.pathname.startsWith("/account");
   // Restore an existing session on page load
   useEffect(() => {
     api
@@ -118,13 +123,12 @@ function App() {
       <BackToTop />
       <PageTransitionLoader />
 
-      <Navbar
-        user={user}
-        onLogout={logout}
-        cartCount={cartCount}
-      />
+      {!isAccountPage && (
+        <Navbar user={user} onLogout={logout} cartCount={cartCount} />
+      )}
 
       <main className="main-content">
+        <ScrollReveal />
         <Routes>
           <Route path="/" element={<Home />} />
 
@@ -135,9 +139,7 @@ function App() {
 
           <Route
             path="/products/:id"
-            element={
-              <ProductDetailPage onCartUpdated={fetchCartCount} />
-            }
+            element={<ProductDetailPage onCartUpdated={fetchCartCount} />}
           />
 
           <Route path="/about" element={<AboutPage />} />
@@ -181,6 +183,53 @@ function App() {
               )
             }
           />
+          <Route
+            path="/account/addresses/new"
+            element={
+              user ? (
+                <AccountPage
+                  user={user}
+                  onUserUpdate={setUser}
+                  onLogout={logout}
+                  initialSection="addresses"
+                  openAddAddress
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/checkout/success"
+            element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />}
+          />
+          <Route
+            path="/checkout/cancelled"
+            element={<CheckoutResult outcome="cancelled" onCartUpdated={fetchCartCount} />}
+          />
+
+          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/account"
+            element={
+              user ? (
+                user.is_admin ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <AccountPage
+                    user={user}
+                    onUserUpdate={setUser}
+                    onLogout={logout}
+                  />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route path="/checkout/success" element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />} />
+          <Route path="/checkout/cancelled" element={<CheckoutResult outcome="cancelled" />} />
         </Routes>
       </main>
 
@@ -191,11 +240,7 @@ function App() {
 
   // The admin panel has its own top bar and sidebar.
   let admin = (
-    <AdminLayout
-      user={user}
-      onLogout={logout}
-      onUserUpdate={setUser}
-    />
+    <AdminLayout user={user} onLogout={logout} onUserUpdate={setUser} />
   );
 
   if (!user) {
@@ -213,10 +258,7 @@ function App() {
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />
-        <Route
-          path="chatbot"
-          element={<ComingSoon title="Chatbot content" />}
-        />
+        <Route path="chatbot" element={<ChatbotContent />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

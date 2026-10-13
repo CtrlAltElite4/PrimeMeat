@@ -374,3 +374,28 @@
     font-size: 24px;
   }
 }
+.group-order-checkout-return {
+  padding: 15px 28px;
+  border: none;
+  border-radius: 3px;
+  background-color: #ffffff;
+  color: #710014;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.group-order-checkout-return:hover {
+  background-color: #710014;
+  color: #f5f5f5;
+}
+
+.group-order-checkout-return:focus-visible {
+  outline: 3px solid #938f6f;
+  outline-offset: 3px;
+}

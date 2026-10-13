@@ -2,6 +2,7 @@ import {useState, useEffect, useRef} from 'react'
 import '../css/SupportPage.css'
 import {pipeline} from '@huggingface/transformers'
 //import { AllMainSections, MainSubCats } from '../components/SearchData'
+import { AllMainSections, MainSubCats } from '../components/SearchData'
 import SearchIcon from '../assets/search-icon.svg'
 import { Link } from 'react-router-dom'
 import api from '../api';
@@ -50,23 +51,44 @@ const embeddingRef = useRef([]);
     });
   }, []);
 useEffect(() => {
-    if (sections.length === 0) return;
-    async function loadModel() {
-      setLoad(true);
-      extractor.current = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-      const precomputed = [];
-      for (const cat of sections) {
-        for (const sub of cat.subCats) {
-          const text = `${sub.title} ${sub.keywords.join(' ')}`;
-          const output = await extractor.current(text, {
-            pooling: 'mean',
-            normalize: true,
-          });
-          precomputed.push({ item: sub, vector: Array.from(output.data) });
-        }
+
+if (sections.length === 0) return;
+
+async function loadModel() {
+  setLoad(true);
+
+  try {
+    const { pipeline } = await import('@huggingface/transformers');
+
+    extractor.current = await pipeline(
+      'feature-extraction',
+      'Xenova/all-MiniLM-L6-v2'
+    );
+
+    const precomputed = [];
+
+    for (const cat of sections) {
+      for (const sub of cat.subCats) {
+        const text = `${sub.title} ${sub.keywords.join(' ')}`;
+
+        const output = await extractor.current(text, {
+          pooling: 'mean',
+          normalize: true,
+        });
+
+        precomputed.push({
+          item: sub,
+          vector: Array.from(output.data),
+        });
       }
-      embeddingRef.current = precomputed;
-      setLoad(false);
+    }
+
+    embeddingRef.current = precomputed;
+  } finally {
+    setLoad(false);
+  }
+}
+
     }
     loadModel();
   }, [sections]);
