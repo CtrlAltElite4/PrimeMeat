@@ -1,0 +1,911 @@
+
+.SuccessFul{
+    position: absolute;
+display: flex;
+margin-left:200px;
+flex-direction: column;
+background-color: white;
+z-index: 10;
+background-color: #F2F1ED;
+margin-left: 225px;
+margin-top: 340px;
+border-radius: 10px;
+border-width: 1px;
+padding-right: 40px;
+padding-left: 20px;
+padding-top: 20px;
+background-color: rgba(0,0,0,0);
+animation: hideMe 0s ease-in 5s;
+animation-fill-mode: forwards;
+}
+
+.SuccessImage{
+width: 20px;
+height: 20px;
+
+margin-left: 85px;
+}
+
+.Sent{
+    margin-top: 2px;
+font-weight: bold;
+font-size: 19px; 
+white-space: nowrap;
+color: red;
+margin-left: 35px;
+
+/*animation: hideMe 0s ease-in 5s;
+animation-fill-mode: forwards;
+*/
+}
+
+.SuccessParagraph1{
+    white-space: nowrap;
+    color: black;
+    margin-top: -20px;
+    margin-left: 22px;
+    font-size: 12px; 
+       font-weight: bold;
+}
+
+.SuccessParagraph2{
+    white-space: nowrap;
+     color: black;
+      margin-top: -15px;
+      margin-left: 40px;
+      font-size: 12px; 
+      font-weight: bold;
+}
+
+
+@keyframes hideMe{
+to{
+     visibility: hidden;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 0
+}
+
+}
+
+
+.Error{
+    font-weight: bold;
+font-size: 20px;
+position: absolute; 
+margin-left: 275px;
+margin-top:400px;
+color: red;
+}
+
+    #ContactPhrase{
+    font-weight: normal;
+}
+
+#MapLo{
+display: flex;
+justify-content: center;
+}
+
+.Map-Contact{
+    border-top: solid;
+margin-top: 50px;
+border-width: 1px;
+border-color: #F2F1ED;
+padding-top: 50px;
+box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
+}
+
+.ContactBox{
+    background-color:#F2F1ED;
+    padding-right: 500px;
+}
+
+.ContactBoxTitle{
+   
+    margin-left: 70px;
+}
+
+#ContactPhrase{
+    margin-top:-30px;
+}
+
+.ContactInputs{
+    display: inline-flex;
+    flex-direction: column;
+  
+}
+
+
+.ContactFName{
+position: absolute;
+margin-left: 70px;
+height: 40px;
+width: 250px;
+font-size: 17px;
+}
+
+.ContactLName{
+position: absolute;
+margin-left: 370px;
+height: 40px;
+width: 250px;
+font-size: 17px;
+}
+
+.ContactEmail{
+position: absolute;
+margin-top: 100px;
+margin-left: 70px;
+width: 550px;
+height: 40px;
+z-index: 1;
+font-size: 17px;
+}
+
+.ContactMessage{
+position: absolute;
+margin-top: 200px;
+margin-left: 70px;
+width: 550px;
+height: 150px;
+align-items: center;
+justify-content: center;
+font-size: 19px;
+}
+
+
+
+.MapBack{
+background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
+padding-bottom: 200px;
+padding-left: 100px;
+padding-right: 100px;
+}
+
+
+.StoreMap{
+    
+    margin-top: 100px;
+    border: solid;
+    border-width: 1px;
+    border-radius: 5px;
+}
+
+.MapTitle{
+    color: white;
+    position: absolute;
+    margin-top: 50px;
+    margin-left: 100px;
+}
+
+#StoreDetails{
+    position: absolute;
+    color: white;
+    font-weight: normal;
+}
+
+.StoreDays{
+margin-left: 110px;
+margin-top: 50px;
+}
+
+.StoreHours{
+margin-left: 100px;
+}
+
+.StoreAddress{
+    max-width: 375px;
+margin-left: 100px;
+margin-top: 80px;
+}
+
+.Bolder{
+    font-weight: Bold;
+    font-size: 20px;
+}
+
+.SubmitMessage{
+    color: white;
+    font-weight: bold;
+    position: absolute;
+    margin-top: 440px;
+    margin-left: 200px;
+    background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
+    padding-left: 100px;
+    padding-right: 100px;
+    padding-top: 15px;
+     padding-bottom: 15px;
+     border: none;
+     border-radius: 50px;
+     transition: transform 0.2s ease-in-out;
+}
+
+.SubmitMessage:hover {
+    opacity: 0.8;
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+.WhatsAppBox{
+    border-radius: 20px;
+    margin-top: 50px;
+    margin-left: 100px;
+    border: solid;
+    border-width: 2px;
+    border-color: #F2F1ED;
+    display: inline-flex;
+    flex-direction: column;
+    padding-left: 100px;
+      padding-right: 100px;
+      padding-top: 30px;
+      padding-bottom: 30px;
+      background-color: #F2F1ED;
+    max-width: 100px;
+    box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.267);
+}
+
+.WApp{
+    margin-left: 25px;
+  width: 60px;
+    object-fit: cover;
+    border-radius: 50px;
+}
+
+.ContactTitle{
+    font-weight: black;
+    font-size: 18px;
+    white-space: nowrap;
+}
+
+.ContactDetails{
+    font-size: 13px;
+    margin-left: 10px;
+    margin-top: -10px;
+    white-space: nowrap;
+}
+
+#PApp{
+  margin-left: 2px;
+}
+
+#EApp{
+    margin-left: 23px;
+}
+
+#ETitle{
+    margin-left: 15px;
+}
+
+#PhoneContact{
+margin-left: -1px;
+}
+
+#EmailContact{
+margin-left: -25px;
+}
+
+.Contacted{
+    margin-left: 110px;
+    bottom: 0;
+    margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+
+  #MapLo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .MapBack {
+    width: 100%;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+
+  .ContactBox {
+    width: 100%;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+
+
+  .MapTitle {
+    position: relative;
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-size: 24px;
+  }
+
+  .StoreMap {
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .StoreMap iframe {
+    width: 100%;
+    max-width: 100%;
+    height: 220px;
+  }
+
+  #StoreDetails {
+    position: relative;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .StoreDays,
+  .StoreHours,
+  .StoreAddress {
+    margin: 8px 0 0 0;
+    max-width: 100%;
+    font-size: 14px;
+  }
+
+  .ContactBoxTitle {
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 22px;
+  }
+
+  .ContactInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .ContactFName,
+  .ContactLName,
+  .ContactEmail,
+  .ContactMessage {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  .ContactMessage {
+    height: 130px;
+  }
+
+  .SubmitMessage {
+    position: relative;
+    margin: 10px auto 0 auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .SuccessFul {
+    position: relative;
+    margin: 15px auto 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .Error {
+    position: relative;
+    margin: 15px auto 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+
+ 
+  .Contacted {
+    margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 25px 15px;
+  }
+
+  .WhatsAppBox {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .WApp {
+    margin: 0 0 10px 0;
+  }
+
+  .ContactTitle,
+  .ContactDetails {
+    white-space: normal;
+    margin-left: 0;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  #PApp,
+  #EApp,
+  #ETitle,
+  #PhoneContact,
+  #EmailContact {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+
+  #MapLo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .MapBack {
+    width: 100%;
+    padding: 40px 30px;
+    box-sizing: border-box;
+  }
+
+  .ContactBox {
+    width: 100%;
+    padding: 40px 30px;
+    box-sizing: border-box;
+  }
+
+
+  .MapTitle {
+    position: relative;
+    margin: 0 0 20px 0;
+    text-align: center;
+    font-size: 28px;
+  }
+
+  .StoreMap {
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .StoreMap iframe {
+    width: 100%;
+    max-width: 450px;
+    height: 280px;
+    border: none;
+  }
+
+  #StoreDetails {
+    position: relative;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    max-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .StoreDays,
+  .StoreHours,
+  .StoreAddress {
+    margin: 10px 0 0 0;
+    max-width: 100%;
+  }
+
+  .ContactBoxTitle {
+    text-align: center;
+    margin: 0 0 20px 0;
+  }
+
+  .ContactInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+
+  .ContactFName,
+  .ContactLName,
+  .ContactEmail,
+  .ContactMessage {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  .ContactMessage {
+    height: 150px;
+  }
+
+  .SubmitMessage {
+    position: relative;
+    margin: 10px auto 0 auto;
+    display: block;
+  }
+
+  .SuccessFul {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+  }
+
+  .Error {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+
+  .Contacted {
+    margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 30px 20px;
+  }
+
+  .WhatsAppBox {
+    width: 100%;
+    max-width: 300px;
+    margin: 0;
+    padding: 25px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .WApp {
+    margin: 0 0 15px 0;
+  }
+
+  .ContactTitle,
+  .ContactDetails {
+    white-space: normal;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  #PApp,
+  #EApp,
+  #ETitle,
+  #PhoneContact,
+  #EmailContact {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  #MapLo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .MapBack {
+    width: 100%;
+    max-width: 700px;
+    padding: 50px 40px;
+    box-sizing: border-box;
+  }
+
+  .ContactBox {
+    width: 100%;
+    max-width: 700px;
+    padding: 50px 40px;
+    box-sizing: border-box;
+  }
+
+  .MapTitle {
+    position: relative;
+    margin: 0 0 30px 0;
+    text-align: center;
+    font-size: 30px;
+  }
+
+  .StoreMap {
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+
+  }
+
+  .StoreMap iframe {
+    width: 618px;
+    border: none;
+    height: 300px;
+    border: none;
+  }
+
+  #StoreDetails {
+    position: relative;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .StoreDays,
+  .StoreHours,
+  .StoreAddress {
+    margin: 10px 0 0 0;
+    max-width: 100%;
+  }
+
+  .ContactBoxTitle {
+    text-align: center;
+    margin: 0 0 30px 0;
+  }
+
+  .ContactInputs {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .ContactFName,
+  .ContactLName,
+  .ContactEmail,
+  .ContactMessage {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  .ContactMessage {
+    height: 150px;
+  }
+
+  .SubmitMessage {
+    position: relative;
+    margin: 10px auto 0 auto;
+    display: block;
+  }
+
+  .SuccessFul {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+  }
+
+  .Error {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+
+ 
+  .Contacted {
+    margin-left: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 50px;
+    padding: 40px 20px;
+  }
+
+  .WhatsAppBox {
+    flex: 1 1 200px;
+    max-width: 220px;
+    width: auto;
+    margin: 0;
+    padding: 30px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .WApp {
+    margin: 0 0 15px 0;
+  }
+
+  .ContactTitle,
+  .ContactDetails {
+    white-space: normal;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  #PApp,
+  #EApp,
+  #ETitle,
+  #PhoneContact,
+  #EmailContact {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 1025px) {
+
+  #MapLo {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+  }
+
+  .MapBack {
+    flex: 1;
+    padding: 50px 60px;
+    box-sizing: border-box;
+  }
+
+  .ContactBox {
+    flex: 1;
+    padding: 50px 60px;
+    box-sizing: border-box;
+    padding-right: 60px; 
+  }
+
+ 
+  .MapTitle {
+    position: relative;
+    margin: 0 0 30px 0;
+    text-align: center;
+    font-size: 32px;
+  }
+
+  .StoreMap {
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+    border: none;
+  }
+
+  .StoreMap iframe {
+    width: 100%;
+    max-width: 400px;
+    height: 300px;
+  }
+
+  #StoreDetails {
+    position: relative;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+  }
+
+  .StoreDays,
+  .StoreHours,
+  .StoreAddress {
+    margin: 10px 0 0 0;
+    max-width: 100%;
+  }
+
+  
+  .ContactBoxTitle {
+    text-align: left;
+    margin: 0 0 30px 0;
+  }
+
+  .ContactInputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .ContactInputs label {
+    display: inline-block;
+  }
+
+  .ContactFName,
+  .ContactLName {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 40px;
+  }
+
+  .ContactEmail {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 40px;
+  }
+
+  .ContactMessage {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    height: 150px;
+  }
+
+  .ContactInputs label:last-child {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .SubmitMessage {
+    position: relative;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .SuccessFul {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+  }
+
+  .Error {
+    position: relative;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+
+
+  .Contacted {
+    margin-left: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 70px;
+    padding: 0;
+    margin-bottom: 30px;
+  }
+
+  .WhatsAppBox {
+    flex: 1;
+    max-width: 400px;
+    width: auto;
+    margin: 0;
+    padding: 40px 20px 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 70px;
+  }
+
+  .WApp {
+    margin: 0 0 15px 0;
+  }
+
+  .ContactTitle,
+  .ContactDetails {
+    white-space: normal;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  #PApp,
+  #EApp,
+  #ETitle,
+  #PhoneContact,
+  #EmailContact {
+    margin-left: 0;
+  }
+}

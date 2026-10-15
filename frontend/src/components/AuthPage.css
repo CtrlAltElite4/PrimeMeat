@@ -1,0 +1,105 @@
+/* Styles for the Sign Up / Login page only.
+   Every rule is scoped to .auth-hero or .auth so it can't affect other pages. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.auth-hero,
+.auth {
+  --auth-maroon: #6e0014;
+  --auth-maroon-dark: #55000f;
+  --auth-ink: #111;
+  --auth-bg: #c4c3bf;
+  --auth-icon: #a3a3a3;
+  --auth-danger: #9b1c1c;
+
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--auth-ink);
+}
+.auth-hero *, .auth * { box-sizing: border-box; }
+
+/* ---------- Banner ---------- */
+.auth-hero {
+  position: relative; height: 228px;
+  background: #5a1a1a url('/hero-meat.jpg') center / cover no-repeat;
+}
+.auth-hero__panel {
+  display: flex; flex-direction: column; justify-content: center;
+  width: 325px; height: 100%; padding: 0 0.8rem 1.5rem 0.7rem;
+  color: #fff;
+  background: rgba(40, 30, 30, 0.35);
+  backdrop-filter: blur(2px);
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.25);
+}
+.auth-hero__title {
+  margin: 0 0 1.4rem; font-family: inherit;
+  font-size: 1.85rem; letter-spacing: -0.01em; font-weight: 700; line-height: 1.15; color: #fff;
+}
+.auth-hero__text { margin: 0; font-size: 1.05rem; line-height: 1.2; color: #fff; }
+
+/* ---------- Form area ---------- */
+.auth { padding: 3.2rem 1rem 1.9rem; background: var(--auth-bg); }
+.auth--done { text-align: center; padding: 5rem 1rem; }
+.auth button { font: inherit; cursor: pointer; }
+.auth :focus-visible { outline: 2px solid var(--auth-maroon); outline-offset: 2px; }
+
+.auth__tabs {
+  display: flex; width: 324px; max-width: 100%; margin: 0 auto 3.4rem;
+  background: #fff; border: 1px solid var(--auth-maroon);
+  border-radius: 999px; overflow: hidden;
+}
+.auth__tab {
+  flex: 1; height: 37px; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; color: var(--auth-maroon); font-size: 0.9rem;
+}
+.auth__tab--active { background: var(--auth-maroon); color: #fff; }
+
+.auth__form {
+  display: flex; flex-direction: column; gap: 1rem;
+  width: 494px; max-width: 100%; margin: 0 auto;
+}
+.auth__row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 0.2rem; }
+
+.auth__alert {
+  margin: 0; padding: 0.6rem 0.8rem; font-size: 0.85rem;
+  color: var(--auth-danger); background: #fbecea; border-left: 3px solid var(--auth-danger);
+}
+
+.auth__remember { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.auth__remember input { accent-color: var(--auth-maroon); }
+
+.auth__submit {
+  align-self: center; width: 145px; height: 34px; margin-top: 0.3rem; padding: 0;
+  border: 0; border-radius: 999px;
+  background: var(--auth-maroon); color: #fff; font-size: 0.8rem; font-weight: 700;
+}
+.auth__submit:hover { background: var(--auth-maroon-dark); }
+.auth__submit:disabled { opacity: 0.6; cursor: wait; }
+
+/* ---------- Fields ---------- */
+.auth .field__box {
+  display: flex; align-items: center; gap: 0.6rem;
+  height: 36px; padding: 0 0.6rem;
+  background: #fff; border: 1px solid transparent; border-radius: 3px;
+}
+.auth .field__box:focus-within { border-color: var(--auth-maroon); }
+.auth .field__box--error { border-color: var(--auth-danger); }
+.auth .field__icon { flex: none; font-size: 1.2rem; color: var(--auth-icon); }
+.auth .field__box input {
+  flex: 1; min-width: 0; height: 100%; margin: 0; padding: 0;
+  border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 0.8rem; color: var(--auth-ink);
+}
+.auth .field__box input::placeholder { color: #b5b5b5; }
+.auth .field__toggle {
+  display: flex; margin: 0; padding: 0.2rem; border: 0; background: none;
+  color: var(--auth-icon); font-size: 1.15rem;
+}
+.auth .field__toggle:hover { color: #666; }
+.auth .field__error { margin: 0.3rem 0 0; font-size: 0.75rem; color: var(--auth-danger); }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 560px) {
+  .auth-hero__panel { width: 100%; }
+  .auth__row { grid-template-columns: 1fr; gap: 1rem; }
+}
