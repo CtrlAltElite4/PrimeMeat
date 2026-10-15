@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef} from 'react'
 import '../css/SupportPage.css'
-import {pipeline} from '@huggingface/transformers'
+// import {pipeline} from '@huggingface/transformers'
 //import { AllMainSections, MainSubCats } from '../components/SearchData'
 import { AllMainSections, MainSubCats } from '../components/SearchData'
 import SearchIcon from '../assets/search-icon.svg'
@@ -89,7 +89,6 @@ async function loadModel() {
   }
 }
 
-    }
     loadModel();
   }, [sections]);
 
