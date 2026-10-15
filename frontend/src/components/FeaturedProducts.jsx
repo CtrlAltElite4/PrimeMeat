@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
+import api from "../api";
 import "../styles/FeaturedProducts.css";
 
 function FeaturedProducts() {
@@ -11,30 +12,18 @@ function FeaturedProducts() {
       try {
         const [fullResponse, halfResponse, quarterResponse] = await Promise.all(
           [
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=full%20carcass&per_page=1",
-            ),
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=half%20carcass&per_page=1",
-            ),
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=quarter%20carcass&per_page=1",
-            ),
+            api.get("/api/products?category=full%20carcass&per_page=1"),
+            api.get("/api/products?category=half%20carcass&per_page=1"),
+            api.get("/api/products?category=quarter%20carcass&per_page=1"),
           ],
         );
 
-        if (!fullResponse.ok || !halfResponse.ok || !quarterResponse.ok) {
-          throw new Error("Failed to fetch featured products.");
-        }
-
-        const fullData = await fullResponse.json();
-        const halfData = await halfResponse.json();
-        const quarterData = await quarterResponse.json();
-
         setProducts(
-          [fullData.data[0], halfData.data[0], quarterData.data[0]].filter(
-            Boolean,
-          ),
+          [
+            fullResponse.data.data[0],
+            halfResponse.data.data[0],
+            quarterResponse.data.data[0],
+          ].filter(Boolean),
         );
 
         setLoading(false);
