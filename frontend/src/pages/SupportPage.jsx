@@ -1,36 +1,33 @@
-import {useState, useEffect, useRef} from 'react'
-import '../css/SupportPage.css'
-import {pipeline} from '@huggingface/transformers'
+import { useState, useEffect, useRef } from "react";
+import "../css/SupportPage.css";
+import { pipeline } from "@huggingface/transformers";
 //import { AllMainSections, MainSubCats } from '../components/SearchData'
-import { AllMainSections, MainSubCats } from '../components/SearchData'
-import SearchIcon from '../assets/search-icon.svg'
-import { Link } from 'react-router-dom'
-import api from '../api';
-import FaqAnswer from '../components/FaqAnswer'
-
-
+import { AllMainSections, MainSubCats } from "../components/SearchData";
+import SearchIcon from "../assets/search-icon.svg";
+import { Link } from "react-router-dom";
+import api from "../api";
+import FaqAnswer from "../components/FaqAnswer";
 
 const MaxResults = 4;
-const HelpCards =6;
+const HelpCards = 6;
 const TileLinks = 2;
 const DropDelay = 300;
 
 function SupportPage() {
-const [helpsearch, setHelpSearch] = useState('');
-const [load, setLoad] = useState(true);
-const [helplist, setHelpList] = useState([]);
-const [showmore, setShowMore] = useState(false);
-const [dropdownOpen, setDropDownOpen] = useState(true);
-const [sections, setSections] = useState([]);
-const searchWrapRef = useRef(null);
-const searchTimer = useRef(null);
+  const [helpsearch, setHelpSearch] = useState("");
+  const [load, setLoad] = useState(true);
+  const [helplist, setHelpList] = useState([]);
+  const [showmore, setShowMore] = useState(false);
+  const [dropdownOpen, setDropDownOpen] = useState(true);
+  const [sections, setSections] = useState([]);
+  const searchWrapRef = useRef(null);
+  const searchTimer = useRef(null);
 
+  const extractor = useRef(null);
+  const embeddingRef = useRef([]);
 
-const extractor = useRef(null);
-const embeddingRef = useRef([]);
-
- useEffect(() => {
-    api.get('/api/helpfaqs').then(({ data }) => {
+  useEffect(() => {
+    api.get("/api/helpfaqs").then(({ data }) => {
       const grouped = data.reduce((acc, faq) => {
         (acc[faq.category] ??= []).push(faq);
         return acc;
@@ -38,11 +35,11 @@ const embeddingRef = useRef([]);
 
       const built = Object.entries(grouped).map(([category, faqs]) => ({
         Cat: category,
-        icon: null,                       
+        icon: null,
         subCats: faqs.map((faq) => ({
-          id: String(faq.id),             
+          id: String(faq.id),
           title: faq.title,
-          content: <FaqAnswer text = {faq.answer} />,
+          content: <FaqAnswer text={faq.answer} />,
           keywords: faq.keywords ?? [],
         })),
       }));
@@ -50,180 +47,170 @@ const embeddingRef = useRef([]);
       setSections(built);
     });
   }, []);
-useEffect(() => {
+  useEffect(() => {
+    if (sections.length === 0) return;
 
-if (sections.length === 0) return;
+    async function loadModel() {
+      setLoad(true);
 
-async function loadModel() {
-  setLoad(true);
+      try {
+        const { pipeline } = await import("@huggingface/transformers");
 
-  try {
-    const { pipeline } = await import('@huggingface/transformers');
+        extractor.current = await pipeline(
+          "feature-extraction",
+          "Xenova/all-MiniLM-L6-v2",
+        );
 
-    extractor.current = await pipeline(
-      'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2'
-    );
+        const precomputed = [];
 
-    const precomputed = [];
+        for (const cat of sections) {
+          for (const sub of cat.subCats) {
+            const text = `${sub.title} ${sub.keywords.join(" ")}`;
 
-    for (const cat of sections) {
-      for (const sub of cat.subCats) {
-        const text = `${sub.title} ${sub.keywords.join(' ')}`;
+            const output = await extractor.current(text, {
+              pooling: "mean",
+              normalize: true,
+            });
 
-        const output = await extractor.current(text, {
-          pooling: 'mean',
-          normalize: true,
-        });
+            precomputed.push({
+              item: sub,
+              vector: Array.from(output.data),
+            });
+          }
+        }
 
-        precomputed.push({
-          item: sub,
-          vector: Array.from(output.data),
-        });
+        embeddingRef.current = precomputed;
+      } finally {
+        setLoad(false);
       }
     }
 
-    embeddingRef.current = precomputed;
-  } finally {
-    setLoad(false);
-  }
-}
-
-    }
     loadModel();
   }, [sections]);
 
-useEffect(()=>{
-    const OutClick = (e) =>{
-        if(searchWrapRef.current && !searchWrapRef.current.contains(e.target)){
-            setDropDownOpen(false);
-        }
+  useEffect(() => {
+    const OutClick = (e) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target)) {
+        setDropDownOpen(false);
+      }
     };
-    document.addEventListener('mousedown', OutClick);
-    return() =>{
-        document.removeEventListener('mousedown', OutClick);
-        clearTimeout(searchTimer.current);
-    }
-},[]);
+    document.addEventListener("mousedown", OutClick);
+    return () => {
+      document.removeEventListener("mousedown", OutClick);
+      clearTimeout(searchTimer.current);
+    };
+  }, []);
 
-
-const similarity = (v1, v2) => {
-    let dot = 0, nA = 0, nB = 0;
-    for(let i =0; i<v1.length; i++) {
-        dot += v1[i] * v2[i]; nA += v1[i] * v1[i]; nB += v2[i] * v2[i];
+  const similarity = (v1, v2) => {
+    let dot = 0,
+      nA = 0,
+      nB = 0;
+    for (let i = 0; i < v1.length; i++) {
+      dot += v1[i] * v2[i];
+      nA += v1[i] * v1[i];
+      nB += v2[i] * v2[i];
     }
     return dot / (Math.sqrt(nA) * Math.sqrt(nB));
-};
+  };
 
-const handleHelpChange = async (e) => {
+  const handleHelpChange = async (e) => {
     const HelpValue = e.target.value;
     setHelpSearch(HelpValue);
     setDropDownOpen(true);
 
-    if (!HelpValue.trim()){
-        setHelpList([]);
-        return;
+    if (!HelpValue.trim()) {
+      setHelpList([]);
+      return;
     }
     const runSearch = async (HelpValue) => {
-if(!extractor.current || load) return;
+      if (!extractor.current || load) return;
 
-const searchOut = await extractor.current(HelpValue, {
-    pooling: 'mean',
-    normalize: true
-});
-const searchVector = Array.from(searchOut.data);
+      const searchOut = await extractor.current(HelpValue, {
+        pooling: "mean",
+        normalize: true,
+      });
+      const searchVector = Array.from(searchOut.data);
 
-const scored = embeddingRef.current.map(({item, vector}) => ({
-    ...item,
-    score: similarity(searchVector, vector)
-}));
+      const scored = embeddingRef.current.map(({ item, vector }) => ({
+        ...item,
+        score: similarity(searchVector, vector),
+      }));
 
-scored.sort((a, b) => b.score - a.score);
-setHelpList(scored.slice(0, MaxResults));
-} 
-searchTimer.current = setTimeout(()=> runSearch(HelpValue), DropDelay)
-};
+      scored.sort((a, b) => b.score - a.score);
+      setHelpList(scored.slice(0, MaxResults));
+    };
+    searchTimer.current = setTimeout(() => runSearch(HelpValue), DropDelay);
+  };
 
-const showResults = helpsearch.trim().length > 0 && helplist.length > 0 && dropdownOpen;
-const tiles = showmore ? sections : sections.slice(0, HelpCards);
-    
-    return (
-<>
-<section className ="MidSupport">
-<div className ="SupportHeroContent">
-    <div className ="MidTitle">
-<h1 className ="SupportHeroTitle">How can we help?</h1>
-</div>
-<div className ="HelpSearchWrap" ref={searchWrapRef}>
-<div className ={`HelpSearchInput ${showResults ? 'open' : ''} `}>
-    <img src ={SearchIcon} className ="SearchImage" width={25}/>
-    <input 
-    type = "text" 
-    value = {helpsearch}
-    onChange ={handleHelpChange}
-    size ="65" 
-    placeholder ="Find Your Problem Here" 
-    className ="HelpInput"
-    onFocus={()=> setDropDownOpen(true)}
-    />
-   
-</div>
+  const showResults =
+    helpsearch.trim().length > 0 && helplist.length > 0 && dropdownOpen;
+  const tiles = showmore ? sections : sections.slice(0, HelpCards);
 
-{showResults && (
-    <ul className ="HelpDropDown">
-    {helplist.map((sub)=> (
-    
-    <li key ={sub.id}>
-    <Link to = {`/article/${sub.id}`} 
-className = "HelpDropDownItem">
-           {sub.title}    
-        </Link>
-        </li>
-))}
-</ul>
-)}
-</div>
+  return (
+    <>
+      <section className="MidSupport">
+        <div className="SupportHeroContent">
+          <div className="MidTitle">
+            <h1 className="SupportHeroTitle">How can we help?</h1>
+          </div>
+          <div className="HelpSearchWrap" ref={searchWrapRef}>
+            <div className={`HelpSearchInput ${showResults ? "open" : ""} `}>
+              <img src={SearchIcon} className="SearchImage" width={25} />
+              <input
+                type="text"
+                value={helpsearch}
+                onChange={handleHelpChange}
+                size="65"
+                placeholder="Find Your Problem Here"
+                className="HelpInput"
+                onFocus={() => setDropDownOpen(true)}
+              />
+            </div>
 
-    <div className ="FinalCards">
-    {tiles.map((cat) => (
-        <section key = {cat.Cat} className = "HelpHeaderandList">
-            <h2 className = "TileHeader">
-                {cat.Cat}
-                </h2>
-            <ul className =" CardList">
-                {cat.subCats.slice(0, TileLinks).map((sub) =>(
-                    <li key = {sub.id}>
-                        <Link to = {`/article/${sub.id}`} 
-                        className ="HelpCatList">
-                        <span className ="HelpCatText">{sub.title}</span>
-                        </Link>
-                    </li>
+            {showResults && (
+              <ul className="HelpDropDown">
+                {helplist.map((sub) => (
+                  <li key={sub.id}>
+                    <Link
+                      to={`/article/${sub.id}`}
+                      className="HelpDropDownItem"
+                    >
+                      {sub.title}
+                    </Link>
+                  </li>
                 ))}
-            </ul>
-        </section>
-    ))}
-    </div>
-    {sections.length > HelpCards && (
-        <button className ="MoreTopics" onClick={()=> setShowMore((v) =>
-               !v)}>
-                {showmore ? 'Show Less' : 'Show More'}
-               </button>
-     )}          
-   
-</div>
-</section>
- 
-</>
-    );
+              </ul>
+            )}
+          </div>
 
+          <div className="FinalCards">
+            {tiles.map((cat) => (
+              <section key={cat.Cat} className="HelpHeaderandList">
+                <h2 className="TileHeader">{cat.Cat}</h2>
+                <ul className=" CardList">
+                  {cat.subCats.slice(0, TileLinks).map((sub) => (
+                    <li key={sub.id}>
+                      <Link to={`/article/${sub.id}`} className="HelpCatList">
+                        <span className="HelpCatText">{sub.title}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+          {sections.length > HelpCards && (
+            <button
+              className="MoreTopics"
+              onClick={() => setShowMore((v) => !v)}
+            >
+              {showmore ? "Show Less" : "Show More"}
+            </button>
+          )}
+        </div>
+      </section>
+    </>
+  );
 }
 
-
-
-
-
 export default SupportPage;
-
-
-
-
