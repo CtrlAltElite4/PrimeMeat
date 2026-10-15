@@ -560,3 +560,17 @@
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   color: var(--adm-muted); max-width: 460px;
 }
+
+/* Real logo in the admin top bar */
+.adm-top__logo {
+  display: flex;
+  align-items: center;
+  padding: 30px;
+  background: none;
+  border: 0;
+}
+.adm-top__logo img {
+  height: 44px;
+  width: auto;
+  display: block;
+}

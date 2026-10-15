@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiImage, FiX } from 'react-icons/fi';
 import api from '../api';
+import productImage from '../utils/productImage';
 import { Modal } from './ui';
 
 const GRADES = ['A', 'AB', 'B', 'BB', 'C'];
@@ -20,7 +21,8 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
     is_active: product?.is_active ?? true,
   });
   const [image, setImage] = useState(null);          // new file picked
-  const [preview, setPreview] = useState(product?.image_url ?? null);
+  // Start with the same image the shop shows for this product
+  const [preview, setPreview] = useState(product ? productImage(product) : null);
   const [removeImage, setRemoveImage] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);

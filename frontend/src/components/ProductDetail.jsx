@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useNavigate, useSearchParams, Link } from "react-router-dom";
+import CartToast from "./CartToast";
 import { Scale } from "lucide-react";
 import api from "../api";
+import productImage from "../utils/productImage";
 import CutPreference from "./CutPreference";
 import CustomCutSheet from "./CustomCutSheet";
 import CutSelectionSummary from "./CutSelectionSummary";
@@ -40,6 +42,10 @@ function ProductDetail({ product, onCartUpdated }) {
 
   // Store cart success and error messages.
   const [cartMessage, setCartMessage] = useState("");
+
+  // "success" shows a green pop-up, anything else a red one
+  const [cartMessageType, setCartMessageType] = useState("error");
+  const closeCartMessage = useCallback(() => setCartMessage(""), []);
 
   // Store the selected preferences for remaining meat.
   const [remainingMeatPreferences, setRemainingMeatPreferences] = useState([
@@ -153,6 +159,10 @@ function ProductDetail({ product, onCartUpdated }) {
       setSpecialInstructions("");
     }
   };
+  // in_stock comes from the server; older responses without it count as in stock
+  const inStock = product.in_stock !== false;
+  const maxQuantity = Number(product.stock) > 0 ? Number(product.stock) : undefined;
+
   const weightMatch = product.description?.match(/(\d+(?:\.\d+)?)\s*kg/i);
   const productWeight = weightMatch ? `${weightMatch[1]} kg` : null;
   // Update the formatted selections received from the custom cut sheet.
@@ -163,6 +173,7 @@ function ProductDetail({ product, onCartUpdated }) {
   // Validate and save the product configuration.
   const handleSubmit = async () => {
     setCartMessage("");
+    setCartMessageType("error");
 
     if (cutType === "custom") {
       const productName = product.name.toLowerCase();
@@ -207,6 +218,7 @@ function ProductDetail({ product, onCartUpdated }) {
 
       await onCartUpdated();
 
+      setCartMessageType("success");
       setCartMessage("Product added to cart.");
     } catch (error) {
       console.error("Save cart item error:", error);
@@ -248,13 +260,7 @@ function ProductDetail({ product, onCartUpdated }) {
           )}
           <img
             className="product-detail-image"
-            src={
-              product.name.toLowerCase().includes("full")
-                ? "/images/full-carcasss.png"
-                : product.name.toLowerCase().includes("half")
-                  ? "/images/half-carcasss.png"
-                  : "/images/quarter-carcasss.png"
-            }
+            src={productImage(product)}
             alt={product.name}
           />
           <div className="grade-stamp">
@@ -274,6 +280,12 @@ function ProductDetail({ product, onCartUpdated }) {
             R{Number(product.price).toLocaleString("en-ZA")}
           </div>
 
+          {!inStock && (
+            <p className="product-detail-cart-message" role="status">
+              Out of stock. This product can't be ordered right now.
+            </p>
+          )}
+
           <div className="product-detail-quantity">
             <label htmlFor="product-quantity">Quantity</label>
 
@@ -281,7 +293,9 @@ function ProductDetail({ product, onCartUpdated }) {
               id="product-quantity"
               type="number"
               min="1"
+              max={maxQuantity}
               value={quantity}
+              disabled={!inStock}
               onChange={(event) => setQuantity(Number(event.target.value))}
             />
           </div>
@@ -315,7 +329,11 @@ function ProductDetail({ product, onCartUpdated }) {
       )}
 
       {cartMessage && (
-        <p className="product-detail-cart-message">{cartMessage}</p>
+        <CartToast
+          message={cartMessage}
+          type={cartMessageType}
+          onClose={closeCartMessage}
+        />
       )}
 
       <section className="product-detail-actions">
@@ -330,9 +348,11 @@ function ProductDetail({ product, onCartUpdated }) {
           type="button"
           className="product-detail-cart"
           onClick={handleSubmit}
-          disabled={savingCartItem}
+          disabled={savingCartItem || !inStock}
         >
-          {savingCartItem
+          {!inStock
+            ? "Out of Stock"
+            : savingCartItem
             ? isEditMode
               ? "Saving..."
               : "Adding..."

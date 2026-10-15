@@ -132,6 +132,7 @@ class UserController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'phone' => $user->phone,
             'joined' => $user->created_at?->toDateString(),
             'type' => $user->is_admin ? 'admin' : 'customer',
             'status' => $user->suspended_at ? 'suspended' : 'active',

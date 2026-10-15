@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { Scale } from "lucide-react";
 
 import api from "../api";
+import CartToast from "./CartToast";
 
 function ProductCard({ product, onCartUpdated }) {
   const [addingToCart, setAddingToCart] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("error");
+  const closeMessage = useCallback(() => setMessage(""), []);
 
   const handleAddToCart = async () => {
     try {
       setAddingToCart(true);
+      setMessage("");
 
       await api.post("/api/cart/items", {
         product_id: product.id,
@@ -20,17 +25,19 @@ function ProductCard({ product, onCartUpdated }) {
       });
 
       await onCartUpdated();
+
+      setMessageType("success");
+      setMessage(`${product.name} (Grade ${product.grade}) added to cart.`);
     } catch (error) {
       console.error("Failed to add product to cart:", error);
 
-      if (error.response?.status === 401) {
-        alert("Please log in to add items to your cart.");
-      } else {
-        alert(
-          error.response?.data?.message ||
-            "Unable to add this product to your cart.",
-        );
-      }
+      setMessageType("error");
+      setMessage(
+        error.response?.status === 401
+          ? "Please log in to add items to your cart."
+          : error.response?.data?.message ||
+              "Unable to add this product to your cart.",
+      );
     } finally {
       setAddingToCart(false);
     }
@@ -49,6 +56,9 @@ function ProductCard({ product, onCartUpdated }) {
 
   return (
     <article className="product-card">
+      {message && (
+        <CartToast message={message} type={messageType} onClose={closeMessage} />
+      )}
       <Link
         to={`/products/${product.id}`}
         className="product-card-image-link"

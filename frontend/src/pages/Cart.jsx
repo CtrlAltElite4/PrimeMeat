@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import AddressForm from "../components/AddressForm";
 import api from "../api";
+import productImage from "../utils/productImage";
 import "../styles/Cart.css";
 
 function Cart({ onCartUpdated }) {
@@ -113,15 +114,27 @@ function Cart({ onCartUpdated }) {
       postalCode: selectedAddress.postal_code || "",
     }));
   };
-  // Update the quantity of a cart item.
-  const updateQuantity = async (itemId, quantity) => {
+  // Update the quantity of a cart item. The server needs the item's cut
+  // details as well, so they're sent back unchanged.
+  const updateQuantity = async (item, quantity) => {
     if (quantity < 1) {
       return;
     }
 
     try {
-      await api.put(`/api/cart/items/${itemId}`, {
+      setErrorMessage("");
+
+      await api.put(`/api/cart/items/${item.id}`, {
         quantity,
+        cut_type: item.cut_type,
+        selected_quarter: item.selected_quarter,
+        selections: (item.cut_selections || []).map((selection) => ({
+          cut_option_id: selection.cut_option_id,
+          side: selection.side,
+          quarter: selection.quarter,
+        })),
+        remaining_meat_preferences: item.remaining_meat_preferences,
+        special_instructions: item.special_instructions,
       });
 
       await fetchCart();
@@ -234,6 +247,11 @@ function Cart({ onCartUpdated }) {
   };
 
   const hasItems = (cart?.items?.length || 0) > 0 || Boolean(cart?.group_order);
+
+  // Items that sold out (or were switched off) after being added to the cart
+  const hasUnavailableItems = (cart?.items || []).some(
+    (item) => item.is_available === false,
+  );
 
   if (loading) {
     return (
@@ -375,7 +393,7 @@ function Cart({ onCartUpdated }) {
                     className="cart-item-product-link"
                   >
                     <div className="cart-item-image">
-                      <img src={item.product.image} alt={item.product.name} />
+                      <img src={productImage(item.product)} alt={item.product.name} />
                     </div>
 
                     <div className="cart-item-details">
@@ -388,6 +406,14 @@ function Cart({ onCartUpdated }) {
                       <p className="cart-item-price">
                         R{Number(item.product.price).toLocaleString("en-ZA")}
                       </p>
+
+                      {item.is_available === false && (
+                        <p className="cart-message" role="alert">
+                          {item.available_stock > 0
+                            ? `Only ${item.available_stock} left in stock. Reduce the quantity to continue.`
+                            : "This product is now out of stock. Remove it to continue."}
+                        </p>
+                      )}
 
                       <div className="cart-item-cut-type">
                         <strong>Preparation:</strong>{" "}
@@ -448,7 +474,7 @@ function Cart({ onCartUpdated }) {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(item.id, Number(item.quantity) - 1)
+                          updateQuantity(item, Number(item.quantity) - 1)
                         }
                         disabled={Number(item.quantity) <= 1}
                       >
@@ -460,7 +486,10 @@ function Cart({ onCartUpdated }) {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(item.id, Number(item.quantity) + 1)
+                          updateQuantity(item, Number(item.quantity) + 1)
+                        }
+                        disabled={
+                          Number(item.quantity) >= Number(item.available_stock ?? Infinity)
                         }
                       >
                         +
@@ -588,9 +617,17 @@ function Cart({ onCartUpdated }) {
               <strong>R{getCartTotal().toLocaleString("en-ZA")}</strong>
             </div>
 
+            {hasUnavailableItems && (
+              <p className="cart-message" role="alert">
+                Some items in your cart are out of stock. Update them before
+                checking out.
+              </p>
+            )}
+
             <button
               type="button"
               className="cart-checkout-button"
+              disabled={hasUnavailableItems}
               onClick={() =>
                 navigate("/checkout", {
                   state: {

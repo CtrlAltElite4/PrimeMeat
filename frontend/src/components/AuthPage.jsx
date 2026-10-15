@@ -6,6 +6,7 @@ import {
   FaLock,
   FaEye,
   FaEyeSlash,
+  FaPhone
 } from "react-icons/fa";
 import api from "../api";
 import "./AuthPage.css";
@@ -14,6 +15,7 @@ const EMPTY = {
   first_name: "",
   last_name: "",
   email: "",
+  phone: "",
   password: "",
   password_confirmation: "",
   remember: false,
@@ -129,6 +131,7 @@ export default function AuthPage({ onAuth }) {
           first_name: form.first_name,
           last_name: form.last_name,
           email: form.email,
+          phone: form.phone,
           password: form.password,
           password_confirmation: form.password_confirmation,
         }
@@ -270,6 +273,12 @@ export default function AuthPage({ onAuth }) {
               autoComplete="email"
             />
           </Field>
+          {isRegister && (
+          <Field icon={FaPhone} error={errors.phone}>
+          <input type="tel" name="phone" placeholder="Phone number" aria-label="Phone number"
+            value={form.phone} onChange={update} autoComplete="tel" inputMode="tel" />
+          </Field>
+          )}
 
           <PasswordField
             name="password"

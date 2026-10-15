@@ -13,20 +13,34 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // Accept "082 123 4567", "082-123-4567", "+27 82 123 4567" etc. by removing spaces, dashes and brackets first
+        $request->merge([
+            'phone' => preg_replace('/[\s\-()]/', '', (string) $request->input('phone')),
+        ]);
+
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            // South African number: 0 or +27, then 9 digits
+            'phone' => ['required', 'regex:/^(\+27|0)[1-9][0-9]{8}$/'],
             // 'confirmed' checks against the password_confirmation field
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ], [
+            'phone.required' => 'Enter your phone number.',
+            'phone.regex' => 'Enter a valid South African phone number, e.g. 082 123 4567.',
         ]);
 
-        $user = User::create([
+        // forceFill because "phone" isn't in the User model's fillable list; every value here is validated
+        $user = new User();
+        $user->forceFill([
             // Default users table has a single "name" column
             'name' => trim($data['first_name'].' '.$data['last_name']),
             'email' => $data['email'],
+            // Stored in one format (+27821234567) whatever way it was typed
+            'phone' => preg_replace('/^0/', '+27', $data['phone']),
             'password' => Hash::make($data['password']),
-        ]);
+        ])->save();
 
         // Log the new user straight in
         Auth::login($user);
