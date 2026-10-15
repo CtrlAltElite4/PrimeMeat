@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-
+import api from "../api";
 import ProductListing from "../components/ProductListing";
 
 function Products({ onCartUpdated }) {
@@ -66,15 +66,9 @@ function Products({ onCartUpdated }) {
       if (sort !== "none") {
         params.set("sort", sort);
       }
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/products?${params.toString()}`,
-      );
+      const response = await api.get(`/api/products?${params.toString()}`);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch products.");
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       console.log("Products API response:", data);
 
