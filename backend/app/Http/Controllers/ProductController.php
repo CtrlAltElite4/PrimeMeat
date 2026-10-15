@@ -11,7 +11,8 @@ class ProductController extends Controller
     {
         $perPage = min((int) $request->input('per_page', 12), 24);
 
-        $baseQuery = Product::where('is_active', true);
+        // Only products that are switched on, published and in stock appear in the shop
+        $baseQuery = Product::available();
 
         $query = clone $baseQuery;
 
@@ -92,12 +93,17 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        if (! $product->is_active) {
+        // Hidden or draft products stay hidden. A sold-out product still opens (old links,
+        // items already in a cart), but `in_stock` tells the page to block "Add to cart".
+        if (! $product->is_active || $product->status === 'draft') {
             return response()->json([
                 'message' => 'Product not found.',
             ], 404);
         }
 
-        return response()->json($product);
+        return response()->json([
+            ...$product->toArray(),
+            'in_stock' => $product->isPurchasable(),
+        ]);
     }
 }

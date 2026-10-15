@@ -93,14 +93,25 @@ function App() {
     }
   }, [user, checking]);
 
-  // After login/register: admins go straight to the admin panel
+  // After login/register: admins go straight to the admin panel.
+  // The redirect runs in an effect (after the login page has finished), so the
+  // login page can't send the admin back to the shop afterwards.
+  const [sendToAdmin, setSendToAdmin] = useState(false);
+
   const handleAuth = (data) => {
     setUser(data);
 
-    if (data.is_admin) {
-      navigate("/admin");
+    if (data?.is_admin) {
+      setSendToAdmin(true);
     }
   };
+
+  useEffect(() => {
+    if (sendToAdmin) {
+      setSendToAdmin(false);
+      navigate("/admin", { replace: true });
+    }
+  }, [sendToAdmin, navigate]);
 
   const logout = async () => {
     try {
@@ -162,7 +173,9 @@ function App() {
           <Route
             path="/login"
             element={
-              user ? (
+              user?.is_admin ? (
+                <Navigate to="/admin" replace />
+              ) : user ? (
                 <section className="auth auth--done">
                   <p>
                     Signed in as <strong>{user.name}</strong> ({user.email})
@@ -228,8 +241,6 @@ function App() {
               )
             }
           />
-          <Route path="/checkout/success" element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />} />
-          <Route path="/checkout/cancelled" element={<CheckoutResult outcome="cancelled" />} />
         </Routes>
       </main>
 

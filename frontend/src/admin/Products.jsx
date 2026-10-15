@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiAlertTriangle, FiBox, FiCheck, FiEdit2, FiFileText, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
 import api from '../api';
+import productImage from '../utils/productImage';
 import { PRODUCT_STATUS_LABELS, formatNumber, formatRand } from './format';
 import StatusPill from './StatusPill';
 import ProductFormModal from './ProductFormModal';
@@ -166,7 +167,7 @@ export default function Products() {
                   <td>
                     <div className="adm-prod">
                       <span className="adm-prod__img">
-                        {p.image_url ? <img src={p.image_url} alt="" /> : 'IMG'}
+                        {productImage(p) ? <img src={productImage(p)} alt="" /> : 'IMG'}
                       </span>
                       <div>
                         <p className="adm-prod__name">{p.name}</p>
@@ -180,9 +181,18 @@ export default function Products() {
                   <td className={p.stock <= (stats?.low_stock_level ?? 10) ? 'adm-stock--low' : ''}>{p.stock}</td>
                   <td><StatusPill status={p.display_status} /></td>
                   <td>
-                    <Toggle checked={p.is_active} disabled={busyId === p.id}
-                            label={`${p.name} available for purchase`}
-                            onChange={(on) => toggleAvailability(p, on)} />
+                    {/* Off (and locked) whenever customers can't buy it: no stock or still a draft.
+                        Add stock or publish the product first, then switch it on. */}
+                    {(() => {
+                      const canSell = p.status !== 'draft' && p.stock > 0;
+                      return (
+                        <span title={canSell ? '' : (p.status === 'draft' ? 'Publish the product first' : 'Add stock first')}>
+                          <Toggle checked={p.is_active && canSell} disabled={busyId === p.id || !canSell}
+                                  label={`${p.name} available for purchase`}
+                                  onChange={(on) => toggleAvailability(p, on)} />
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td>
                     <div className="adm-actions">

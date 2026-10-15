@@ -51,7 +51,9 @@ export default function AdminLayout({ user: initialUser, onLogout, onUserUpdate 
                 aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>
           <FiMenu />
         </button>
-        <Link to="/" className="adm-top__logo">[Logo]</Link>
+        <Link to="/" className="adm-top__logo" aria-label="PrimeMeat home">
+          <img src="/images/logo.png" alt="PrimeMeat" />
+        </Link>
         <p className="adm-top__title">Admin Panel</p>
 
         <div className="adm-top__right">

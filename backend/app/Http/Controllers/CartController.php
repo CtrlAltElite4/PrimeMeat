@@ -26,8 +26,21 @@ class CartController extends Controller
             'groupOrder.deliveryMember',
         ]);
 
+        // Flag items that sold out (or were switched off) after they were added,
+        // so the cart can warn the customer before checkout instead of at payment.
+        $hasUnavailable = false;
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+            $available = $product && $product->isPurchasable() && (int) $item->quantity <= (int) $product->stock;
+
+            $item->setAttribute('is_available', $available);
+            $item->setAttribute('available_stock', $product && $product->isPurchasable() ? (int) $product->stock : 0);
+            $hasUnavailable = $hasUnavailable || ! $available;
+        }
+
         return response()->json([
             'cart' => $cart,
+            'has_unavailable_items' => $hasUnavailable,
         ]);
     }
 
@@ -73,10 +86,12 @@ class CartController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
 
-        if (! $product->is_active) {
-            return response()->json([
-                'message' => 'This product is no longer available.',
-            ], 422);
+        $cart = Cart::firstOrCreate([
+            'user_id' => $request->user()->id,
+        ]);
+
+        if ($stockError = $this->stockError($product, $cart, (int) $validated['quantity'])) {
+            return $stockError;
         }
 
         $productType = $this->getProductType($product->name);
@@ -109,10 +124,6 @@ class CartController extends Controller
                 $validated['selections'] ?? []
             );
         }
-
-        $cart = Cart::firstOrCreate([
-            'user_id' => $request->user()->id,
-        ]);
 
         $cartItem = DB::transaction(function () use (
             $cart,
@@ -205,10 +216,8 @@ class CartController extends Controller
 
         $product = $cartItem->product;
 
-        if (! $product->is_active) {
-            return response()->json([
-                'message' => 'This product is no longer available.',
-            ], 422);
+        if ($stockError = $this->stockError($product, $cartItem->cart, (int) $validated['quantity'], $cartItem->id)) {
+            return $stockError;
         }
 
         $productType = $this->getProductType($product->name);
@@ -300,6 +309,37 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Cart cleared.',
         ]);
+    }
+
+    /**
+     * Stops a product going into the cart if it's sold out, switched off or a draft,
+     * or if the cart would hold more than is in stock. Returns null when it's fine.
+     */
+    private function stockError(Product $product, Cart $cart, int $quantity, ?int $ignoreItemId = null): ?JsonResponse
+    {
+        if (! $product->isPurchasable()) {
+            return response()->json([
+                'message' => 'Sorry, this product is out of stock.',
+            ], 422);
+        }
+
+        // The same product can be in the cart more than once (e.g. different cuts)
+        $alreadyInCart = (int) $cart->items()
+            ->where('product_id', $product->id)
+            ->when($ignoreItemId, fn ($q) => $q->where('id', '!=', $ignoreItemId))
+            ->sum('quantity');
+
+        $left = (int) $product->stock - $alreadyInCart;
+
+        if ($quantity > $left) {
+            return response()->json([
+                'message' => $left > 0
+                    ? "Only {$left} of this product ".($left === 1 ? 'is' : 'are').' available.'
+                    : 'You already have all the available stock of this product in your cart.',
+            ], 422);
+        }
+
+        return null;
     }
 
     private function ensureCartItemBelongsToUser(
