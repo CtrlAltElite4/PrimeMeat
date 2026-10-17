@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import "../styles/ProductListing.css";
 
@@ -337,6 +337,24 @@ function ProductListing({
           <p className="product-listing-description">
             Choose from our quality bulk beef carcass options.
           </p>
+        </div>
+      </div>
+
+      <div className="group-orders-promo">
+        <div className="group-orders-promo-content">
+          <span className="group-orders-promo-label">BUYING TOGETHER?</span>
+
+          <h3>Good meat is better shared.</h3>
+
+          <p>
+            Share a beef carcass with family or friends and divide the
+            traditional cuts among your group.
+          </p>
+
+          <Link to="/group-orders" className="group-orders-promo-button">
+            Explore Group Orders
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
 

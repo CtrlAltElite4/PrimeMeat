@@ -243,10 +243,13 @@
 }
 .navbar-cart {
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
+
 .navbar-cart-count {
   position: absolute;
-  top: -7px;
+  top: -8px;
   right: -8px;
   min-width: 20px;
   height: 20px;
@@ -262,7 +265,9 @@
   line-height: 1;
   box-sizing: border-box;
   white-space: nowrap;
+  z-index: 5;
 }
+
 .navbar-mobile-menu-button {
   display: none;
   align-items: center;
@@ -425,6 +430,26 @@
   .navbar-mobile-action svg {
     width: 16px;
     height: 16px;
+  }
+
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .navbar-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .navbar-cart-total {
+    display: inline-block;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
   }
 }
 

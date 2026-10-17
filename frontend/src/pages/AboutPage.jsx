@@ -1,6 +1,6 @@
 import CollageImage1 from "../assets/MeatProcessImage.webp";
 import CollageImage2 from "../assets/AnimalBreedImage2.jpg";
-import CollageImage3 from "../assets/DeliveryImage.jpg";
+import CollageImage3 from "../assets/DeliveryImage.png";
 import CollageImage4 from "../assets/PackagingImage.jpg";
 import ClientImage from "../assets/ClientImage2.png";
 import StoreImage from "/images/logo.png";

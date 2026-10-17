@@ -459,7 +459,11 @@ function AccountAddresses({ openAddAddress = false }) {
           <h2>No Saved Addresses</h2>
           <p>Add an address to make your future delivery checkouts easier.</p>
 
-          <button type="button" onClick={openAddForm}>
+          <button
+            type="button"
+            className="add-address-button"
+            onClick={openAddForm}
+          >
             Add Your First Address
           </button>
         </div>

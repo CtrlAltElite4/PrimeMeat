@@ -32,6 +32,7 @@ import PageTransitionLoader from "./components/PageTransitionLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
 import ScrollReveal from "./components/ScrollReveal";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 import AdminLayout from "./admin/AdminLayout";
 import ChatbotContent from "./admin/ChatbotContent";
@@ -62,6 +63,24 @@ function App() {
       .catch(() => setUser(null))
       .finally(() => setChecking(false));
   }, []);
+
+  useEffect(() => {
+    const handleAuthRequired = () => {
+      if (!user) {
+        navigate("/login", {
+          state: {
+            from: `${location.pathname}${location.search}`,
+          },
+        });
+      }
+    };
+
+    window.addEventListener("auth:required", handleAuthRequired);
+
+    return () => {
+      window.removeEventListener("auth:required", handleAuthRequired);
+    };
+  }, [user, navigate, location.pathname, location.search]);
 
   const fetchCartCount = async () => {
     if (!user) {
@@ -154,10 +173,10 @@ function App() {
           />
 
           <Route path="/about" element={<AboutPage />} />
-           
-              <Route path="/Support" element={<SupportPage />} />
+
+          <Route path="/Support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
-           <Route path = "/article/:id" element = {<ArticlePage />} />
+          <Route path="/article/:id" element={<ArticlePage />} />
           <Route path="/group-orders" element={<GroupOrders />} />
 
           <Route
@@ -215,11 +234,21 @@ function App() {
 
           <Route
             path="/checkout/success"
-            element={<CheckoutResult outcome="success" onCartUpdated={fetchCartCount} />}
+            element={
+              <CheckoutResult
+                outcome="success"
+                onCartUpdated={fetchCartCount}
+              />
+            }
           />
           <Route
             path="/checkout/cancelled"
-            element={<CheckoutResult outcome="cancelled" onCartUpdated={fetchCartCount} />}
+            element={
+              <CheckoutResult
+                outcome="cancelled"
+                onCartUpdated={fetchCartCount}
+              />
+            }
           />
 
           <Route path="/checkout" element={<Checkout />} />
@@ -246,6 +275,9 @@ function App() {
 
       <Chatbot />
       <Footer />
+      {!(user?.is_admin && isAccountPage) && (
+        <MobileBottomNav cartCount={cartCount} />
+      )}
     </div>
   );
 
@@ -265,7 +297,7 @@ function App() {
       <Route path="/admin" element={admin}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<AdminProducts />} />
-         <Route path ="helpfaqs" element ={<AdminHelpFaqPage />} />
+        <Route path="helpfaqs" element={<AdminHelpFaqPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />

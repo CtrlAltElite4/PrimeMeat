@@ -6,5 +6,14 @@ const api = axios.create({
   withXSRFToken: true, // attach X-XSRF-TOKEN from the XSRF-TOKEN cookie
   headers: { Accept: "application/json" },
 });
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      window.dispatchEvent(new Event("auth:required"));
+    }
 
+    return Promise.reject(error);
+  },
+);
 export default api;

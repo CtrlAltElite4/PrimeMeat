@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import "../styles/HomeFilterBar.css";
+import "../styles/Home.css";
 
 function HomeFilterBar() {
   const filters = [
