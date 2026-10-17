@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -18,7 +18,23 @@ function Chatbot() {
     "Almost there...",
     "Preparing your answer...",
   ];
+  const chatbotRef = useRef(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (chatbotRef.current && !chatbotRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [isOpen]);
   useEffect(() => {
     if (!loading) {
       setLoadingText("Thinking...");
@@ -97,13 +113,13 @@ function Chatbot() {
   };
 
   return (
-    <div className="chatbot">
+    <div className="chatbot" ref={chatbotRef}>
       <aside
         className={`chatbot-sidebar ${isOpen ? "chatbot-sidebar-open" : ""}`}
       >
         <div className="chatbot-header">
           <div className="chatbot-header-content">
-            <h2 className="chatbot-title">PrimeMeat Assistant</h2>
+            <h2 className="chatbot-title">BUTCHER</h2>
 
             <p className="chatbot-status">Online</p>
           </div>
@@ -125,7 +141,7 @@ function Chatbot() {
 
               <p>
                 Ask me about our products, ordering process, delivery or other
-                PrimeMeat information.
+                information.
               </p>
             </div>
           )}
@@ -188,7 +204,6 @@ function Chatbot() {
         </div>
       </aside>
       <div className="chatbot-bubble-container">
-        {!isOpen && <div className="chatbot-prompt">Ask BUTCHER</div>}
         <button
           className="chatbot-bubble"
           type="button"
@@ -196,7 +211,7 @@ function Chatbot() {
           aria-label={isOpen ? "Close chatbot" : "Open chatbot"}
         >
           {isOpen ? (
-            "×"
+            ""
           ) : (
             <img src="/images/bubble.png" alt="Open PrimeMeat chatbot" />
           )}

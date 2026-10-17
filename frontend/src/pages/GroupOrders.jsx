@@ -270,20 +270,19 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
+          <div className="group-orders-weight-options">
             {WEIGHT_RANGES.map((range) => (
               <button
                 key={range.id}
                 type="button"
-                className={`group-orders-option ${
+                className={`group-orders-weight-option ${
                   selectedWeightRange === range.id
-                    ? "group-orders-option--selected"
+                    ? "group-orders-weight-option--selected"
                     : ""
                 }`}
                 onClick={() => setSelectedWeightRange(range.id)}
               >
                 <strong>{range.label}</strong>
-
                 <span>R{range.price.toLocaleString("en-ZA")}</span>
               </button>
             ))}
@@ -384,28 +383,30 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
+          <div className="group-orders-ground-beef-options">
             <button
               type="button"
-              className={`group-orders-option ${
-                includeGroundBeef ? "group-orders-option--selected" : ""
+              className={`group-orders-ground-beef-option ${
+                includeGroundBeef
+                  ? "group-orders-ground-beef-option--selected"
+                  : ""
               }`}
               onClick={() => setIncludeGroundBeef(true)}
             >
               <strong>Yes</strong>
-
               <span>Include ground beef.</span>
             </button>
 
             <button
               type="button"
-              className={`group-orders-option ${
-                !includeGroundBeef ? "group-orders-option--selected" : ""
+              className={`group-orders-ground-beef-option ${
+                !includeGroundBeef
+                  ? "group-orders-ground-beef-option--selected"
+                  : ""
               }`}
               onClick={() => setIncludeGroundBeef(false)}
             >
               <strong>No</strong>
-
               <span>Do not include ground beef.</span>
             </button>
           </div>
@@ -422,32 +423,30 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
+          <div className="group-orders-delivery-options">
             <button
               type="button"
-              className={`group-orders-option ${
+              className={`group-orders-delivery-option ${
                 deliveryMethod === "delivery"
-                  ? "group-orders-option--selected"
+                  ? "group-orders-delivery-option--selected"
                   : ""
               }`}
               onClick={() => setDeliveryMethod("delivery")}
             >
               <strong>Delivery</strong>
-
               <span>Have the group order delivered to one member.</span>
             </button>
 
             <button
               type="button"
-              className={`group-orders-option ${
+              className={`group-orders-delivery-option ${
                 deliveryMethod === "collection"
-                  ? "group-orders-option--selected"
+                  ? "group-orders-delivery-option--selected"
                   : ""
               }`}
               onClick={() => setDeliveryMethod("collection")}
             >
               <strong>Collection</strong>
-
               <span>Collect the group order from our location.</span>
             </button>
           </div>
@@ -518,23 +517,20 @@ function GroupOrders() {
               <strong>{selectedRange?.label || "Not selected"}</strong>
             </div>
 
-            <div>
+            <div className="group-orders-review-people">
               <span>Group size</span>
+              <strong>{numberOfPeople} people</strong>
 
-              <strong>
-                {numberOfPeople} people
-                {selectedRange && (
-                  <>
-                    {" "}
-                    — R
-                    {pricePerPerson.toLocaleString("en-ZA", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    per person
-                  </>
-                )}
-              </strong>
+              {selectedRange && (
+                <small className="group-orders-review-per-person">
+                  R
+                  {pricePerPerson.toLocaleString("en-ZA", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  per person
+                </small>
+              )}
             </div>
 
             <div>

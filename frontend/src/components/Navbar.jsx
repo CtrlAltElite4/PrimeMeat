@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
@@ -11,9 +11,25 @@ function Navbar({ user, onLogout, cartCount }) {
     setSearchOpen(!searchOpen);
     setMenuOpen(false);
   };
+  const menuRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
   return (
-    <nav className="navbar">
+    <nav className="navbar" ref={menuRef}>
       <div className="navbar-container">
         <div className="navbar-background" aria-hidden="true"></div>
 

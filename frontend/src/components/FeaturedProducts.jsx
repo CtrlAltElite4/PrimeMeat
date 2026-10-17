@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import api from "../api";
-import "../styles/FeaturedProducts.css";
 
+import "../styles/Home.css";
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

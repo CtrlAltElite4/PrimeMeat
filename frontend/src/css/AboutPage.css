@@ -202,20 +202,14 @@ body {
 }
 
 .StorePic {
-  width: 420px;
-  height: 420px;
-  min-width: 420px;
-  max-width: 420px;
-  min-height: 420px;
-  max-height: 420px;
-  display: block;
-  object-fit: cover;
-  object-position: center;
+  width: 100%;
+  max-width: 250px;
+  height: auto;
   aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  margin: 0;
+  display: block;
+  margin: 0 auto;
 }
 
 #MainStore {
@@ -615,9 +609,9 @@ body {
 .StorePic {
   margin-left: auto;
   margin-right: auto;
-  width: 280px;
-  height: 280px;
-  max-width: 280px;
+  width: 250px;
+  height: 250px;
+  max-width: 250px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 50%;
@@ -754,7 +748,11 @@ body {
   .AboutHeroFinal {
     padding: 40px 20px 80px;
   }
-
+  @media (max-width: 480px) {
+    .StorePic {
+      max-width: 200px;
+    }
+  }
   .AboutHeroContent {
     padding: 0;
     flex-direction: column;
@@ -801,9 +799,9 @@ body {
   .StorePic {
     margin-left: auto;
     margin-right: auto;
-    width: 350px;
-    height: 350px;
-    max-width: 350px;
+    width: 200px;
+    height: 200px;
+    max-width: 3230px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 50%;
@@ -970,9 +968,9 @@ body {
 
   .StorePic {
     margin-left: 0;
-    width: 360px;
-    height: 360px;
-    max-width: 360px;
+    width: 230px;
+    height: 230px;
+    max-width: 230px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 50%;
@@ -1145,9 +1143,9 @@ body {
 
   .StorePic {
     margin-left: 0;
-    width: 420px;
-    height: 420px;
-    max-width: 420px;
+    width: 250px;
+    height: 250px;
+    max-width: 250px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 50%;

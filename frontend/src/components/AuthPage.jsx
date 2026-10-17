@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaUserCircle,
   FaEnvelope,
   FaLock,
   FaEye,
   FaEyeSlash,
-  FaPhone
+  FaPhone,
 } from "react-icons/fa";
 import api from "../api";
 import "./AuthPage.css";
@@ -85,7 +85,7 @@ export default function AuthPage({ onAuth }) {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const location = useLocation();
   const isRegister = mode === "register";
 
   const update = (e) => {
@@ -150,7 +150,7 @@ export default function AuthPage({ onAuth }) {
 
       onAuth(data);
 
-      navigate("/");
+      navigate(location.state?.from || "/", { replace: true });
     } catch (err) {
       const status = err.response?.status;
 
@@ -166,13 +166,9 @@ export default function AuthPage({ onAuth }) {
           ),
         );
       } else if (status === 429) {
-        setFormError(
-          "Too many attempts. Wait a minute, then try again.",
-        );
+        setFormError("Too many attempts. Wait a minute, then try again.");
       } else {
-        setFormError(
-          "Can't reach the server. Check that Laravel is running.",
-        );
+        setFormError("Can't reach the server. Check that Laravel is running.");
       }
     } finally {
       setLoading(false);
@@ -189,18 +185,12 @@ export default function AuthPage({ onAuth }) {
       </section>
 
       <section className="auth">
-        <div
-          className="auth__tabs"
-          role="tablist"
-          aria-label="Account"
-        >
+        <div className="auth__tabs" role="tablist" aria-label="Account">
           <button
             type="button"
             role="tab"
             aria-selected={isRegister}
-            className={`auth__tab${
-              isRegister ? " auth__tab--active" : ""
-            }`}
+            className={`auth__tab${isRegister ? " auth__tab--active" : ""}`}
             onClick={() => switchMode("register")}
           >
             Sign Up
@@ -210,20 +200,14 @@ export default function AuthPage({ onAuth }) {
             type="button"
             role="tab"
             aria-selected={!isRegister}
-            className={`auth__tab${
-              !isRegister ? " auth__tab--active" : ""
-            }`}
+            className={`auth__tab${!isRegister ? " auth__tab--active" : ""}`}
             onClick={() => switchMode("login")}
           >
             Login
           </button>
         </div>
 
-        <form
-          className="auth__form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
+        <form className="auth__form" onSubmit={handleSubmit} noValidate>
           {formError && (
             <p className="auth__alert" role="alert">
               {formError}
@@ -232,10 +216,7 @@ export default function AuthPage({ onAuth }) {
 
           {isRegister && (
             <div className="auth__row">
-              <Field
-                icon={FaUserCircle}
-                error={errors.first_name}
-              >
+              <Field icon={FaUserCircle} error={errors.first_name}>
                 <input
                   name="first_name"
                   placeholder="First Name"
@@ -246,10 +227,7 @@ export default function AuthPage({ onAuth }) {
                 />
               </Field>
 
-              <Field
-                icon={FaUserCircle}
-                error={errors.last_name}
-              >
+              <Field icon={FaUserCircle} error={errors.last_name}>
                 <input
                   name="last_name"
                   placeholder="Last Name"
@@ -274,10 +252,18 @@ export default function AuthPage({ onAuth }) {
             />
           </Field>
           {isRegister && (
-          <Field icon={FaPhone} error={errors.phone}>
-          <input type="tel" name="phone" placeholder="Phone number" aria-label="Phone number"
-            value={form.phone} onChange={update} autoComplete="tel" inputMode="tel" />
-          </Field>
+            <Field icon={FaPhone} error={errors.phone}>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone number"
+                aria-label="Phone number"
+                value={form.phone}
+                onChange={update}
+                autoComplete="tel"
+                inputMode="tel"
+              />
+            </Field>
           )}
 
           <PasswordField
@@ -286,9 +272,7 @@ export default function AuthPage({ onAuth }) {
             value={form.password}
             onChange={update}
             error={errors.password}
-            autoComplete={
-              isRegister ? "new-password" : "current-password"
-            }
+            autoComplete={isRegister ? "new-password" : "current-password"}
           />
 
           {isRegister ? (
@@ -312,11 +296,7 @@ export default function AuthPage({ onAuth }) {
             </label>
           )}
 
-          <button
-            type="submit"
-            className="auth__submit"
-            disabled={loading}
-          >
+          <button type="submit" className="auth__submit" disabled={loading}>
             {loading
               ? isRegister
                 ? "Registering…"

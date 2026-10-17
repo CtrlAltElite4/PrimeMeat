@@ -213,37 +213,65 @@
 
 /* Mobile */
 
+/* Mobile */
 @media (max-width: 600px) {
   .featured-products {
-    padding: 30px 20px 50px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 24px 12px 35px;
+  }
+
+  .featured-products-header {
+    margin-bottom: 14px;
+  }
+
+  .featured-products-title {
+    font-size: 1.35rem;
+    line-height: 1.3;
+  }
+
+  .featured-products-description {
+    margin-top: 5px;
+    font-size: 0.85rem;
+    line-height: 1.5;
   }
 
   .featured-products-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .featured-product-card {
     width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    border-radius: 6px;
   }
 
   .featured-product-image-container {
-    height: 140px;
+    height: 125px;
   }
 
   .featured-product-content {
-    padding: 12px;
+    min-width: 0;
+    padding: 10px;
   }
 
   .featured-product-name {
-    font-size: 1rem;
-    margin-bottom: 6px;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin-bottom: 5px;
+    overflow-wrap: anywhere;
   }
 
   .featured-product-grade {
+    font-size: 0.75rem;
     margin-bottom: 6px;
+  }
+
+  .featured-product-grade strong {
+    margin-left: 3px;
   }
 
   .featured-product-description {
@@ -251,10 +279,61 @@
   }
 
   .featured-product-price {
+    font-size: 0.9rem;
+    line-height: 1.4;
     margin-bottom: 10px;
+    overflow-wrap: anywhere;
   }
 
   .featured-product-button {
-    width: 100%;
+    padding: 8px 5px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+
+  .f-grade-stamp {
+    width: 44px;
+    height: 44px;
+    right: 6px;
+    bottom: 6px;
+    border-width: 2px;
+  }
+
+  .f-grade-letter {
+    font-size: 17px;
+  }
+
+  .f-grade-label {
+    font-size: 6px;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  .featured-products-button-container {
+    margin-top: 24px;
+  }
+
+  .featured-products-button {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .featured-products-grid {
+    gap: 8px;
+  }
+
+  .featured-product-content {
+    padding: 8px;
+  }
+
+  .featured-product-image-container {
+    height: 105px;
+  }
+
+  .featured-product-name,
+  .featured-product-price {
+    font-size: 0.82rem;
   }
 }

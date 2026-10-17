@@ -236,6 +236,13 @@
   color: #710014;
   font-size: 13px;
 }
+label:has(+ input[required])::after,
+label:has(+ select[required])::after,
+label:has(+ textarea[required])::after {
+  content: " *";
+  color: #dc2626;
+}
+
 @media (max-width: 600px) {
   .address-form-map {
     height: 300px;
