@@ -79,6 +79,9 @@ function CheckoutResult({ outcome, onCartUpdated }) {
       maximumFractionDigits: 2,
     });
 
+  // Group orders go back to their own checkout page instead of the cart
+  const isGroup = Boolean(payment?.group_order_id);
+
   let title = "Checking your payment…";
   let message = "This usually takes a few seconds.";
 
@@ -88,9 +91,14 @@ function CheckoutResult({ outcome, onCartUpdated }) {
   } else if (payment?.status === "completed") {
     title = "Thank you for your order!";
     message = `Your payment of R${formatPrice(payment.amount)} was received. Order ${payment.order_number} is now being prepared.`;
+    if (isGroup) {
+      message += " Every group member is being emailed a confirmation.";
+    }
   } else if (payment?.status === "failed" || outcome === "cancelled") {
     title = "Payment cancelled";
-    message = "You weren't charged. Your cart has been kept, so you can try again whenever you're ready.";
+    message = isGroup
+      ? "You weren't charged. Your group order has been saved, so you can try again whenever you're ready."
+      : "You weren't charged. Your cart has been kept, so you can try again whenever you're ready.";
   } else if (gaveUp) {
     title = "We're still waiting for PayFast";
     message = `Your payment hasn't been confirmed yet. If you paid, it will update shortly. Keep your reference: ${paymentNumber}.`;
@@ -113,6 +121,13 @@ function CheckoutResult({ outcome, onCartUpdated }) {
         {payment?.status === "completed" ? (
           <Link to="/account" className="group-order-checkout-payment">
             View my orders
+          </Link>
+        ) : isGroup ? (
+          <Link
+            to={`/group-orders/checkout/${payment.group_order_id}`}
+            className="group-order-checkout-payment"
+          >
+            Back to group order
           </Link>
         ) : (
           <Link to="/cart" className="group-order-checkout-payment">
