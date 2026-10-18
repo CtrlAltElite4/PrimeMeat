@@ -19,6 +19,8 @@ class OrderItem extends Model
         'quantity',
         'cut_type',
         'selected_quarter',
+        'remaining_meat_preferences',
+        'special_instructions',
     ];
 
     protected $casts = [
@@ -26,6 +28,7 @@ class OrderItem extends Model
         'unit_price' => 'decimal:2',
         'line_total' => 'decimal:2',
         'quantity' => 'integer',
+        'remaining_meat_preferences' => 'array',
     ];
 
     public function order(): BelongsTo

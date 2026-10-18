@@ -221,12 +221,15 @@ function Navbar({ user, onLogout, cartCount }) {
               to="/cart"
               onClick={() => setMenuOpen(false)}
             >
-              <ShoppingCart />
+              <span className="navbar-mobile-cart-icon">
+                <ShoppingCart />
+                {cartCount > 0 && (
+                  <span className="navbar-cart-count">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </span>
               <span>Cart</span>
-
-              {cartCount > 0 && (
-                <span className="navbar-cart-count">{cartCount}</span>
-              )}
             </NavLink>
           </div>
         </div>
