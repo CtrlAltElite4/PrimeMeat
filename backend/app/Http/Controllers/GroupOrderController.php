@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\GroupOrder;
+use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -380,16 +381,24 @@ class GroupOrderController extends Controller
             ], 404);
         }
 
+        // Has the organiser already paid for this group order?
+        $paid = $groupOrder->order_id
+            && Payment::where('order_id', $groupOrder->order_id)
+                ->where('status', Payment::STATUS_COMPLETED)
+                ->exists();
+
         return response()->json([
             'group_order' => $groupOrder->load([
                 'members',
                 'deliveryMember',
+                'order:id,order_number,status',
             ]),
             'price_per_person' => round(
                 $groupOrder->price / $groupOrder->number_of_people,
                 2
             ),
             'total_price' => $groupOrder->price,
+            'paid' => $paid,
         ]);
     }
 }

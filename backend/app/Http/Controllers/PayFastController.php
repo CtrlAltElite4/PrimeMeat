@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\GroupOrder;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\GroupOrderMailer;
 use App\Support\PayFast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +20,7 @@ use Throwable;
  * Cart checkout through PayFast.
  *
  * 1. start():  turns the cart into a pending order + pending payment and returns a signed PayFast form.
+ *    startGroup(): the same for a group order (the organiser pays the full amount).
  * 2. notify(): PayFast's server tells us the result (ITN). Only this marks a payment as paid.
  * 3. status() / cancel(): used by the "thank you" and "payment cancelled" pages.
  */
@@ -26,9 +29,8 @@ class PayFastController extends Controller
     /** POST /api/checkout/payfast */
     public function start(Request $request): JsonResponse
     {
-        $config = config('services.payfast');
-        if (! $config['merchant_id'] || ! $config['merchant_key'] || ! $config['notify_url']) {
-            return response()->json(['message' => 'Online payment is not set up yet. Please try again later.'], 503);
+        if ($notReady = $this->notConfigured()) {
+            return $notReady;
         }
 
         $data = $request->validate([
@@ -119,6 +121,100 @@ class PayFastController extends Controller
             return [$order->fresh(), $payment->fresh()];
         });
 
+        Log::info('PayFast checkout started', ['order' => $order->order_number, 'payment' => $payment->payment_number, 'amount' => $payment->amount]);
+
+        return $this->payfastForm($order, $payment, $user, 'PrimeMeat order '.$order->order_number);
+    }
+
+    /**
+     * POST /api/group-orders/{groupOrder}/payfast
+     * The organiser pays the whole group order in one payment. The price comes from
+     * the group order saved on the server, never from the browser.
+     */
+    public function startGroup(Request $request, GroupOrder $groupOrder): JsonResponse
+    {
+        if ($notReady = $this->notConfigured()) {
+            return $notReady;
+        }
+
+        $user = $request->user();
+
+        // Same "not found" answer for someone else's group order
+        abort_if($groupOrder->user_id !== $user->id, 404, 'Group order not found.');
+
+        [$order, $payment] = DB::transaction(function () use ($groupOrder, $user) {
+            // Lock the row so two quick clicks can't create two orders
+            $groupOrder = GroupOrder::whereKey($groupOrder->id)->lockForUpdate()->first();
+            $order = $groupOrder->order_id ? Order::find($groupOrder->order_id) : null;
+
+            if ($order && $order->payments()->where('status', Payment::STATUS_COMPLETED)->exists()) {
+                return [null, null]; // already paid
+            }
+
+            $delivery = $groupOrder->delivery_method === Order::FULFILLMENT_DELIVERY;
+            $total = round((float) $groupOrder->price, 2);
+
+            $details = [
+                'fulfillment_type' => $delivery ? Order::FULFILLMENT_DELIVERY : Order::FULFILLMENT_COLLECTION,
+                'status' => Order::STATUS_PENDING,
+                'total' => $total,
+                'delivery_address_line_1' => $delivery ? $groupOrder->address_line_1 : null,
+                'delivery_address_line_2' => $delivery ? $groupOrder->address_line_2 : null,
+                'delivery_city' => $delivery ? $groupOrder->city : null,
+                'delivery_province' => $delivery ? $groupOrder->province : null,
+                'delivery_postal_code' => $delivery ? $groupOrder->postal_code : null,
+                'delivery_instructions' => $delivery ? $groupOrder->delivery_instructions : null,
+            ];
+
+            if (! $order) {
+                $order = new Order();
+                $order->forceFill(['user_id' => $user->id] + $details)->save();
+
+                // One line on the order, so the admin panel shows what was bought
+                $weight = str_replace('-', '–', (string) $groupOrder->weight_range);
+                $order->items()->create([
+                    'product_id' => null,
+                    'product_name' => "Group order: Full Carcass ({$weight} kg), {$groupOrder->number_of_people} people"
+                        .($groupOrder->include_ground_beef ? ', with ground beef' : ''),
+                    'grade' => null,
+                    'price' => $total,
+                    'unit_price' => $total,
+                    'quantity' => 1,
+                    'line_total' => $total,
+                    'cut_type' => 'traditional',
+                    'selected_quarter' => null,
+                ]);
+
+                $groupOrder->forceFill(['order_id' => $order->id])->save();
+            } else {
+                // An earlier attempt was cancelled or abandoned: reuse the same order
+                $order->forceFill($details)->save();
+                $order->payments()->where('status', Payment::STATUS_PENDING)->update(['status' => Payment::STATUS_FAILED]);
+            }
+
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'amount' => $total,
+                'status' => Payment::STATUS_PENDING,
+                'method' => 'payfast',
+            ]);
+
+            return [$order->fresh(), $payment->fresh()];
+        });
+
+        if (! $order) {
+            return response()->json(['message' => 'This group order has already been paid.'], 422);
+        }
+
+        Log::info('PayFast group checkout started', ['group_order' => $groupOrder->id, 'order' => $order->order_number, 'payment' => $payment->payment_number, 'amount' => $payment->amount]);
+
+        return $this->payfastForm($order, $payment, $user, 'PrimeMeat group order '.$order->order_number);
+    }
+
+    /** The signed form the browser posts to PayFast. */
+    private function payfastForm(Order $order, Payment $payment, $user, string $itemName): JsonResponse
+    {
+        $config = config('services.payfast');
         [$first, $last] = array_pad(explode(' ', trim($user->name), 2), 2, '');
         $frontend = rtrim($config['frontend_url'], '/');
 
@@ -134,12 +230,20 @@ class PayFastController extends Controller
             'email_address' => $user->email,
             'm_payment_id' => $payment->payment_number,
             'amount' => number_format((float) $payment->amount, 2, '.', ''),
-            'item_name' => 'PrimeMeat order '.$order->order_number,
+            'item_name' => mb_substr($itemName, 0, 100),
         ]);
 
-        Log::info('PayFast checkout started', ['order' => $order->order_number, 'payment' => $payment->payment_number, 'amount' => $payment->amount]);
-
         return response()->json(['url' => PayFast::processUrl(), 'fields' => $fields]);
+    }
+
+    private function notConfigured(): ?JsonResponse
+    {
+        $config = config('services.payfast');
+        if (! $config['merchant_id'] || ! $config['merchant_key'] || ! $config['notify_url']) {
+            return response()->json(['message' => 'Online payment is not set up yet. Please try again later.'], 503);
+        }
+
+        return null;
     }
 
     /**
@@ -195,7 +299,9 @@ class PayFastController extends Controller
         $status = strtoupper((string) ($data['payment_status'] ?? ''));
 
         if ($status === 'COMPLETE') {
-            DB::transaction(function () use ($payment, $data) {
+            $groupOrderId = GroupOrder::where('order_id', $payment->order_id)->value('id');
+
+            DB::transaction(function () use ($payment, $data, $groupOrderId) {
                 $payment->forceFill([
                     'status' => Payment::STATUS_COMPLETED,
                     'provider_reference' => $data['pf_payment_id'] ?? null,
@@ -214,11 +320,18 @@ class PayFastController extends Controller
                     }
                 }
 
-                // Payment confirmed: now the cart can be emptied
-                Cart::where('user_id', $order->user_id)->first()?->items()->delete();
+                // Payment confirmed: now the cart can be emptied. A group order is a
+                // separate purchase, so the organiser's normal cart is left alone.
+                if (! $groupOrderId) {
+                    Cart::where('user_id', $order->user_id)->first()?->items()->delete();
+                }
             });
 
-            Log::info('PayFast payment completed', ['payment' => $reference, 'pf_payment_id' => $data['pf_payment_id'] ?? null]);
+            if ($groupOrderId) {
+                GroupOrderMailer::sendConfirmations($groupOrderId);
+            }
+
+            Log::info('PayFast payment completed', ['payment' => $reference, 'pf_payment_id' => $data['pf_payment_id'] ?? null, 'group_order' => $groupOrderId]);
         } elseif (in_array($status, ['CANCELLED', 'FAILED'], true)) {
             $this->markFailed($payment);
             Log::info('PayFast payment not completed', ['payment' => $reference, 'status' => $status]);
@@ -240,6 +353,8 @@ class PayFastController extends Controller
             'amount' => (float) $payment->amount,
             'order_number' => $payment->order->order_number,
             'order_status' => $payment->order->status,
+            // Lets the result page link back to the group order instead of the cart
+            'group_order_id' => GroupOrder::where('order_id', $payment->order_id)->value('id'),
         ]);
     }
 

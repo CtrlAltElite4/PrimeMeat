@@ -45,6 +45,12 @@ class GroupOrder extends Model
         return $this->hasMany(GroupOrderMember::class);
     }
 
+    /** The order created when the organiser pays (null until checkout starts) */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
     public function deliveryMember(): BelongsTo
     {
         return $this->belongsTo(
