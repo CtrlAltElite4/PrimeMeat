@@ -26,6 +26,7 @@
 }
 
 .address-form-field input,
+.address-form-field select,
 .address-form-field textarea {
   width: 100%;
   box-sizing: border-box;
@@ -39,7 +40,8 @@
   transition: border-color 0.2s ease;
 }
 
-.address-form-field input {
+.address-form-field input,
+.address-form-field select {
   min-height: 48px;
   padding: 12px 14px;
 }
@@ -51,6 +53,7 @@
 }
 
 .address-form-field input:focus,
+.address-form-field select:focus,
 .address-form-field textarea:focus {
   border-color: #710014;
 }
@@ -58,6 +61,12 @@
 .address-form-field input::placeholder,
 .address-form-field textarea::placeholder {
   color: #999999;
+}
+.address-form-field select {
+  min-height: 48px;
+  padding: 12px 14px;
+  cursor: pointer;
+  appearance: auto;
 }
 .address-form-search {
   position: relative;
@@ -235,12 +244,6 @@
   margin: 5px 0 0;
   color: #710014;
   font-size: 13px;
-}
-label:has(+ input[required])::after,
-label:has(+ select[required])::after,
-label:has(+ textarea[required])::after {
-  content: " *";
-  color: #dc2626;
 }
 
 @media (max-width: 600px) {

@@ -64,6 +64,8 @@
   overflow: hidden;
   border-radius: 8px;
   background: #f3f0e9;
+  object-fit: contain;
+  object-position: center;
 }
 
 .cart-item-image img {

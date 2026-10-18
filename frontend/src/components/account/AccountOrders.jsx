@@ -96,7 +96,42 @@ function AccountOrders({ initialOrderId }) {
       .replaceAll("_", " ")
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
   };
+  const formatPreparationType = (cutType) => {
+    if (cutType === "traditional") {
+      return "Traditional Preparation";
+    }
 
+    if (cutType === "custom") {
+      return "Custom Cuts";
+    }
+
+    return "Not specified";
+  };
+
+  const formatPreference = (preference) => {
+    const labels = {
+      steaks: "Steaks",
+      stew: "Stew meat",
+      mince: "Mince",
+      butcher_choice: "Butcher's choice",
+    };
+
+    return labels[preference] || formatStatus(preference);
+  };
+
+  const getCutGroupLabel = (selection) => {
+    const parts = [];
+
+    if (selection.quarter) {
+      parts.push(formatStatus(selection.quarter));
+    }
+
+    if (selection.side) {
+      parts.push(`Side ${selection.side}`);
+    }
+
+    return parts.length ? parts.join(" — ") : "Selected cuts";
+  };
   const getTrackingSteps = (order) => {
     if (order.status === "cancelled") {
       return [
@@ -242,19 +277,108 @@ function AccountOrders({ initialOrderId }) {
 
           {selectedOrder.items?.length ? (
             <div>
-              {selectedOrder.items.map((item) => (
-                <div key={item.id}>
-                  <p>
-                    <strong>{item.product_name}</strong>
-                  </p>
+              {selectedOrder.items.map((item) => {
+                const preferences = Array.isArray(
+                  item.remaining_meat_preferences,
+                )
+                  ? item.remaining_meat_preferences
+                  : [];
 
-                  <p>Grade: {item.grade || "-"}</p>
+                const selections = item.cut_selections || [];
 
-                  <p>Quantity: {item.quantity}</p>
+                const groupedCuts = selections.reduce((groups, selection) => {
+                  const groupLabel = getCutGroupLabel(selection);
 
-                  <p>Price: {formatAmount(item.price)}</p>
-                </div>
-              ))}
+                  if (!groups[groupLabel]) {
+                    groups[groupLabel] = [];
+                  }
+
+                  const cutName = selection.cut_option?.name || "Selected cut";
+
+                  groups[groupLabel].push(cutName);
+
+                  return groups;
+                }, {});
+
+                return (
+                  <div key={item.id} className="account-order-item">
+                    <p>
+                      <strong>{item.product_name}</strong>
+                    </p>
+
+                    <p>Grade: {item.grade || "-"}</p>
+
+                    <p>Quantity: {item.quantity}</p>
+
+                    <p>Price: {formatAmount(item.price)}</p>
+
+                    <div className="account-order-preparation">
+                      <h3>Preparation Preferences</h3>
+
+                      <p>
+                        <strong>Preparation:</strong>{" "}
+                        {formatPreparationType(item.cut_type)}
+                      </p>
+
+                      {item.cut_type === "custom" && (
+                        <>
+                          {item.selected_quarter && (
+                            <p>
+                              <strong>Selected quarter:</strong>{" "}
+                              {formatStatus(item.selected_quarter)}
+                            </p>
+                          )}
+
+                          <div>
+                            <strong>Selected cuts:</strong>
+
+                            {Object.keys(groupedCuts).length > 0 ? (
+                              Object.entries(groupedCuts).map(
+                                ([groupLabel, cuts]) => (
+                                  <div key={groupLabel}>
+                                    <p>
+                                      <strong>{groupLabel}</strong>
+                                    </p>
+
+                                    <ul>
+                                      {cuts.map((cut, index) => (
+                                        <li key={`${cut}-${index}`}>{cut}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ),
+                              )
+                            ) : (
+                              <p>No saved cut selections.</p>
+                            )}
+                          </div>
+
+                          {preferences.length > 0 && (
+                            <div>
+                              <strong>Remaining meat preferences:</strong>
+
+                              <ul>
+                                {preferences.map((preference) => (
+                                  <li key={preference}>
+                                    {formatPreference(preference)}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {item.special_instructions && (
+                            <p>
+                              <strong>Special instructions:</strong>{" "}
+                              {item.special_instructions}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <p>No items found.</p>

@@ -86,6 +86,8 @@ class OrderController extends Controller
                     'quantity' => $cartItem->quantity,
                     'cut_type' => $cartItem->cut_type,
                     'selected_quarter' => $cartItem->selected_quarter,
+                    'remaining_meat_preferences' => $cartItem->remaining_meat_preferences,
+                    'special_instructions' => $cartItem->special_instructions,
                 ]);
 
                 foreach ($cartItem->cutSelections as $selection) {
