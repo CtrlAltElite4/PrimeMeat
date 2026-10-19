@@ -9,7 +9,10 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+        // Only real actions that need a login send people to /login
+    const isSessionCheck = error.config?.url?.endsWith("/api/user");
+
+    if (error.response?.status === 401 && !isSessionCheck) {
       window.dispatchEvent(new Event("auth:required"));
     }
 
