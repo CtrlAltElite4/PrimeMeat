@@ -40,7 +40,7 @@ function ContactPage() {
             <span className="Bolder">Hours:</span> 08:00-17:00
           </h3>
           <h3 class="StoreAddress" id="StoreDetails">
-            <span className="Bolder">Location:</span>  Moletši Mošate Village, 
+            <span className="Bolder">Location:</span>  Moletji, 
             Polokwane, Limpopo, 0709
           </h3>
         </div>
