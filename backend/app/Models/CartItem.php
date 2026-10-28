@@ -11,6 +11,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'product_id',
+        'product_variant_id',
         'quantity',
         'cut_type',
         'selected_quarter',
@@ -36,5 +37,10 @@ class CartItem extends Model
     public function cutSelections(): HasMany
     {
         return $this->hasMany(CutSelection::class);
+    }
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 }

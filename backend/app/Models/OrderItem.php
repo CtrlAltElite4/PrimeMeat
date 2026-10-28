@@ -11,6 +11,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'product_variant_id',
         'product_name',
         'grade',
         'price',
@@ -44,5 +45,10 @@ class OrderItem extends Model
     public function cutSelections(): HasMany
     {
         return $this->hasMany(OrderItemCutSelection::class);
+    }
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 }
