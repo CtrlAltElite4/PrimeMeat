@@ -5,25 +5,7 @@ import api from "../api";
 import AddressForm from "../components/AddressForm";
 import "../styles/GroupOrders.css";
 
-const WEIGHT_RANGES = [
-  {
-    id: "200-240",
-    label: "200–240 kg",
-    price: 17000,
-  },
-  {
-    id: "241-280",
-    label: "241–280 kg",
-    price: 20750,
-  },
-  {
-    id: "281-320",
-    label: "281–320 kg",
-    price: 23750,
-  },
-];
-
-function GroupOrders() {
+function GroupOrders({ user }) {
   const navigate = useNavigate();
 
   const [selectedWeightRange, setSelectedWeightRange] = useState("");
@@ -59,7 +41,10 @@ function GroupOrders() {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [error, setError] = useState("");
-
+  const [groupOrderProducts, setGroupOrderProducts] = useState([]);
+  const [loadingGroupOrderProducts, setLoadingGroupOrderProducts] =
+    useState(true);
+  const [selectedProductId, setSelectedProductId] = useState("");
   useEffect(() => {
     const fetchSavedAddresses = async () => {
       try {
@@ -93,12 +78,29 @@ function GroupOrders() {
     fetchSavedAddresses();
   }, []);
 
-  const selectedRange = WEIGHT_RANGES.find(
-    (range) => range.id === selectedWeightRange,
+  useEffect(() => {
+    const fetchGroupOrderProducts = async () => {
+      try {
+        const { data } = await api.get("/api/group-order-products");
+
+        setGroupOrderProducts(data.group_order_products || []);
+      } catch (error) {
+        console.error("Failed to load group order products:", error);
+        setError("Unable to load group order packages. Please try again.");
+      } finally {
+        setLoadingGroupOrderProducts(false);
+      }
+    };
+
+    fetchGroupOrderProducts();
+  }, []);
+
+  const selectedRange = groupOrderProducts.find(
+    (product) => String(product.id) === selectedProductId,
   );
 
   const pricePerPerson = selectedRange
-    ? selectedRange.price / numberOfPeople
+    ? Number(selectedRange.price) / numberOfPeople
     : 0;
 
   const updateMember = (index, field, value) => {
@@ -170,10 +172,23 @@ function GroupOrders() {
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!user) {
+      navigate("/login", {
+        state: {
+          from: "/group-orders",
+        },
+      });
+      return;
+    }
     setError("");
 
-    if (!selectedWeightRange) {
+    if (!selectedProductId) {
       setError("Please select a weight range.");
+      return;
+    }
+
+    if (!selectedRange || selectedRange.stock < 1) {
+      setError("This group order package is no longer available.");
       return;
     }
 
@@ -201,7 +216,7 @@ function GroupOrders() {
 
     try {
       const { data } = await api.post("/api/group-orders/checkout", {
-        weight_range: selectedWeightRange,
+        group_order_product_id: Number(selectedProductId),
         include_ground_beef: includeGroundBeef,
         number_of_people: numberOfPeople,
         members,
@@ -271,21 +286,31 @@ function GroupOrders() {
           </div>
 
           <div className="group-orders-weight-options">
-            {WEIGHT_RANGES.map((range) => (
-              <button
-                key={range.id}
-                type="button"
-                className={`group-orders-weight-option ${
-                  selectedWeightRange === range.id
-                    ? "group-orders-weight-option--selected"
-                    : ""
-                }`}
-                onClick={() => setSelectedWeightRange(range.id)}
-              >
-                <strong>{range.label}</strong>
-                <span>R{range.price.toLocaleString("en-ZA")}</span>
-              </button>
-            ))}
+            {loadingGroupOrderProducts ? (
+              <p>Loading available packages...</p>
+            ) : groupOrderProducts.length === 0 ? (
+              <p>No group order packages are currently available.</p>
+            ) : (
+              groupOrderProducts.map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  disabled={product.stock < 1}
+                  className={`group-orders-weight-option ${
+                    selectedProductId === String(product.id)
+                      ? "group-orders-weight-option--selected"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedProductId(String(product.id))}
+                >
+                  <strong>{product.weight_range} kg</strong>
+
+                  <span>R{Number(product.price).toLocaleString("en-ZA")}</span>
+
+                  {product.stock < 1 && <small>Out of stock</small>}
+                </button>
+              ))
+            )}
           </div>
         </section>
 
@@ -514,7 +539,11 @@ function GroupOrders() {
             <div>
               <span>Weight range</span>
 
-              <strong>{selectedRange?.label || "Not selected"}</strong>
+              <strong>
+                {selectedRange
+                  ? `${selectedRange.weight_range} kg`
+                  : "Not selected"}
+              </strong>
             </div>
 
             <div className="group-orders-review-people">
@@ -563,7 +592,7 @@ function GroupOrders() {
 
               <strong>
                 {selectedRange
-                  ? `R${selectedRange.price.toLocaleString("en-ZA")}`
+                  ? `R${Number(selectedRange.price).toLocaleString("en-ZA")}`
                   : "Not selected"}
               </strong>
             </div>
@@ -571,7 +600,11 @@ function GroupOrders() {
 
           {error && <p className="group-orders-error">{error}</p>}
 
-          <button type="submit" className="group-orders-submit">
+          <button
+            type="submit"
+            className="group-orders-submit"
+            disabled={loadingGroupOrderProducts || !selectedProductId}
+          >
             Proceed to Checkout
           </button>
         </section>

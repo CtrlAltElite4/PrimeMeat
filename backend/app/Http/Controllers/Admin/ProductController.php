@@ -18,6 +18,7 @@ use Illuminate\Validation\Rule;
 class ProductController extends Controller
 {
     private const PER_PAGE = 10;
+
     public const LOW_STOCK = 10; // at or below this, a product shows as "Low stock"
 
     /**
@@ -28,13 +29,16 @@ class ProductController extends Controller
     {
         $data = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'array'],
+            'category.*' => ['required', 'string', 'max:100'],
             'status' => ['nullable', Rule::in(['active', 'low_stock', 'unavailable', 'draft'])],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $products = Product::query()
-            ->when($data['category'] ?? null, fn ($q, $category) => $q->where('category', $category))
+            ->when($data['category'] ?? null, function ($q, $category) {
+                $q->whereJsonContains('category', $category);
+            })
             ->when($data['status'] ?? null, fn ($q, $status) => $this->filterStatus($q, $status))
             ->when($data['search'] ?? null, function ($q, $search) {
                 $term = '%'.addcslashes($search, '%_\\').'%';
@@ -61,7 +65,12 @@ class ProductController extends Controller
             'low_stock' => $this->filterStatus(Product::query(), 'low_stock')->count(),
             'unavailable' => $this->filterStatus(Product::query(), 'unavailable')->count(),
             'low_stock_level' => self::LOW_STOCK,
-            'categories' => Product::whereNotNull('category')->distinct()->orderBy('category')->pluck('category'),
+            'categories' => Product::whereNotNull('category')
+                ->pluck('category')
+                ->flatten()
+                ->unique()
+                ->sort()
+                ->values(),
         ]);
     }
 
@@ -69,7 +78,7 @@ class ProductController extends Controller
     {
         $data = $this->validated($request, imageRequired: false);
 
-        $product = new Product();
+        $product = new Product;
         $this->fill($product, $data, $request);
         $product->save();
 
@@ -125,10 +134,11 @@ class ProductController extends Controller
 
     private function fill(Product $product, array $data, Request $request): void
     {
+        $categories = array_values(array_unique($data['category'] ?? []));
         $product->forceFill([
             'name' => $data['name'],
             'grade' => $data['grade'],
-            'category' => $data['category'] ?? null,
+            'category' => $categories,
             'description' => $data['description'] ?? null,
             'price' => $data['price'],
             'stock' => $data['stock'],
@@ -184,7 +194,7 @@ class ProductController extends Controller
             'code' => 'PRD-'.(1000 + $product->id),
             'name' => $product->name,
             'grade' => $product->grade,
-            'category' => $product->category,
+            'category' => $product->category ?? [],
             'description' => $product->description,
             'price' => (float) $product->price,
             'stock' => $stock,

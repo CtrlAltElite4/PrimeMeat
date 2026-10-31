@@ -1,59 +1,45 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
-import "../styles/SearchBar.css";
+import { NavLink } from "react-router-dom";
+import "../styles/Home.css";
 
-function SearchBar() {
-  const [search, setSearch] = useState("");
-  const navigate = useNavigate();
-
-  const handleSearch = (event) => {
-    event.preventDefault();
-
-    const searchTerm = search.trim().toLowerCase();
-
-    if (!searchTerm) {
-      navigate("/products");
-      return;
-    }
-
-    const groupPurchaseTerms = [
-      "group purchase",
-      "group purchases",
-      "group order",
-      "group orders",
-      "group buying",
-      "group",
-    ];
-
-    const isGroupPurchase = groupPurchaseTerms.some((term) =>
-      searchTerm.includes(term),
-    );
-
-    if (isGroupPurchase) {
-      navigate("/group-orders");
-      return;
-    }
-
-    navigate(`/products?search=${encodeURIComponent(search.trim())}`);
-  };
+function HomeFilterBar() {
+  const filters = [
+    {
+      name: "Beef Carcasses",
+      value: "beef-carcasses",
+      path: "/products?filter=beef-carcasses",
+    },
+    {
+      name: "Beef Products",
+      value: "beef-products",
+      path: "/products?filter=beef-products",
+    },
+    {
+      name: "Mutton Products",
+      value: "mutton-products",
+      path: "/products?filter=mutton-products",
+    },
+    {
+      name: "Lamb Products",
+      value: "lamb-products",
+      path: "/products?filter=lamb-products",
+    },
+  ];
 
   return (
-    <nav className="search-bar">
-      <form className="search-bar-container" onSubmit={handleSearch}>
-        <Search className="search-bar-icon" />
-
-        <input
-          className="search-bar-input"
-          type="text"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search..."
-          aria-label="Search products"
-        />
-      </form>
-    </nav>
+    <section className="home-filter-bar">
+      <div className="home-filter-container">
+        {filters.map((filter) => (
+          <NavLink
+            key={filter.value}
+            className="home-filter-link"
+            to={filter.path}
+          >
+            {filter.name}
+          </NavLink>
+        ))}
+      </div>
+    </section>
   );
 }
 
-export default SearchBar;
+export default HomeFilterBar;

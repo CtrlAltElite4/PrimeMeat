@@ -23,11 +23,16 @@ class GroupOrder extends Model
         'province',
         'postal_code',
         'delivery_instructions',
+        'group_order_product_id',
+        'stock_reserved',
+        'stock_reserved_at',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'include_ground_beef' => 'boolean',
+        'stock_reserved' => 'boolean',
+        'stock_reserved_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -57,5 +62,10 @@ class GroupOrder extends Model
             GroupOrderMember::class,
             'delivery_member_id'
         );
+    }
+
+    public function groupOrderProduct(): BelongsTo
+    {
+        return $this->belongsTo(GroupOrderProduct::class);
     }
 }

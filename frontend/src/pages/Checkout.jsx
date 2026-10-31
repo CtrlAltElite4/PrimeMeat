@@ -43,24 +43,95 @@ function Checkout() {
   }, []);
 
   const formatPrice = (price) =>
-    Number(price || 0).toLocaleString("en-ZA", {
+    `R${Number(price || 0).toLocaleString("en-ZA", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })}`;
 
-  const getItemTotal = (item) =>
-    Number(item.product.price) * Number(item.quantity);
+  // Resolve the selected carcass variant returned by the cart API.
+  const getItemVariant = (item) =>
+    item.product_variant || item.productVariant || null;
+
+  // Use the selected variant price for carcasses and product price otherwise.
+  const getItemUnitPrice = (item) => {
+    const variant = getItemVariant(item);
+
+    return Number(variant?.price ?? item.price ?? item.product?.price ?? 0);
+  };
+
+  const getItemTotal = (item) => getItemUnitPrice(item) * Number(item.quantity);
+
+  const getItemGrade = (item) => {
+    const variant = getItemVariant(item);
+
+    return variant?.grade ?? item.grade ?? item.product?.grade ?? null;
+  };
+
+  const getItemWeight = (item) => {
+    const variant = getItemVariant(item);
+
+    if (variant?.weight_min_kg == null || variant?.weight_max_kg == null) {
+      return null;
+    }
+
+    return `${variant.weight_min_kg}–${variant.weight_max_kg} kg`;
+  };
+
+  // Use the backend's stock and availability checks before enabling payment.
+  const getAvailableStock = (item) => {
+    if (item.available_stock == null) {
+      return null;
+    }
+
+    return Math.max(0, Number(item.available_stock));
+  };
+
+  const isItemUnavailable = (item) => {
+    const availableStock = getAvailableStock(item);
+
+    return (
+      item.is_available === false ||
+      (availableStock !== null && availableStock < Number(item.quantity))
+    );
+  };
+
+  const items = cart?.items || [];
 
   const subtotal = cart
-    ? (cart.items || []).reduce(
-        (total, item) => total + getItemTotal(item),
-        0,
-      ) + Number(cart.group_order?.price || 0)
+    ? items.reduce((total, item) => total + getItemTotal(item), 0) +
+      Number(cart.group_order?.price || 0)
     : 0;
 
-  // Ask Laravel for a signed PayFast form, then send the customer to PayFast with it.
-  // The amount is worked out on the server from the database, never taken from this page.
+  const hasUnavailableItems = items.some(isItemUnavailable);
+
+  const hasDeliveryAddress = Boolean(
+    deliveryAddress.addressLine1?.trim() &&
+    deliveryAddress.city?.trim() &&
+    deliveryAddress.province?.trim() &&
+    deliveryAddress.postalCode?.trim(),
+  );
+
+  const canPay =
+    !paying &&
+    !hasUnavailableItems &&
+    (deliveryMethod !== "delivery" || hasDeliveryAddress);
+
+  // Laravel calculates and signs the payment amount from database records.
   const startPayment = async () => {
+    if (hasUnavailableItems) {
+      setPayError(
+        "Some products are unavailable or have insufficient stock. Return to your cart to resolve this.",
+      );
+      return;
+    }
+
+    if (deliveryMethod === "delivery" && !hasDeliveryAddress) {
+      setPayError(
+        "Please return to your cart and select a complete delivery address.",
+      );
+      return;
+    }
+
     setPaying(true);
     setPayError("");
 
@@ -91,11 +162,13 @@ function Checkout() {
       form.submit();
     } catch (requestError) {
       const fieldErrors = requestError.response?.data?.errors;
+
       setPayError(
         (fieldErrors && Object.values(fieldErrors)[0]?.[0]) ||
           requestError.response?.data?.message ||
           "Couldn't start the payment. Please try again.",
       );
+
       setPaying(false);
     }
   };
@@ -150,8 +223,6 @@ function Checkout() {
     );
   }
 
-  const items = cart.items || [];
-
   if (items.length === 0 && !cart.group_order) {
     return (
       <main className="group-order-checkout-page">
@@ -178,7 +249,7 @@ function Checkout() {
       <section className="group-order-checkout-header">
         <span>CHECKOUT</span>
         <h1>Review your order</h1>
-        <p>Check your order details before continuing to payment.</p>
+        <p>Check your products and receiving details before payment.</p>
       </section>
 
       <section className="group-order-checkout-content">
@@ -203,21 +274,32 @@ function Checkout() {
               item.remaining_meat_preferences,
             );
 
+            const product = item.product;
+            const isBeefCarcass = product?.category === "Beef Carcasses";
+            const grade = getItemGrade(item);
+            const weight = getItemWeight(item);
+            const unavailable = isItemUnavailable(item);
+            const availableStock = getAvailableStock(item);
+
             return (
               <article className="group-order-checkout-member" key={item.id}>
                 <div>
-                  <strong>{item.product.name}</strong>
+                  <strong>{product.name}</strong>
 
-                  <span>Grade {item.product.grade}</span>
+                  {isBeefCarcass && (
+                    <>
+                      {grade && <span>Grade {grade}</span>}
 
+                      {weight && <span>Weight: {weight}</span>}
+                    </>
+                  )}
+
+                  {!isBeefCarcass && <span>{product.category}</span>}
+
+                  <span>Unit price: {formatPrice(getItemUnitPrice(item))}</span>
                   <span>Quantity: {item.quantity}</span>
 
-                  <span>
-                    Preparation:{" "}
-                    {item.cut_type === "custom" ? "Custom Cuts" : "Traditional"}
-                  </span>
-
-                  {item.selected_quarter && (
+                  {isBeefCarcass && item.selected_quarter && (
                     <span>
                       Quarter:{" "}
                       {item.selected_quarter === "front"
@@ -226,7 +308,18 @@ function Checkout() {
                     </span>
                   )}
 
-                  {cuts.length > 0 && (
+                  {unavailable && (
+                    <p
+                      className="group-order-checkout-instructions"
+                      role="alert"
+                    >
+                      {availableStock !== null && availableStock > 0
+                        ? `Only ${availableStock} available. Return to your cart to reduce the quantity.`
+                        : "This product is unavailable. Return to your cart to remove it or resolve the issue."}
+                    </p>
+                  )}
+
+                  {isBeefCarcass && cuts.length > 0 && (
                     <div className="group-order-checkout-address">
                       <strong>Selected cuts</strong>
                       <ul>
@@ -237,7 +330,7 @@ function Checkout() {
                     </div>
                   )}
 
-                  {remainingMeat.length > 0 && (
+                  {isBeefCarcass && remainingMeat.length > 0 && (
                     <div className="group-order-checkout-address">
                       <strong>Remaining meat preferences</strong>
                       <ul>
@@ -248,7 +341,7 @@ function Checkout() {
                     </div>
                   )}
 
-                  {item.special_instructions && (
+                  {isBeefCarcass && item.special_instructions && (
                     <div className="group-order-checkout-instructions">
                       <span>Special instructions</span>
                       <p>{item.special_instructions}</p>
@@ -256,7 +349,7 @@ function Checkout() {
                   )}
                 </div>
 
-                <strong>R{formatPrice(getItemTotal(item))}</strong>
+                <strong>{formatPrice(getItemTotal(item))}</strong>
               </article>
             );
           })}
@@ -271,7 +364,7 @@ function Checkout() {
                 </span>
               </div>
 
-              <strong>R{formatPrice(cart.group_order.price)}</strong>
+              <strong>{formatPrice(cart.group_order.price)}</strong>
             </article>
           )}
         </div>
@@ -287,38 +380,40 @@ function Checkout() {
           </div>
 
           {deliveryMethod === "delivery" ? (
-            <>
-              {deliveryAddress.addressLine1 ? (
-                <div className="group-order-checkout-address">
-                  <p>{deliveryAddress.addressLine1}</p>
+            hasDeliveryAddress ? (
+              <div className="group-order-checkout-address">
+                <p>{deliveryAddress.addressLine1}</p>
 
-                  {deliveryAddress.addressLine2 && (
-                    <p>{deliveryAddress.addressLine2}</p>
-                  )}
+                {deliveryAddress.addressLine2 && (
+                  <p>{deliveryAddress.addressLine2}</p>
+                )}
 
-                  <p>
-                    {deliveryAddress.city}
-                    {deliveryAddress.province
-                      ? `, ${deliveryAddress.province}`
-                      : ""}
-                  </p>
-
-                  <p>{deliveryAddress.postalCode}</p>
-
-                  {deliveryAddress.instructions && (
-                    <div className="group-order-checkout-instructions">
-                      <span>Delivery instructions</span>
-                      <p>{deliveryAddress.instructions}</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
                 <p>
-                  No delivery address was provided. Return to your cart and
-                  select or enter your delivery address.
+                  {deliveryAddress.city}
+                  {deliveryAddress.province
+                    ? `, ${deliveryAddress.province}`
+                    : ""}
                 </p>
-              )}
-            </>
+
+                <p>{deliveryAddress.postalCode}</p>
+
+                {deliveryAddress.instructions && (
+                  <div className="group-order-checkout-instructions">
+                    <span>Delivery instructions</span>
+                    <p>{deliveryAddress.instructions}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="group-order-checkout-address">
+                <p>
+                  A complete delivery address is required before payment. Return
+                  to your cart and select a saved address.
+                </p>
+
+                <Link to="/cart">Return to Cart</Link>
+              </div>
+            )
           ) : (
             <p className="group-order-checkout-collection">
               You have selected collection for your order.
@@ -329,24 +424,32 @@ function Checkout() {
         <div className="group-order-checkout-summary">
           <div>
             <span>Order total</span>
-            <strong>R{formatPrice(subtotal)}</strong>
+            <strong>{formatPrice(subtotal)}</strong>
           </div>
+
+          {hasUnavailableItems && (
+            <p role="alert">
+              Some items are unavailable or have insufficient stock. Resolve
+              this in your cart before paying.
+            </p>
+          )}
 
           <button
             type="button"
             className="group-order-checkout-payment"
             onClick={startPayment}
-            disabled={paying}
+            disabled={!canPay}
           >
             {paying ? "Taking you to PayFast…" : "Pay with PayFast"}
           </button>
 
           <p className="group-order-checkout-secure">
-            You'll be taken to PayFast to pay securely. PrimeMeat never sees your card details.
+            You'll be taken to PayFast to pay securely. PrimeMeat never sees
+            your card details.
           </p>
 
           {payError && (
-            <p role="alert" style={{ color: "#ffd2d2", maxWidth: 260, margin: 0 }}>
+            <p role="alert" className="group-order-checkout-instructions">
               {payError}
             </p>
           )}
@@ -365,4 +468,3 @@ function Checkout() {
 }
 
 export default Checkout;
-

@@ -143,10 +143,6 @@ function App() {
     }
   };
 
-  if (checking) {
-    return null;
-  }
-
   const site = (
     <div className="page-container">
       <ScrollToTop />
@@ -177,7 +173,7 @@ function App() {
           <Route path="/Support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/article/:id" element={<ArticlePage />} />
-          <Route path="/group-orders" element={<GroupOrders />} />
+          <Route path="/group-orders" element={<GroupOrders user={user} />} />
 
           <Route
             path="/group-orders/checkout/:id"

@@ -103,6 +103,7 @@ function ProductListing({
     setGrade("all");
     setPriceRange([minimumPrice, maximumPrice]);
     setPriceFilterActive(false);
+    setSort("none");
 
     onProductsFetch({
       page: 1,
@@ -111,6 +112,7 @@ function ProductListing({
       grade: "all",
       minPrice: "",
       maxPrice: "",
+      sort: "none",
     });
   };
 
@@ -215,7 +217,7 @@ function ProductListing({
           </div>
 
           <div className="product-filter-group">
-            <h4>Grade</h4>
+            <h4>Beef Grade</h4>
 
             {[
               ["all", "All"],

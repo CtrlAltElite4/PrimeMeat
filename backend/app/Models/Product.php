@@ -29,6 +29,7 @@ class Product extends Model
         'price' => 'decimal:2',
         'is_active' => 'boolean',
         'stock' => 'integer',
+        'category' => 'array',
     ];
 
     public function variants(): HasMany

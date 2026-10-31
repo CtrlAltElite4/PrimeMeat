@@ -47,6 +47,8 @@
   border-radius: 8px;
   overflow: hidden;
   display: flex;
+  height: 100%;
+
   flex-direction: column;
   transition: box-shadow 0.3s ease;
 }
@@ -95,6 +97,13 @@
 }
 
 .product-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  max-height: 4.5em;
   font-size: 0.95rem;
   color: #555;
   margin-bottom: 12px;
@@ -104,13 +113,14 @@
   font-size: 1.1rem;
   font-weight: bold;
   color: #710014;
-  margin-bottom: 16px;
+  margin-top: auto;
 }
 
 .product-card-actions {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  margin-top: 12px;
 }
 
 .product-card-view-button,
@@ -138,6 +148,8 @@
 .product-card-cart-button {
   background: #710014;
   color: #ffffff;
+  text-align: center;
+  text-decoration: none;
 }
 
 .product-card-cart-button:hover {
