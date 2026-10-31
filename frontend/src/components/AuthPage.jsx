@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -80,12 +80,15 @@ function PasswordField({
 
 export default function AuthPage({ onAuth }) {
   const navigate = useNavigate();
-  const [mode, setMode] = useState("register");
+  const location = useLocation();
+  // Opens on the Login tab when coming back from "forgot password"
+  const [mode, setMode] = useState(
+    location.state?.mode === "login" ? "login" : "register",
+  );
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
-  const location = useLocation();
   const isRegister = mode === "register";
 
   const update = (e) => {
@@ -294,6 +297,12 @@ export default function AuthPage({ onAuth }) {
               />
               Keep me signed in
             </label>
+          )}
+
+          {!isRegister && (
+            <p style={{ margin: 0, textAlign: "right" }}>
+              <Link to="/forgot-password">Forgot password?</Link>
+            </p>
           )}
 
           <button type="submit" className="auth__submit" disabled={loading}>

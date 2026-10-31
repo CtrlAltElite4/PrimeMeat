@@ -24,11 +24,19 @@ use App\Http\Controllers\ProductController as CustomerProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\NotificationPreferenceController;
+use App\Http\Controllers\PayFastController;
+use App\Http\Controllers\PasswordResetController;
 
 // 5 attempts per minute per IP to slow down brute forcing / spam signups
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Forgot password: email a reset link, then set the new password
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 });
 
 // Logged-in routes. Suspended users are logged out on their next request.

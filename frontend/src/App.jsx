@@ -44,6 +44,8 @@ import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
 import CheckoutResult from "./pages/CheckoutResult";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import "./App.css";
 
@@ -65,8 +67,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const handleAuthRequired = () => {
-      if (!user) {
+      const handleAuthRequired = () => {
+      const publicAuthPages = ["/login", "/forgot-password", "/reset-password"];
+      if (!user && !publicAuthPages.includes(location.pathname)) {
         navigate("/login", {
           state: {
             from: `${location.pathname}${location.search}`,
@@ -211,6 +214,9 @@ function App() {
               )
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
           <Route
             path="/account/addresses/new"
             element={
