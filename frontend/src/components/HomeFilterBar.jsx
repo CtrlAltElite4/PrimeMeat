@@ -4,24 +4,24 @@ import "../styles/Home.css";
 function HomeFilterBar() {
   const filters = [
     {
-      name: "Full Carcass",
-      value: "full-carcass",
-      path: "/products?filter=full-carcass",
+      name: "Beef Carcasses",
+      value: "beef-carcasses",
+      path: "/products?filter=beef-carcasses",
     },
     {
-      name: "Half Carcass",
-      value: "half-carcass",
-      path: "/products?filter=half-carcass",
+      name: "Beef Products",
+      value: "beef-products",
+      path: "/products?filter=beef-products",
     },
     {
-      name: "Quarter Carcass",
-      value: "quarter-carcass",
-      path: "/products?filter=quarter-carcass",
+      name: "Mutton Products",
+      value: "mutton-products",
+      path: "/products?filter=mutton-products",
     },
     {
-      name: "Group Orders",
-      value: "group-orders",
-      path: "/group-orders",
+      name: "Lamb Products",
+      value: "lamb-products",
+      path: "/products?filter=lamb-products",
     },
   ];
 

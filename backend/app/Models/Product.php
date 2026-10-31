@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    public const TYPE_CARCASS = 'carcass';
+
+    public const TYPE_FIXED_PRICE = 'fixed_price';
+
     protected $fillable = [
         'name',
         'grade',
@@ -15,13 +19,23 @@ class Product extends Model
         'price',
         'image',
         'is_active',
+        'category',
+        'stock',
+        'status',
+        'product_type',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'boolean',
         'stock' => 'integer',
+        'category' => 'array',
     ];
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 
     public function cartItems(): HasMany
     {
@@ -39,14 +53,46 @@ class Product extends Model
      */
     public function scopeAvailable(Builder $query): Builder
     {
-        return $query->where('is_active', true)
-            ->where('status', '!=', 'draft')
-            ->where('stock', '>', 0);
+        return $query
+            ->where('is_active', true)
+            ->where('status', 'published')
+            ->where(function (Builder $query) {
+                $query
+                    ->where(function (Builder $query) {
+                        $query
+                            ->where('product_type', self::TYPE_FIXED_PRICE)
+                            ->where('stock', '>', 0);
+                    })
+                    ->orWhere(function (Builder $query) {
+                        $query
+                            ->where('product_type', self::TYPE_CARCASS)
+                            ->whereHas('variants', function (Builder $variants) {
+                                $variants
+                                    ->where('is_active', true)
+                                    ->where('stock', '>', 0);
+                            });
+                    });
+            });
     }
 
     /** Same rule as scopeAvailable(), for a single product that's already loaded. */
     public function isPurchasable(): bool
     {
-        return $this->is_active && $this->status !== 'draft' && (int) $this->stock > 0;
+        if (! $this->is_active || $this->status !== 'published') {
+            return false;
+        }
+
+        if ($this->product_type === self::TYPE_FIXED_PRICE) {
+            return (int) $this->stock > 0;
+        }
+
+        if ($this->product_type === self::TYPE_CARCASS) {
+            return $this->variants()
+                ->where('is_active', true)
+                ->where('stock', '>', 0)
+                ->exists();
+        }
+
+        return false;
     }
 }

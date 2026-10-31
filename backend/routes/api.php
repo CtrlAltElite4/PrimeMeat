@@ -2,18 +2,24 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\GroupOrderProductController;
+use App\Http\Controllers\Admin\NotificationPreferenceController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\CutOptionController;
 use App\Http\Controllers\GroupOrderController;
-use App\Http\Controllers\MailerController;
+use App\Http\Controllers\GroupOrderProductsController;
 use App\Http\Controllers\HelpfaqController;
+use App\Http\Controllers\MailerController;
 use App\Http\Controllers\OrderController as CustomerOrderController;
+use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\ProductController as CustomerProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
@@ -41,7 +47,6 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::get('/checkout/payments/{paymentNumber}', [PayFastController::class, 'status']);
     Route::post('/checkout/payments/{paymentNumber}/cancel', [PayFastController::class, 'cancel']);
 
-
     // Cart
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'add']);
@@ -60,6 +65,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::get('/group-orders/{groupOrder}', [GroupOrderController::class, 'show']);
     Route::post('/group-orders/{groupOrder}/payfast', [PayFastController::class, 'startGroup']);
     Route::delete('/group-orders', [GroupOrderController::class, 'destroy']);
+
     // Addresses
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
@@ -78,24 +84,24 @@ Route::get('/cut-options', [CutOptionController::class, 'index']);
 // Public products
 Route::get('/products', [CustomerProductController::class, 'index']);
 Route::get('/products/{product}', [CustomerProductController::class, 'show']);
-
+Route::get('/group-order-products', [GroupOrderProductsController::class, 'index']);
 // Contact
 Route::post('/contact', [MailerController::class, 'send']);
 
-//HelpCenter FAQs Accessed only by admin
+// HelpCenter FAQs Accessed only by admin
 Route::get('/helpfaqs', [HelpfaqController::class, 'index']);
 Route::middleware(['auth:sanctum',
-'admin'
+    'admin',
 ])
-->prefix('admin')->group(function(){
-Route::post('/helpfaqs',[HelpfaqController::class, 'store']);
-Route::put('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'update']);
-Route::delete('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'destroy']);
-});
-
+    ->prefix('admin')->group(function () {
+        Route::post('/helpfaqs', [HelpfaqController::class, 'store']);
+        Route::put('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'update']);
+        Route::delete('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'destroy']);
+    });
 
 // Chatbot
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask']);
+Route::get('/chatbot/faqs', [ChatbotController::class, 'faqs']);
 
 // PayFast payment notifications (ITN). Called by PayFast's server, checked in PayFastController
 Route::post('/payfast/notify', [PayFastController::class, 'notify'])->middleware('throttle:60,1');
@@ -141,6 +147,29 @@ Route::middleware([
         ->whereNumber('product');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])
         ->whereNumber('product');
+    // Carcass Products
+    Route::get('/carcass-products', [ProductVariantController::class, 'index']);
+    Route::post('/carcass-products', [ProductVariantController::class, 'store']);
+    Route::get('/carcass-products/{product}', [ProductVariantController::class, 'show'])
+        ->whereNumber('product');
+    Route::put('/carcass-products/{product}', [ProductVariantController::class, 'update'])
+        ->whereNumber('product');
+    Route::patch('/carcass-products/{product}/availability', [ProductVariantController::class, 'availability'])
+        ->whereNumber('product');
+    Route::delete('/carcass-products/{product}', [ProductVariantController::class, 'destroy'])
+        ->whereNumber('product');
+    // Group Order Products
+    Route::get('/group-order-products', [GroupOrderProductController::class, 'index']);
+    Route::get('/group-order-products/stats', [GroupOrderProductController::class, 'stats']);
+    Route::post('/group-order-products', [GroupOrderProductController::class, 'store']);
+    Route::put('/group-order-products/{groupOrderProduct}', [GroupOrderProductController::class, 'update'])
+        ->whereNumber('groupOrderProduct');
+    Route::patch('/group-order-products/{groupOrderProduct}/stock', [GroupOrderProductController::class, 'updateStock'])
+        ->whereNumber('groupOrderProduct');
+    Route::patch('/group-order-products/{groupOrderProduct}/availability', [GroupOrderProductController::class, 'availability'])
+        ->whereNumber('groupOrderProduct');
+    Route::delete('/group-order-products/{groupOrderProduct}', [GroupOrderProductController::class, 'destroy'])
+        ->whereNumber('groupOrderProduct');
 
     // Users
     Route::get('/users', [UserController::class, 'index']);

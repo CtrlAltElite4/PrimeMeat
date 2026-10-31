@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\GroupOrder;
+use App\Models\GroupOrderProduct;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Support\GroupOrderMailer;
@@ -74,7 +75,7 @@ class PayFastController extends Controller
         [$order, $payment] = DB::transaction(function () use ($cart, $user, $data, $delivery) {
             $total = $cart->items->sum(fn ($item) => round((float) $item->product->price * (int) $item->quantity, 2));
 
-            $order = new Order();
+            $order = new Order;
             $order->forceFill([
                 'user_id' => $user->id,
                 'fulfillment_type' => $data['fulfillment_type'],
@@ -150,7 +151,30 @@ class PayFastController extends Controller
             if ($order && $order->payments()->where('status', Payment::STATUS_COMPLETED)->exists()) {
                 return [null, null]; // already paid
             }
+            if (
+                $groupOrder->group_order_product_id &&
+                ! $groupOrder->stock_reserved
+            ) {
+                $groupOrderProduct = GroupOrderProduct::query()
+                    ->whereKey($groupOrder->group_order_product_id)
+                    ->lockForUpdate()
+                    ->first();
 
+                if (
+                    ! $groupOrderProduct ||
+                    ! $groupOrderProduct->is_active ||
+                    $groupOrderProduct->stock < 1
+                ) {
+                    abort(422, 'This group order package is no longer available.');
+                }
+
+                $groupOrderProduct->decrement('stock');
+
+                $groupOrder->forceFill([
+                    'stock_reserved' => true,
+                    'stock_reserved_at' => now(),
+                ])->save();
+            }
             $delivery = $groupOrder->delivery_method === Order::FULFILLMENT_DELIVERY;
             $total = round((float) $groupOrder->price, 2);
 
@@ -167,7 +191,7 @@ class PayFastController extends Controller
             ];
 
             if (! $order) {
-                $order = new Order();
+                $order = new Order;
                 $order->forceFill(['user_id' => $user->id] + $details)->save();
 
                 // One line on the order, so the admin panel shows what was bought
@@ -383,12 +407,58 @@ class PayFastController extends Controller
     private function markFailed(Payment $payment): void
     {
         DB::transaction(function () use ($payment) {
-            $payment->forceFill(['status' => Payment::STATUS_FAILED])->save();
+            $lockedPayment = Payment::query()
+                ->whereKey($payment->id)
+                ->lockForUpdate()
+                ->first();
 
-            $order = $payment->order;
-            if ($order && $order->status === Order::STATUS_PENDING) {
-                $order->forceFill(['status' => Order::STATUS_CANCELLED])->save();
+            if (! $lockedPayment || $lockedPayment->status === Payment::STATUS_COMPLETED) {
+                return;
             }
+
+            $lockedPayment->update([
+                'status' => Payment::STATUS_FAILED,
+            ]);
+
+            $order = Order::query()
+                ->whereKey($lockedPayment->order_id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($order && $order->status === Order::STATUS_PENDING) {
+                $order->update([
+                    'status' => Order::STATUS_CANCELLED,
+                ]);
+            }
+
+            if (! $order) {
+                return;
+            }
+
+            $groupOrder = GroupOrder::query()
+                ->where('order_id', $order->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $groupOrder || ! $groupOrder->stock_reserved) {
+                return;
+            }
+
+            if ($groupOrder->group_order_product_id) {
+                $groupOrderProduct = GroupOrderProduct::query()
+                    ->whereKey($groupOrder->group_order_product_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($groupOrderProduct) {
+                    $groupOrderProduct->increment('stock');
+                }
+            }
+
+            $groupOrder->forceFill([
+                'stock_reserved' => false,
+                'stock_reserved_at' => null,
+            ])->save();
         });
     }
 }

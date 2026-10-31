@@ -50,12 +50,12 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'status',
-        'total_amount',
+        'total',
         'fulfillment_type',
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     protected static function booted(): void
