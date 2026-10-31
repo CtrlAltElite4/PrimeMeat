@@ -19,15 +19,12 @@ use App\Http\Controllers\GroupOrderProductsController;
 use App\Http\Controllers\HelpfaqController;
 use App\Http\Controllers\MailerController;
 use App\Http\Controllers\OrderController as CustomerOrderController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\ProductController as CustomerProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\Admin\NotificationPreferenceController;
-use App\Http\Controllers\PayFastController;
-use App\Http\Controllers\PasswordResetController;
 
 // 5 attempts per minute per IP to slow down brute forcing / spam signups
 Route::middleware('throttle:5,1')->group(function () {
