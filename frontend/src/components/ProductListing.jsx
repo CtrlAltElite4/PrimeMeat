@@ -17,7 +17,6 @@ function ProductListing({
   const search = searchParams.get("search")?.toLowerCase().trim() || "";
 
   const [category, setCategory] = useState("all");
-  const [grade, setGrade] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 0]);
   const [priceFilterActive, setPriceFilterActive] = useState(false);
   const [sort, setSort] = useState("none");
@@ -32,7 +31,6 @@ function ProductListing({
 
   const fetchWithFilters = ({
     newCategory = category,
-    newGrade = grade,
     newPriceRange = priceRange,
     newPriceFilterActive = priceFilterActive,
     newSort = sort,
@@ -43,7 +41,6 @@ function ProductListing({
       page,
       perPage,
       category: newCategory,
-      grade: newGrade,
       minPrice: newPriceFilterActive ? newPriceRange[0] : "",
       maxPrice: newPriceFilterActive ? newPriceRange[1] : "",
       sort: newSort,
@@ -59,14 +56,6 @@ function ProductListing({
     });
   };
 
-  const handleGradeChange = (value) => {
-    setGrade(value);
-
-    fetchWithFilters({
-      newGrade: value,
-      page: 1,
-    });
-  };
 
   const handleMinimumPriceChange = (event) => {
     const value = Number(event.target.value);
@@ -100,7 +89,6 @@ function ProductListing({
 
   const resetFilters = () => {
     setCategory("all");
-    setGrade("all");
     setPriceRange([minimumPrice, maximumPrice]);
     setPriceFilterActive(false);
     setSort("none");
@@ -109,7 +97,6 @@ function ProductListing({
       page: 1,
       perPage: pagination.perPage,
       category: "all",
-      grade: "all",
       minPrice: "",
       maxPrice: "",
       sort: "none",
@@ -195,48 +182,31 @@ function ProductListing({
         </div>
 
         <div className="product-filter-sidebar-content">
-          <div className="product-filter-group">
-            <h4>Category</h4>
+<div className="product-filter-group">
+  <h4>Category</h4>
 
-            {[
-              ["all", "All"],
-              ["full carcass", "Full Carcass"],
-              ["half carcass", "Half Carcass"],
-              ["quarter carcass", "Quarter Carcass"],
-            ].map(([value, label]) => (
-              <label className="product-filter-option" key={value}>
-                <input
-                  type="radio"
-                  name="category"
-                  checked={category === value}
-                  onChange={() => handleCategoryChange(value)}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
+  <label className="product-filter-option">
+    <input
+      type="radio"
+      name="category"
+      checked={category === "all"}
+      onChange={() => handleCategoryChange("all")}
+    />
+    <span>All</span>
+  </label>
 
-          <div className="product-filter-group">
-            <h4>Beef Grade</h4>
-
-            {[
-              ["all", "All"],
-              ["a", "A"],
-              ["ab", "AB"],
-              ["b", "B"],
-              ["c", "C"],
-            ].map(([value, label]) => (
-              <label className="product-filter-option" key={value}>
-                <input
-                  type="radio"
-                  name="grade"
-                  checked={grade === value}
-                  onChange={() => handleGradeChange(value)}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
+  {(pagination.categories || []).map((value) => (
+    <label className="product-filter-option" key={value}>
+      <input
+        type="radio"
+        name="category"
+        checked={category === value}
+        onChange={() => handleCategoryChange(value)}
+      />
+      <span>{value}</span>
+    </label>
+  ))}
+</div>
 
           <div className="product-filter-group">
             <h4>Price</h4>

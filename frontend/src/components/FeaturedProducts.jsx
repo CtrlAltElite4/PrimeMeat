@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import api from "../api";
-
+import productImage from "../utils/productImage";
 import "../styles/Home.css";
 
 function FeaturedProducts() {
@@ -11,24 +11,9 @@ function FeaturedProducts() {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        const categories = [
-          "beef-carcasses",
-          "beef-products",
-          "mutton-products",
-          "lamb-products",
-        ];
+        const { data } = await api.get("/api/products?per_page=4");
 
-        const responses = await Promise.all(
-          categories.map((category) =>
-            api.get(
-              `/api/products?filter=${encodeURIComponent(category)}&per_page=1`,
-            ),
-          ),
-        );
-
-        setProducts(
-          responses.map((response) => response.data.data?.[0]).filter(Boolean),
-        );
+        setProducts((data.data || []).slice(0, 4));
       } catch (error) {
         console.error("Featured products error:", error);
       } finally {
@@ -55,7 +40,7 @@ function FeaturedProducts() {
         ) : products.length > 0 ? (
           products.map((product) => {
             const grade = product.grade || product.variants?.[0]?.grade;
-            const image = product.image;
+            const image = productImage(product);
 
             return (
               <article className="featured-product-card" key={product.id}>

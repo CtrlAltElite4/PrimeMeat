@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Scale } from "lucide-react";
 import api from "../api";
 import CartToast from "./CartToast";
+import productImage from "../utils/productImage";
 
 function ProductCard({ product, onCartUpdated }) {
   const [addingToCart, setAddingToCart] = useState(false);
@@ -95,13 +96,7 @@ function ProductCard({ product, onCartUpdated }) {
     }
   };
 
-  const productImage = product.name.toLowerCase().includes("full")
-    ? "/images/full-carcasss.png"
-    : product.name.toLowerCase().includes("half")
-      ? "/images/half-carcasss.png"
-      : product.name.toLowerCase().includes("quarter")
-        ? "/images/quarter-carcasss.png"
-        : product.image;
+  const imageUrl = productImage(product);
 
   const weightMatch = product.description?.match(/(\d+(?:\.\d+)?)\s*kg/i);
 
@@ -148,7 +143,7 @@ function ProductCard({ product, onCartUpdated }) {
 
           <img
             className="product-card-image"
-            src={productImage}
+            src={imageUrl || "/images/placeholder.png"}
             alt={product.name}
           />
 

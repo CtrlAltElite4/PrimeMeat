@@ -3,7 +3,12 @@ import { useSearchParams } from "react-router-dom";
 
 import api from "../api";
 import ProductListing from "../components/ProductListing";
-
+const categoryFilters = {
+  "beef-carcasses": "Beef Carcasses",
+  "beef-products": "Beef Products",
+  "mutton-products": "Mutton Products",
+  "lamb-products": "Lamb Products",
+};
 function Products({ onCartUpdated }) {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({
@@ -13,6 +18,7 @@ function Products({ onCartUpdated }) {
     total: 0,
     minimumPrice: 0,
     maximumPrice: 0,
+    categories: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -20,6 +26,7 @@ function Products({ onCartUpdated }) {
   const [searchParams] = useSearchParams();
 
   const filter = searchParams.get("filter") || "";
+  const selectedCategory = categoryFilters[filter] || "all";
   const search = searchParams.get("search") || "";
   const urlSort = searchParams.get("sort") || "none";
 
@@ -27,8 +34,7 @@ function Products({ onCartUpdated }) {
     async ({
       page = 1,
       perPage = 12,
-      category = "all",
-      grade = "all",
+      category = selectedCategory,
       minPrice = "",
       maxPrice = "",
       sort = urlSort,
@@ -42,10 +48,8 @@ function Products({ onCartUpdated }) {
           per_page: String(perPage),
         });
 
-        if (filter) params.set("filter", filter);
         if (search) params.set("search", search);
         if (category !== "all") params.set("category", category);
-        if (grade !== "all") params.set("grade", grade);
         if (minPrice !== "") params.set("min_price", String(minPrice));
         if (maxPrice !== "") params.set("max_price", String(maxPrice));
         if (sort !== "none") params.set("sort", sort);
@@ -61,6 +65,7 @@ function Products({ onCartUpdated }) {
           total: Number(data.total || 0),
           minimumPrice: Number(data.minimum_price || 0),
           maximumPrice: Number(data.maximum_price || 0),
+          categories: data.categories || [],
         });
       } catch (requestError) {
         console.error("Product fetch error:", requestError);

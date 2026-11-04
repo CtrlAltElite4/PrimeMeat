@@ -88,7 +88,12 @@ export default function ProductFormModal({
       category: current.category.filter((item) => item !== category),
     }));
   };
+  const selectCategory = (e) => {
+    const category = e.target.value;
+    if (!category) return;
 
+    addCategory(category);
+  };
   const pickImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -266,7 +271,37 @@ export default function ProductFormModal({
                   </button>
                 </span>
               ))}
+
+              {form.category.length === 0 && (
+                <small className="adm-form__hint">
+                  No categories selected.
+                </small>
+              )}
             </div>
+
+            <select
+              value=""
+              onChange={selectCategory}
+              className="adm-category-select"
+            >
+              <option value="" disabled>
+                Select an existing category
+              </option>
+
+              {categories
+                .filter(
+                  (category) =>
+                    !form.category.some(
+                      (selected) =>
+                        selected.toLowerCase() === category.toLowerCase(),
+                    ),
+                )
+                .map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+            </select>
 
             <div className="adm-category-add">
               <input
@@ -278,22 +313,15 @@ export default function ProductFormModal({
                     addCategory();
                   }
                 }}
-                list="category-options"
-                placeholder="Select or type a category"
+                placeholder="Enter a new category"
               />
-
-              <datalist id="category-options">
-                {categories.map((category) => (
-                  <option key={category} value={category} />
-                ))}
-              </datalist>
 
               <button
                 type="button"
                 className="adm-btn adm-btn--outline"
                 onClick={() => addCategory()}
               >
-                Add
+                Add category
               </button>
             </div>
 

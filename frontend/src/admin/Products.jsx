@@ -351,7 +351,11 @@ export default function Products() {
                       </div>
                     </div>
                   </td>
-                  <td>{p.category ?? "–"}</td>
+                  <td>
+                    {Array.isArray(p.category) && p.category.length > 0
+                      ? p.category.join(", ")
+                      : "–"}
+                  </td>
                   <td className="adm-nowrap">{formatRand(p.price)}</td>
                   <td
                     className={
