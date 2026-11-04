@@ -12,13 +12,8 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:24'],
-            'category' => ['sometimes'],
-            'grade' => ['sometimes', 'string', 'max:10'],
+            'category' => ['sometimes', 'nullable', 'string', 'max:100'],
             'search' => ['sometimes', 'string', 'max:255'],
-            'filter' => [
-                'sometimes',
-                'in:beef-carcasses,beef-products,mutton-products,lamb-products',
-            ],
             'min_price' => ['sometimes', 'numeric', 'min:0'],
             'max_price' => ['sometimes', 'numeric', 'min:0'],
             'sort' => ['sometimes', 'in:price-low-high,price-high-low'],
@@ -46,22 +41,6 @@ class ProductController extends Controller
             });
         }
 
-        if (
-            ! empty($validated['grade']) &&
-            $validated['grade'] !== 'all'
-        ) {
-            $grade = $validated['grade'];
-
-            $query->where(function (Builder $products) use ($grade) {
-                $products->where('grade', $grade)
-                    ->orWhereHas('variants', function (Builder $variants) use ($grade) {
-                        $variants->where('grade', $grade)
-                            ->where('is_active', true)
-                            ->where('stock', '>', 0);
-                    });
-            });
-        }
-
         if (! empty($validated['search'])) {
             $search = $validated['search'];
 
@@ -73,17 +52,6 @@ class ProductController extends Controller
                         $variants->where('grade', 'like', "%{$search}%");
                     });
             });
-        }
-
-        if (! empty($validated['filter'])) {
-            $categories = [
-                'beef-carcasses' => 'Beef Carcasses',
-                'beef-products' => 'Beef Products',
-                'mutton-products' => 'Mutton Products',
-                'lamb-products' => 'Lamb Products',
-            ];
-
-            $query->whereJsonContains('category', $categories[$validated['filter']]);
         }
 
         // Apply price filters to product or variant prices.
@@ -161,6 +129,14 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate($perPage);
+        $categories = Product::available()
+            ->whereNotNull('category')
+            ->pluck('category')
+            ->flatMap(fn ($productCategories) => $productCategories ?? [])
+            ->filter(fn ($category) => is_string($category) && trim($category) !== '')
+            ->unique()
+            ->sort()
+            ->values();
 
         return response()->json([
             'data' => $products->items(),
@@ -170,6 +146,7 @@ class ProductController extends Controller
             'total' => $products->total(),
             'minimum_price' => $prices->isNotEmpty() ? $prices->min() : null,
             'maximum_price' => $prices->isNotEmpty() ? $prices->max() : null,
+            'categories' => $categories,
         ]);
     }
 

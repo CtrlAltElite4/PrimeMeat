@@ -28,7 +28,13 @@ function ProductDetail({ product, onCartUpdated }) {
 
   const editCartItemId = searchParams.get("editCartItem");
   const isEditMode = Boolean(editCartItemId);
-  const isBeefCarcass = product.category === "Beef Carcasses";
+  const productCategories = Array.isArray(product.category)
+    ? product.category
+    : product.category
+      ? [product.category]
+      : [];
+
+  const isBeefCarcass = productCategories.includes("Beef Carcasses");
   const isCarcass = product.product_type === "carcass";
 
   const [cutType, setCutType] = useState("traditional");

@@ -29,8 +29,7 @@ class ProductController extends Controller
     {
         $data = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
-            'category' => ['nullable', 'array'],
-            'category.*' => ['required', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', Rule::in(['active', 'low_stock', 'unavailable', 'draft'])],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
@@ -67,7 +66,8 @@ class ProductController extends Controller
             'low_stock_level' => self::LOW_STOCK,
             'categories' => Product::whereNotNull('category')
                 ->pluck('category')
-                ->flatten()
+                ->flatMap(fn ($categories) => $categories ?? [])
+                ->filter()
                 ->unique()
                 ->sort()
                 ->values(),
@@ -88,6 +88,12 @@ class ProductController extends Controller
     /** Sent as POST with _method=PUT, because file uploads only work with POST. */
     public function update(Request $request, Product $product): JsonResponse
     {
+        \Log::info('Product image upload check', [
+            'has_file' => $request->hasFile('image'),
+            'file' => $request->file('image')?->getClientOriginalName(),
+            'content_type' => $request->header('Content-Type'),
+            'all_files' => array_keys($request->allFiles()),
+        ]);
         $data = $this->validated($request, imageRequired: false);
 
         $this->fill($product, $data, $request);
@@ -119,8 +125,9 @@ class ProductController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'grade' => ['required', 'string', 'max:50'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'grade' => ['nullable', 'string', 'max:50'],
+            'category' => ['nullable', 'array'],
+            'category.*' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
             'price' => ['required', 'numeric', 'min:0', 'max:9999999'],
             'stock' => ['required', 'integer', 'min:0', 'max:1000000'],
@@ -134,10 +141,14 @@ class ProductController extends Controller
 
     private function fill(Product $product, array $data, Request $request): void
     {
+        \Log::info('Product fill method reached', [
+            'has_file' => $request->hasFile('image'),
+            'product_id' => $product->id,
+        ]);
         $categories = array_values(array_unique($data['category'] ?? []));
         $product->forceFill([
             'name' => $data['name'],
-            'grade' => $data['grade'],
+            'grade' => $data['grade'] ?? null,
             'category' => $categories,
             'description' => $data['description'] ?? null,
             'price' => $data['price'],
@@ -150,6 +161,12 @@ class ProductController extends Controller
             $this->deleteStoredImage($product->image);
             // Stored under storage/app/public/products with a random name
             $product->image = $request->file('image')->store('products', 'public');
+            \Log::info('Product image storage result', [
+                'stored_path' => $product->image,
+                'exists' => $product->image
+                    ? Storage::disk('public')->exists($product->image)
+                    : false,
+            ]);
         } elseif ($request->boolean('remove_image')) {
             $this->deleteStoredImage($product->image);
             $product->image = null;
@@ -215,6 +232,8 @@ class ProductController extends Controller
             return null;
         }
 
-        return str_starts_with($image, 'products/') ? Storage::disk('public')->url($image) : $image;
+        return str_starts_with($image, 'products/')
+            ? asset('storage/'.$image)
+            : $image;
     }
 }

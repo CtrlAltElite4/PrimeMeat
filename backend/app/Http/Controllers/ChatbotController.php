@@ -67,7 +67,7 @@ class ChatbotController extends Controller
 
         foreach ($products as $product) {
             $productKnowledgeBase .= "Product: {$product->name}\n";
-            $productKnowledgeBase .= "Category: {$product->category}\n";
+            $productKnowledgeBase .= 'Category: '.implode(', ', $product->category ?? [])."\n";
             $productKnowledgeBase .= "Product Type: {$product->product_type}\n";
 
             $productKnowledgeBase .=
