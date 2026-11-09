@@ -13,7 +13,9 @@ function Checkout() {
   const [error, setError] = useState("");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
-
+  const [deliveryQuote, setDeliveryQuote] = useState(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
   const deliveryMethod = location.state?.deliveryMethod || "delivery";
 
   const deliveryAddress = location.state?.deliveryAddress || {
@@ -24,7 +26,12 @@ function Checkout() {
     postalCode: "",
     instructions: "",
   };
-
+  const hasDeliveryAddress = Boolean(
+    deliveryAddress.addressLine1?.trim() &&
+    deliveryAddress.city?.trim() &&
+    deliveryAddress.province?.trim() &&
+    deliveryAddress.postalCode?.trim(),
+  );
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -101,21 +108,76 @@ function Checkout() {
     ? items.reduce((total, item) => total + getItemTotal(item), 0) +
       Number(cart.group_order?.price || 0)
     : 0;
+  useEffect(() => {
+    if (
+      !cart ||
+      deliveryMethod !== "delivery" ||
+      !hasDeliveryAddress ||
+      cart.group_order
+    ) {
+      setDeliveryQuote(null);
+      setQuoteError("");
+      setLoadingQuote(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const fetchDeliveryQuote = async () => {
+      setLoadingQuote(true);
+      setQuoteError("");
+      setDeliveryQuote(null);
+
+      try {
+        const { data } = await api.post("/api/checkout/delivery-quote", {
+          postal_code: deliveryAddress.postalCode,
+          subtotal,
+        });
+
+        if (!cancelled) {
+          setDeliveryQuote(data.delivery);
+        }
+      } catch (requestError) {
+        if (!cancelled) {
+          setQuoteError(
+            requestError.response?.data?.message ||
+              "Unable to calculate delivery pricing.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingQuote(false);
+        }
+      }
+    };
+
+    fetchDeliveryQuote();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    cart,
+    deliveryMethod,
+    deliveryAddress.postalCode,
+    hasDeliveryAddress,
+    subtotal,
+  ]);
   const hasUnavailableItems = items.some(isItemUnavailable);
 
-  const hasDeliveryAddress = Boolean(
-    deliveryAddress.addressLine1?.trim() &&
-    deliveryAddress.city?.trim() &&
-    deliveryAddress.province?.trim() &&
-    deliveryAddress.postalCode?.trim(),
-  );
+  const deliveryFee =
+    deliveryMethod === "delivery" && deliveryQuote?.eligible
+      ? Number(deliveryQuote.delivery_fee)
+      : 0;
+
+  const total = subtotal + deliveryFee;
 
   const canPay =
     !paying &&
     !hasUnavailableItems &&
-    (deliveryMethod !== "delivery" || hasDeliveryAddress);
-
+    !cart?.group_order &&
+    (deliveryMethod !== "delivery" || hasDeliveryAddress) &&
+    (deliveryMethod === "collection" || deliveryQuote?.eligible);
   // Laravel calculates and signs the payment amount from database records.
   const startPayment = async () => {
     if (hasUnavailableItems) {
@@ -131,7 +193,17 @@ function Checkout() {
       );
       return;
     }
-
+    if (
+      deliveryMethod === "delivery" &&
+      (!deliveryQuote || !deliveryQuote.eligible)
+    ) {
+      setPayError(
+        deliveryQuote?.message ||
+          quoteError ||
+          "Please confirm that delivery is available before proceeding.",
+      );
+      return;
+    }
     setPaying(true);
     setPayError("");
 
@@ -423,44 +495,71 @@ function Checkout() {
 
         <div className="group-order-checkout-summary">
           <div>
-            <span>Order total</span>
+            <span>Subtotal</span>
             <strong>{formatPrice(subtotal)}</strong>
           </div>
 
-          {hasUnavailableItems && (
-            <p role="alert">
-              Some items are unavailable or have insufficient stock. Resolve
-              this in your cart before paying.
+          <div>
+            <span>Delivery</span>
+            <strong>
+              {deliveryMethod === "collection"
+                ? "Free"
+                : loadingQuote
+                  ? "Calculating..."
+                  : deliveryQuote?.eligible
+                    ? formatPrice(deliveryFee)
+                    : "Unavailable"}
+            </strong>
+          </div>
+
+          <div className="group-order-checkout-actions">
+            <div>
+              <span>Total</span>
+              <strong>{formatPrice(total)}</strong>
+            </div>
+
+            {hasUnavailableItems && (
+              <p role="alert">
+                Some items are unavailable or have insufficient stock. Resolve
+                this in your cart before paying.
+              </p>
+            )}
+
+            {deliveryMethod === "delivery" &&
+              !loadingQuote &&
+              deliveryQuote &&
+              !deliveryQuote.eligible && (
+                <p role="alert">{deliveryQuote.message}</p>
+              )}
+
+            <button
+              type="button"
+              className="group-order-checkout-payment"
+              onClick={startPayment}
+              disabled={!canPay}
+            >
+              {paying ? "Taking you to PayFast…" : "Pay with PayFast"}
+            </button>
+
+            <p className="group-order-checkout-secure">
+              You'll be taken to PayFast to pay securely. PrimeMeat never sees
+              your card details.
             </p>
-          )}
 
-          <button
-            type="button"
-            className="group-order-checkout-payment"
-            onClick={startPayment}
-            disabled={!canPay}
-          >
-            {paying ? "Taking you to PayFast…" : "Pay with PayFast"}
-          </button>
+            {payError && (
+              <p role="alert" className="group-order-checkout-instructions">
+                {payError}
+              </p>
+            )}
 
-          <p className="group-order-checkout-secure">
-            You'll be taken to PayFast to pay securely. PrimeMeat never sees
-            your card details.
-          </p>
-
-          {payError && (
-            <p role="alert" className="group-order-checkout-instructions">
-              {payError}
-            </p>
-          )}
-
-          <button
-            type="button"
-            className="group-order-checkout-return"
-            onClick={() => navigate("/cart")}
-          >
-            Return to Cart
-          </button>
+            <button
+              type="button"
+              className="group-order-checkout-return"
+              onClick={() => navigate("/cart")}
+            >
+              Return to Cart
+            </button>
+          </div>
         </div>
       </section>
     </main>

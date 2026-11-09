@@ -7,6 +7,8 @@ use App\Models\GroupOrder;
 use App\Models\GroupOrderProduct;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Services\DeliveryPricingService;
 use App\Support\GroupOrderMailer;
 use App\Support\PayFast;
 use Illuminate\Http\JsonResponse;
@@ -28,8 +30,10 @@ use Throwable;
 class PayFastController extends Controller
 {
     /** POST /api/checkout/payfast */
-    public function start(Request $request): JsonResponse
-    {
+    public function start(
+        Request $request,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
         if ($notReady = $this->notConfigured()) {
             return $notReady;
         }
@@ -50,7 +54,14 @@ class PayFastController extends Controller
         ]);
 
         $user = $request->user();
-        $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.cutSelections', 'groupOrder'])->first();
+        $cart = Cart::where('user_id', $user->id)
+            ->with([
+                'items.product',
+                'items.productVariant',
+                'items.cutSelections',
+                'groupOrder',
+            ])
+            ->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
@@ -62,24 +73,100 @@ class PayFastController extends Controller
         // Prices always come from the database, never from the browser
         foreach ($cart->items as $item) {
             $product = $item->product;
-            if (! $product || ! $product->is_active || $product->status === 'draft') {
-                return response()->json(['message' => ($product?->name ?? 'A product').' is no longer available. Remove it from your cart.'], 422);
+            $variant = $item->productVariant;
+
+            if (! $product || ! $product->is_active || $product->status !== 'published') {
+                return response()->json([
+                    'message' => ($product?->name ?? 'A product').' is no longer available.',
+                ], 422);
             }
-            if ($product->stock !== null && (int) $product->stock < (int) $item->quantity) {
-                return response()->json(['message' => "Only {$product->stock} of {$product->name} (Grade {$product->grade}) left in stock."], 422);
+
+            if ($product->product_type === Product::TYPE_CARCASS) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id ||
+                    ! $variant->is_active
+                ) {
+                    return response()->json([
+                        'message' => "The selected variant for {$product->name} is no longer available.",
+                    ], 422);
+                }
+
+                $variantQuantity = $cart->items
+                    ->where('product_variant_id', $variant->id)
+                    ->sum('quantity');
+
+                if ($variantQuantity > (int) $variant->stock) {
+                    return response()->json([
+                        'message' => "Insufficient stock for {$product->name}, Grade {$variant->grade}.",
+                    ], 422);
+                }
+            } else {
+                $productQuantity = $cart->items
+                    ->where('product_id', $product->id)
+                    ->whereNull('product_variant_id')
+                    ->sum('quantity');
+
+                if ($productQuantity > (int) $product->stock) {
+                    return response()->json([
+                        'message' => "Insufficient stock for {$product->name}.",
+                    ], 422);
+                }
             }
         }
 
         $delivery = $data['fulfillment_type'] === Order::FULFILLMENT_DELIVERY;
 
-        [$order, $payment] = DB::transaction(function () use ($cart, $user, $data, $delivery) {
-            $total = $cart->items->sum(fn ($item) => round((float) $item->product->price * (int) $item->quantity, 2));
+        $subtotal = 0;
 
+        foreach ($cart->items as $item) {
+            $unitPrice = $item->product->product_type === Product::TYPE_CARCASS
+                ? (float) $item->productVariant->price
+                : (float) $item->product->price;
+
+            $subtotal += round($unitPrice * (int) $item->quantity, 2);
+        }
+
+        $subtotal = round($subtotal, 2);
+
+        $deliveryFee = 0;
+
+        if ($delivery) {
+            $deliveryResult = $deliveryPricing->calculate(
+                $data['postal_code'],
+                $subtotal
+            );
+
+            if (! $deliveryResult['eligible']) {
+                return response()->json([
+                    'message' => $deliveryResult['message'],
+                    'delivery' => $deliveryResult,
+                ], 422);
+            }
+
+            $deliveryFee = (float) $deliveryResult['delivery_fee'];
+        }
+        $deliveryZoneNumber = $delivery
+            ? $deliveryResult['zone_number']
+            : null;
+        $total = round($subtotal + $deliveryFee, 2);
+
+        [$order, $payment] = DB::transaction(function () use (
+            $cart,
+            $user,
+            $data,
+            $delivery,
+            $total,
+            $deliveryFee,
+            $deliveryZoneNumber
+        ) {
             $order = new Order;
             $order->forceFill([
                 'user_id' => $user->id,
                 'fulfillment_type' => $data['fulfillment_type'],
                 'status' => Order::STATUS_PENDING,
+                'delivery_fee' => $deliveryFee,
+                'delivery_zone_number' => $deliveryZoneNumber,
                 'total' => $total,
                 'delivery_address_line_1' => $delivery ? $data['address_line_1'] : null,
                 'delivery_address_line_2' => $delivery ? ($data['address_line_2'] ?? null) : null,
@@ -90,11 +177,14 @@ class PayFastController extends Controller
             ])->save();
 
             foreach ($cart->items as $cartItem) {
-                $price = (float) $cartItem->product->price;
+                $price = $cartItem->product->product_type === Product::TYPE_CARCASS
+                    ? (float) $cartItem->productVariant->price
+                    : (float) $cartItem->product->price;
                 $orderItem = $order->items()->create([
                     'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
                     'product_name' => $cartItem->product->name,
-                    'grade' => $cartItem->product->grade,
+                    'grade' => $cartItem->productVariant?->grade ?? $cartItem->product->grade,
                     'price' => $price,
                     'unit_price' => $price,
                     'quantity' => $cartItem->quantity,
@@ -127,13 +217,120 @@ class PayFastController extends Controller
         return $this->payfastForm($order, $payment, $user, 'PrimeMeat order '.$order->order_number);
     }
 
+    public function checkDeliveryEligibility(
+        Request $request,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
+        $data = $request->validate([
+            'postal_code' => ['required', 'string', 'max:20'],
+        ]);
+
+        $user = $request->user();
+
+        $cart = Cart::where('user_id', $user->id)
+            ->with([
+                'items.product',
+                'items.productVariant',
+                'groupOrder',
+            ])
+            ->first();
+
+        if (! $cart || $cart->items->isEmpty()) {
+            return response()->json([
+                'delivery' => [
+                    'eligible' => false,
+                    'message' => 'Add products to your cart before checking delivery availability.',
+                ],
+            ]);
+        }
+
+        if ($cart->groupOrder) {
+            return response()->json([
+                'delivery' => [
+                    'eligible' => false,
+                    'message' => 'Group orders have a separate checkout process.',
+                ],
+            ]);
+        }
+
+        $subtotal = 0;
+
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+            $variant = $item->productVariant;
+
+            if (! $product || ! $product->is_active || $product->status !== 'published') {
+                return response()->json([
+                    'delivery' => [
+                        'eligible' => false,
+                        'message' => 'One or more products in your cart are no longer available.',
+                    ],
+                ]);
+            }
+
+            if ($product->product_type === Product::TYPE_CARCASS) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id ||
+                    ! $variant->is_active
+                ) {
+                    return response()->json([
+                        'delivery' => [
+                            'eligible' => false,
+                            'message' => "The selected variant for {$product->name} is no longer available.",
+                        ],
+                    ]);
+                }
+
+                $unitPrice = (float) $variant->price;
+            } else {
+                $unitPrice = (float) $product->price;
+            }
+
+            $subtotal += round($unitPrice * (int) $item->quantity, 2);
+        }
+
+        $subtotal = round($subtotal, 2);
+
+        $delivery = $deliveryPricing->calculate(
+            $data['postal_code'],
+            $subtotal
+        );
+
+        return response()->json([
+            'delivery' => $delivery,
+        ]);
+    }
+
+    public function quote(
+        Request $request,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
+        $data = $request->validate([
+            'postal_code' => ['required', 'string', 'max:20'],
+            'subtotal' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $result = $deliveryPricing->calculate(
+            $data['postal_code'],
+            (float) $data['subtotal']
+        );
+
+        return response()->json([
+            'delivery' => $result,
+        ]);
+    }
+
     /**
      * POST /api/group-orders/{groupOrder}/payfast
      * The organiser pays the whole group order in one payment. The price comes from
      * the group order saved on the server, never from the browser.
      */
-    public function startGroup(Request $request, GroupOrder $groupOrder): JsonResponse
-    {
+    public function startGroup(
+        Request $request,
+        GroupOrder $groupOrder,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
         if ($notReady = $this->notConfigured()) {
             return $notReady;
         }
@@ -143,7 +340,7 @@ class PayFastController extends Controller
         // Same "not found" answer for someone else's group order
         abort_if($groupOrder->user_id !== $user->id, 404, 'Group order not found.');
 
-        [$order, $payment] = DB::transaction(function () use ($groupOrder, $user) {
+        [$order, $payment] = DB::transaction(function () use ($groupOrder, $user, $deliveryPricing) {
             // Lock the row so two quick clicks can't create two orders
             $groupOrder = GroupOrder::whereKey($groupOrder->id)->lockForUpdate()->first();
             $order = $groupOrder->order_id ? Order::find($groupOrder->order_id) : null;
@@ -151,6 +348,7 @@ class PayFastController extends Controller
             if ($order && $order->payments()->where('status', Payment::STATUS_COMPLETED)->exists()) {
                 return [null, null]; // already paid
             }
+
             if (
                 $groupOrder->group_order_product_id &&
                 ! $groupOrder->stock_reserved
@@ -175,13 +373,38 @@ class PayFastController extends Controller
                     'stock_reserved_at' => now(),
                 ])->save();
             }
+
             $delivery = $groupOrder->delivery_method === Order::FULFILLMENT_DELIVERY;
-            $total = round((float) $groupOrder->price, 2);
+            $subtotal = round((float) $groupOrder->price, 2);
+            $deliveryFee = 0;
+            $deliveryZoneNumber = null;
+
+            if ($delivery) {
+                // Recalculate delivery using the saved group-order address and actual subtotal.
+                $deliveryResult = $deliveryPricing->calculate(
+                    (string) $groupOrder->postal_code,
+                    $subtotal
+                );
+
+                if (! $deliveryResult['eligible']) {
+                    abort(
+                        422,
+                        $deliveryResult['message'] ?? 'Delivery is unavailable for this address.'
+                    );
+                }
+
+                $deliveryFee = (float) $deliveryResult['delivery_fee'];
+                $deliveryZoneNumber = $deliveryResult['zone_number'] ?? null;
+            }
+
+            $total = round($subtotal + $deliveryFee, 2);
 
             $details = [
                 'fulfillment_type' => $delivery ? Order::FULFILLMENT_DELIVERY : Order::FULFILLMENT_COLLECTION,
                 'status' => Order::STATUS_PENDING,
                 'total' => $total,
+                'delivery_fee' => $deliveryFee,
+                'delivery_zone_number' => $deliveryZoneNumber,
                 'delivery_address_line_1' => $delivery ? $groupOrder->address_line_1 : null,
                 'delivery_address_line_2' => $delivery ? $groupOrder->address_line_2 : null,
                 'delivery_city' => $delivery ? $groupOrder->city : null,
@@ -201,10 +424,10 @@ class PayFastController extends Controller
                     'product_name' => "Group order: Full Carcass ({$weight} kg), {$groupOrder->number_of_people} people"
                         .($groupOrder->include_ground_beef ? ', with ground beef' : ''),
                     'grade' => null,
-                    'price' => $total,
-                    'unit_price' => $total,
+                    'price' => $subtotal,
+                    'unit_price' => $subtotal,
                     'quantity' => 1,
-                    'line_total' => $total,
+                    'line_total' => $subtotal,
                     'cut_type' => 'traditional',
                     'selected_quarter' => null,
                 ]);

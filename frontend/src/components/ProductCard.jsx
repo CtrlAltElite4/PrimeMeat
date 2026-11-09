@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { Scale } from "lucide-react";
+import { Scale, EyeIcon, ShoppingCartPlus } from "lucide-react";
 import api from "../api";
 import CartToast from "./CartToast";
 import productImage from "../utils/productImage";
@@ -181,34 +181,40 @@ function ProductCard({ product, onCartUpdated }) {
           </p>
         )}
 
-        <div className="product-card-actions">
+        <div
+          className={`product-card-actions ${isCarcass ? "product-card-actions-single" : ""}`}
+        >
           <Link
             to={`/products/${product.id}`}
             className="product-card-view-button"
+            aria-label={`View ${product.name}`}
           >
-            View Product
+            <EyeIcon size={24} strokeWidth={2.0} aria-hidden="true" />
+            <span className="product-action-tooltip">View</span>
           </Link>
 
-          {isCarcass ? (
-            <Link
-              to={`/products/${product.id}`}
-              className="product-card-cart-button"
-              aria-label={`Select Preference for ${product.name}`}
-            >
-              {inStock ? "Select Preference" : "View Product"}
-            </Link>
-          ) : (
+          {!isCarcass && (
             <button
               className="product-card-cart-button"
               type="button"
               onClick={handleAddToCart}
               disabled={addingToCart || !inStock}
+              aria-label={!inStock ? "Out of stock" : "Add to cart"}
             >
-              {!inStock
-                ? "Out of Stock"
-                : addingToCart
-                  ? "Adding..."
-                  : "Add to Cart"}
+              {!inStock ? (
+                "Out of Stock"
+              ) : addingToCart ? (
+                "Adding..."
+              ) : (
+                <>
+                  <ShoppingCartPlus
+                    size={24}
+                    strokeWidth={2.0}
+                    aria-hidden="true"
+                  />
+                  <span className="product-action-tooltip">Add to cart</span>
+                </>
+              )}
             </button>
           )}
         </div>

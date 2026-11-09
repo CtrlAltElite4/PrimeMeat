@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             CutOptionSeeder::class,
             ProductSeeder::class,
             ProductVariantSeeder::class,
+            DeliveryZoneSeeder::class,
+            PostalCodeSeeder::class,
         ]);
     }
 }
