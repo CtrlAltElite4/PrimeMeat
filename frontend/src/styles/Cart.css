@@ -582,14 +582,3 @@
   background-color: #f0ede5;
   color: #710014;
 }
-.cart-delivery-option:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.cart-delivery-message {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: #710014;
-}

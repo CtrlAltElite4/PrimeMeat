@@ -21,11 +21,7 @@ function Cart({ onCartUpdated }) {
     postalCode: "",
     instructions: "",
   });
-  const [deliveryEligibility, setDeliveryEligibility] = useState({
-    checking: false,
-    eligible: false,
-    message: "Select a delivery address to check availability.",
-  });
+
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [loadingAddresses, setLoadingAddresses] = useState(true);
@@ -83,15 +79,7 @@ function Cart({ onCartUpdated }) {
 
     fetchSavedAddresses();
   }, []);
-  useEffect(() => {
-    if (
-      !deliveryEligibility.checking &&
-      !deliveryEligibility.eligible &&
-      deliveryMethod === "delivery"
-    ) {
-      setDeliveryMethod("collection");
-    }
-  }, [deliveryEligibility, deliveryMethod]);
+
   // Keep the selected saved address in sync with checkout details.
   const handleSavedAddressChange = (event) => {
     const addressId = event.target.value;
@@ -323,59 +311,6 @@ function Cart({ onCartUpdated }) {
 
     return productTotal + groupOrderTotal;
   };
-
-  // Check delivery eligibility whenever the cart or postal code changes.
-  useEffect(() => {
-    const postalCode = deliveryAddress.postalCode.trim();
-
-    if (!postalCode || !cart?.items?.length) {
-      setDeliveryEligibility({
-        checking: false,
-        eligible: false,
-        message: "Select a delivery address to check availability.",
-      });
-      return;
-    }
-
-    let cancelled = false;
-
-    const checkDeliveryEligibility = async () => {
-      setDeliveryEligibility((current) => ({
-        ...current,
-        checking: true,
-      }));
-
-      try {
-        const { data } = await api.post("/api/checkout/delivery-eligibility", {
-          postal_code: postalCode,
-        });
-
-        if (!cancelled) {
-          setDeliveryEligibility({
-            checking: false,
-            eligible: data.delivery.eligible,
-            message: data.delivery.message,
-          });
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setDeliveryEligibility({
-            checking: false,
-            eligible: false,
-            message:
-              error.response?.data?.message ||
-              "Unable to check delivery availability.",
-          });
-        }
-      }
-    };
-
-    checkDeliveryEligibility();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [cart, deliveryAddress.postalCode]);
 
   const hasItems = (cart?.items?.length || 0) > 0 || Boolean(cart?.group_order);
 
@@ -675,9 +610,6 @@ function Cart({ onCartUpdated }) {
                     ? "cart-delivery-option--selected"
                     : ""
                 }`}
-                disabled={
-                  deliveryEligibility.checking || !deliveryEligibility.eligible
-                }
                 onClick={() => setDeliveryMethod("delivery")}
               >
                 <strong>Delivery</strong>
@@ -699,19 +631,7 @@ function Cart({ onCartUpdated }) {
                 <span>Collect your order from our location.</span>
               </button>
             </div>
-            {deliveryEligibility.checking ? (
-              <p className="cart-delivery-message">
-                Checking delivery availability...
-              </p>
-            ) : !deliveryEligibility.eligible ? (
-              <p className="cart-delivery-message" role="status">
-                {deliveryEligibility.message}
-              </p>
-            ) : (
-              <p className="cart-delivery-message">
-                {deliveryEligibility.message}
-              </p>
-            )}
+
             {deliveryMethod === "delivery" && (
               <div className="cart-delivery-address">
                 <h3>Delivery Address</h3>
@@ -768,17 +688,12 @@ function Cart({ onCartUpdated }) {
             <h2>Order Summary</h2>
 
             <div className="cart-summary-row">
-              <span>Cart Total</span>
+              <span>Subtotal</span>
               <strong>{formatPrice(getCartTotal())}</strong>
             </div>
 
-            <div className="cart-summary-row">
-              <span>Delivery Fee</span>
-              <strong>Calculated at checkout</strong>
-            </div>
-
             <div className="cart-summary-total">
-              <span>Subtotal</span>
+              <span>Total</span>
               <strong>{formatPrice(getCartTotal())}</strong>
             </div>
 
@@ -792,14 +707,7 @@ function Cart({ onCartUpdated }) {
             <button
               type="button"
               className="cart-checkout-button"
-              disabled={
-                hasUnavailableItems ||
-                !hasItems ||
-                (deliveryMethod === "delivery" &&
-                  (!deliveryAddress.postalCode?.trim() ||
-                    deliveryEligibility.checking ||
-                    !deliveryEligibility.eligible))
-              }
+              disabled={hasUnavailableItems}
               onClick={() =>
                 navigate("/checkout", {
                   state: {

@@ -43,8 +43,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::post('/checkout/payfast', [PayFastController::class, 'start']);
     Route::get('/checkout/payments/{paymentNumber}', [PayFastController::class, 'status']);
     Route::post('/checkout/payments/{paymentNumber}/cancel', [PayFastController::class, 'cancel']);
-    Route::post('/checkout/delivery-quote', [PayFastController::class, 'quote']);
-    Route::post('/checkout/delivery-eligibility', [PayFastController::class, 'checkDeliveryEligibility']);
+
     // Cart
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'add']);
