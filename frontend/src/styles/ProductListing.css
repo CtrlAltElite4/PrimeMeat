@@ -118,44 +118,85 @@
 
 .product-card-actions {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   margin-top: 12px;
 }
 
 .product-card-view-button,
 .product-card-cart-button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 35px;
+  padding: 0;
+  border: 1px solid #dedbd5;
+  border-radius: 10px;
+  background: #d1d1d160;
+  color: #161616;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.3s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.product-card-view-button {
+.product-card-view-button:hover,
+.product-card-cart-button:hover:not(:disabled) {
   background: #161616;
   color: #ffffff;
-  text-align: center;
-  text-decoration: none;
+  transform: translateY(-2px);
 }
 
-.product-card-view-button:hover {
-  background: #331d1d;
+.product-card-cart-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
+.product-card-view-button:focus-visible,
+.product-card-cart-button:focus-visible {
+  outline: 2px solid #710014;
+  outline-offset: 3px;
+}
+.product-card-view-button,
 .product-card-cart-button {
-  background: #710014;
-  color: #ffffff;
-  text-align: center;
-  text-decoration: none;
+  position: relative;
 }
 
-.product-card-cart-button:hover {
-  background: #9a001a;
+.product-action-tooltip {
+  position: absolute;
+  top: -15px;
+  right: -8px;
+  padding: 2px 5px;
+  background: transparent;
+  color: #161616;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(3px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
 }
 
+.product-card-view-button:hover .product-action-tooltip,
+.product-card-cart-button:hover .product-action-tooltip,
+.product-card-view-button:focus-visible .product-action-tooltip,
+.product-card-cart-button:focus-visible .product-action-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.product-card-actions-single .product-card-view-button {
+  width: 100%;
+}
 .product-listing-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);

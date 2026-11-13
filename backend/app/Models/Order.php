@@ -52,10 +52,14 @@ class Order extends Model
         'status',
         'total',
         'fulfillment_type',
+        'delivery_fee',
+        'delivery_zone_number',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
+        'delivery_zone_number' => 'integer',
     ];
 
     protected static function booted(): void

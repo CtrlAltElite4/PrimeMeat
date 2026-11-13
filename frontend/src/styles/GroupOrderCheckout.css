@@ -399,3 +399,19 @@
   outline: 3px solid #938f6f;
   outline-offset: 3px;
 }
+.group-order-checkout-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.group-order-checkout-actions > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.group-order-checkout-actions button {
+  width: 100%;
+}
