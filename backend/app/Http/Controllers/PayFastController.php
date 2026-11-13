@@ -286,6 +286,61 @@ class PayFastController extends Controller
         }
     }
 
+    /** POST /api/checkout/delivery-eligibility */
+    public function checkDeliveryEligibility(
+        Request $request,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
+        $data = $request->validate([
+            'postal_code' => ['required', 'string', 'max:20'],
+        ]);
+
+        $cart = Cart::where('user_id', $request->user()->id)
+            ->with(['items.product', 'items.productVariant'])
+            ->first();
+
+        $subtotal = 0;
+
+        if ($cart) {
+            foreach ($cart->items as $item) {
+                $price = $item->productVariant
+                    ? (float) $item->productVariant->price
+                    : (float) $item->product->price;
+
+                $subtotal += $price * (int) $item->quantity;
+            }
+        }
+
+        $delivery = $deliveryPricing->calculate(
+            $data['postal_code'],
+            round($subtotal, 2)
+        );
+
+        return response()->json([
+            'delivery' => $delivery,
+        ]);
+    }
+
+    /** POST /api/checkout/delivery-quote */
+    public function quote(
+        Request $request,
+        DeliveryPricingService $deliveryPricing
+    ): JsonResponse {
+        $data = $request->validate([
+            'postal_code' => ['required', 'string', 'max:20'],
+            'subtotal' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $delivery = $deliveryPricing->calculate(
+            $data['postal_code'],
+            (float) $data['subtotal']
+        );
+
+        return response()->json([
+            'delivery' => $delivery,
+        ]);
+    }
+
     /**
      * POST /api/group-orders/{groupOrder}/payfast
      * The organiser pays the whole group order in one payment. The price comes from

@@ -699,19 +699,16 @@ function Cart({ onCartUpdated }) {
                 <span>Collect your order from our location.</span>
               </button>
             </div>
-            {deliveryEligibility.checking ? (
-              <p className="cart-delivery-message">
-                Checking delivery availability...
-              </p>
-            ) : !deliveryEligibility.eligible ? (
-              <p className="cart-delivery-message" role="status">
-                {deliveryEligibility.message}
-              </p>
-            ) : (
-              <p className="cart-delivery-message">
-                {deliveryEligibility.message}
-              </p>
-            )}
+            {deliveryMethod === "delivery" &&
+              (deliveryEligibility.checking ? (
+                <p className="cart-delivery-message">
+                  Checking delivery availability...
+                </p>
+              ) : (
+                <p className="cart-delivery-message" role="status">
+                  {deliveryEligibility.message}
+                </p>
+              ))}
             {deliveryMethod === "delivery" && (
               <div className="cart-delivery-address">
                 <h3>Delivery Address</h3>
