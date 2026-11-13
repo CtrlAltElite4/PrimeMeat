@@ -54,14 +54,7 @@ class PayFastController extends Controller
         ]);
 
         $user = $request->user();
-        $cart = Cart::where('user_id', $user->id)
-            ->with([
-                'items.product',
-                'items.productVariant',
-                'items.cutSelections',
-                'groupOrder',
-            ])
-            ->first();
+        $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.cutSelections', 'groupOrder'])->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
@@ -74,14 +67,24 @@ class PayFastController extends Controller
         foreach ($cart->items as $item) {
             $product = $item->product;
             $variant = $item->productVariant;
+            if (! $product || ! $product->is_active || $product->status === 'draft') {
+                return response()->json(['message' => ($product?->name ?? 'A product').' is no longer available. Remove it from your cart.'], 422);
+            }
 
-            if (! $product || ! $product->is_active || $product->status !== 'published') {
+            if (
+                ! in_array($product->product_type, [
+                    Product::TYPE_CARCASS,
+                    Product::TYPE_FIXED_PRICE,
+                ], true)
+            ) {
                 return response()->json([
-                    'message' => ($product?->name ?? 'A product').' is no longer available.',
+                    'message' => "{$product->name} has an invalid product type.",
                 ], 422);
             }
 
-            if ($product->product_type === Product::TYPE_CARCASS) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($product->product_type === Product::TYPE_CARCASS || $hasVariants) {
                 if (
                     ! $variant ||
                     (int) $variant->product_id !== (int) $product->id ||
@@ -98,10 +101,16 @@ class PayFastController extends Controller
 
                 if ($variantQuantity > (int) $variant->stock) {
                     return response()->json([
-                        'message' => "Insufficient stock for {$product->name}, Grade {$variant->grade}.",
+                        'message' => "Insufficient stock for {$product->name}, {$variant->grade}.",
                     ], 422);
                 }
             } else {
+                if ($variant) {
+                    return response()->json([
+                        'message' => "The selected variant for {$product->name} is invalid.",
+                    ], 422);
+                }
+
                 $productQuantity = $cart->items
                     ->where('product_id', $product->id)
                     ->whereNull('product_variant_id')
@@ -120,7 +129,7 @@ class PayFastController extends Controller
         $subtotal = 0;
 
         foreach ($cart->items as $item) {
-            $unitPrice = $item->product->product_type === Product::TYPE_CARCASS
+            $unitPrice = $item->productVariant
                 ? (float) $item->productVariant->price
                 : (float) $item->product->price;
 
@@ -165,9 +174,9 @@ class PayFastController extends Controller
                 'user_id' => $user->id,
                 'fulfillment_type' => $data['fulfillment_type'],
                 'status' => Order::STATUS_PENDING,
+                'total' => $total,
                 'delivery_fee' => $deliveryFee,
                 'delivery_zone_number' => $deliveryZoneNumber,
-                'total' => $total,
                 'delivery_address_line_1' => $delivery ? $data['address_line_1'] : null,
                 'delivery_address_line_2' => $delivery ? ($data['address_line_2'] ?? null) : null,
                 'delivery_city' => $delivery ? $data['city'] : null,
@@ -177,14 +186,14 @@ class PayFastController extends Controller
             ])->save();
 
             foreach ($cart->items as $cartItem) {
-                $price = $cartItem->product->product_type === Product::TYPE_CARCASS
+                $price = $cartItem->productVariant
                     ? (float) $cartItem->productVariant->price
                     : (float) $cartItem->product->price;
                 $orderItem = $order->items()->create([
                     'product_id' => $cartItem->product_id,
                     'product_variant_id' => $cartItem->product_variant_id,
                     'product_name' => $cartItem->product->name,
-                    'grade' => $cartItem->productVariant?->grade ?? $cartItem->product->grade,
+                    'grade' => $cartItem->product->grade,
                     'price' => $price,
                     'unit_price' => $price,
                     'quantity' => $cartItem->quantity,
@@ -217,120 +226,13 @@ class PayFastController extends Controller
         return $this->payfastForm($order, $payment, $user, 'PrimeMeat order '.$order->order_number);
     }
 
-    public function checkDeliveryEligibility(
-        Request $request,
-        DeliveryPricingService $deliveryPricing
-    ): JsonResponse {
-        $data = $request->validate([
-            'postal_code' => ['required', 'string', 'max:20'],
-        ]);
-
-        $user = $request->user();
-
-        $cart = Cart::where('user_id', $user->id)
-            ->with([
-                'items.product',
-                'items.productVariant',
-                'groupOrder',
-            ])
-            ->first();
-
-        if (! $cart || $cart->items->isEmpty()) {
-            return response()->json([
-                'delivery' => [
-                    'eligible' => false,
-                    'message' => 'Add products to your cart before checking delivery availability.',
-                ],
-            ]);
-        }
-
-        if ($cart->groupOrder) {
-            return response()->json([
-                'delivery' => [
-                    'eligible' => false,
-                    'message' => 'Group orders have a separate checkout process.',
-                ],
-            ]);
-        }
-
-        $subtotal = 0;
-
-        foreach ($cart->items as $item) {
-            $product = $item->product;
-            $variant = $item->productVariant;
-
-            if (! $product || ! $product->is_active || $product->status !== 'published') {
-                return response()->json([
-                    'delivery' => [
-                        'eligible' => false,
-                        'message' => 'One or more products in your cart are no longer available.',
-                    ],
-                ]);
-            }
-
-            if ($product->product_type === Product::TYPE_CARCASS) {
-                if (
-                    ! $variant ||
-                    (int) $variant->product_id !== (int) $product->id ||
-                    ! $variant->is_active
-                ) {
-                    return response()->json([
-                        'delivery' => [
-                            'eligible' => false,
-                            'message' => "The selected variant for {$product->name} is no longer available.",
-                        ],
-                    ]);
-                }
-
-                $unitPrice = (float) $variant->price;
-            } else {
-                $unitPrice = (float) $product->price;
-            }
-
-            $subtotal += round($unitPrice * (int) $item->quantity, 2);
-        }
-
-        $subtotal = round($subtotal, 2);
-
-        $delivery = $deliveryPricing->calculate(
-            $data['postal_code'],
-            $subtotal
-        );
-
-        return response()->json([
-            'delivery' => $delivery,
-        ]);
-    }
-
-    public function quote(
-        Request $request,
-        DeliveryPricingService $deliveryPricing
-    ): JsonResponse {
-        $data = $request->validate([
-            'postal_code' => ['required', 'string', 'max:20'],
-            'subtotal' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $result = $deliveryPricing->calculate(
-            $data['postal_code'],
-            (float) $data['subtotal']
-        );
-
-        return response()->json([
-            'delivery' => $result,
-        ]);
-    }
-
     /**
      * POST /api/group-orders/{groupOrder}/payfast
      * The organiser pays the whole group order in one payment. The price comes from
      * the group order saved on the server, never from the browser.
      */
-    public function startGroup(
-        Request $request,
-        GroupOrder $groupOrder,
-        DeliveryPricingService $deliveryPricing
-    ): JsonResponse {
+    public function startGroup(Request $request, GroupOrder $groupOrder): JsonResponse
+    {
         if ($notReady = $this->notConfigured()) {
             return $notReady;
         }
@@ -340,7 +242,7 @@ class PayFastController extends Controller
         // Same "not found" answer for someone else's group order
         abort_if($groupOrder->user_id !== $user->id, 404, 'Group order not found.');
 
-        [$order, $payment] = DB::transaction(function () use ($groupOrder, $user, $deliveryPricing) {
+        [$order, $payment] = DB::transaction(function () use ($groupOrder, $user) {
             // Lock the row so two quick clicks can't create two orders
             $groupOrder = GroupOrder::whereKey($groupOrder->id)->lockForUpdate()->first();
             $order = $groupOrder->order_id ? Order::find($groupOrder->order_id) : null;
@@ -348,7 +250,6 @@ class PayFastController extends Controller
             if ($order && $order->payments()->where('status', Payment::STATUS_COMPLETED)->exists()) {
                 return [null, null]; // already paid
             }
-
             if (
                 $groupOrder->group_order_product_id &&
                 ! $groupOrder->stock_reserved
@@ -373,38 +274,13 @@ class PayFastController extends Controller
                     'stock_reserved_at' => now(),
                 ])->save();
             }
-
             $delivery = $groupOrder->delivery_method === Order::FULFILLMENT_DELIVERY;
-            $subtotal = round((float) $groupOrder->price, 2);
-            $deliveryFee = 0;
-            $deliveryZoneNumber = null;
-
-            if ($delivery) {
-                // Recalculate delivery using the saved group-order address and actual subtotal.
-                $deliveryResult = $deliveryPricing->calculate(
-                    (string) $groupOrder->postal_code,
-                    $subtotal
-                );
-
-                if (! $deliveryResult['eligible']) {
-                    abort(
-                        422,
-                        $deliveryResult['message'] ?? 'Delivery is unavailable for this address.'
-                    );
-                }
-
-                $deliveryFee = (float) $deliveryResult['delivery_fee'];
-                $deliveryZoneNumber = $deliveryResult['zone_number'] ?? null;
-            }
-
-            $total = round($subtotal + $deliveryFee, 2);
+            $total = round((float) $groupOrder->price, 2);
 
             $details = [
                 'fulfillment_type' => $delivery ? Order::FULFILLMENT_DELIVERY : Order::FULFILLMENT_COLLECTION,
                 'status' => Order::STATUS_PENDING,
                 'total' => $total,
-                'delivery_fee' => $deliveryFee,
-                'delivery_zone_number' => $deliveryZoneNumber,
                 'delivery_address_line_1' => $delivery ? $groupOrder->address_line_1 : null,
                 'delivery_address_line_2' => $delivery ? $groupOrder->address_line_2 : null,
                 'delivery_city' => $delivery ? $groupOrder->city : null,
@@ -424,10 +300,10 @@ class PayFastController extends Controller
                     'product_name' => "Group order: Full Carcass ({$weight} kg), {$groupOrder->number_of_people} people"
                         .($groupOrder->include_ground_beef ? ', with ground beef' : ''),
                     'grade' => null,
-                    'price' => $subtotal,
-                    'unit_price' => $subtotal,
+                    'price' => $total,
+                    'unit_price' => $total,
                     'quantity' => 1,
-                    'line_total' => $subtotal,
+                    'line_total' => $total,
                     'cut_type' => 'traditional',
                     'selected_quarter' => null,
                 ]);
@@ -548,22 +424,54 @@ class PayFastController extends Controller
         if ($status === 'COMPLETE') {
             $groupOrderId = GroupOrder::where('order_id', $payment->order_id)->value('id');
 
-            DB::transaction(function () use ($payment, $data, $groupOrderId) {
-                $payment->forceFill([
+            $processed = DB::transaction(function () use ($payment, $data, $groupOrderId) {
+                $lockedPayment = Payment::whereKey($payment->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $lockedPayment || $lockedPayment->status === Payment::STATUS_COMPLETED) {
+                    return false;
+                }
+
+                $lockedPayment->forceFill([
                     'status' => Payment::STATUS_COMPLETED,
                     'provider_reference' => $data['pf_payment_id'] ?? null,
                     'paid_at' => now(),
                 ])->save();
 
-                $order = $payment->order()->with('items.product')->first();
+                $order = $lockedPayment->order()
+                    ->with(['items.product', 'items.productVariant'])
+                    ->first();
+
                 if ($order->status === Order::STATUS_PENDING) {
                     $order->forceFill(['status' => Order::STATUS_PROCESSING])->save();
                 }
 
-                // Take the sold items out of stock (this also triggers low-stock alerts)
+                // Deduct stock from the selected variant or the product itself
                 foreach ($order->items as $item) {
+                    if ($item->product_variant_id !== null) {
+                        if (! $item->productVariant) {
+                            Log::error('Paid order item has a missing product variant', [
+                                'order_item' => $item->id,
+                                'variant' => $item->product_variant_id,
+                            ]);
+
+                            continue;
+                        }
+
+                        $variant = $item->productVariant;
+
+                        $variant->forceFill([
+                            'stock' => max(0, (int) $variant->stock - (int) $item->quantity),
+                        ])->save();
+
+                        continue;
+                    }
+
                     if ($item->product && $item->product->stock !== null) {
-                        $item->product->forceFill(['stock' => max(0, (int) $item->product->stock - (int) $item->quantity)])->save();
+                        $item->product->forceFill([
+                            'stock' => max(0, (int) $item->product->stock - (int) $item->quantity),
+                        ])->save();
                     }
                 }
 
@@ -572,7 +480,13 @@ class PayFastController extends Controller
                 if (! $groupOrderId) {
                     Cart::where('user_id', $order->user_id)->first()?->items()->delete();
                 }
+
+                return true;
             });
+
+            if (! $processed) {
+                return response('OK');
+            }
 
             if ($groupOrderId) {
                 GroupOrderMailer::sendConfirmations($groupOrderId);
