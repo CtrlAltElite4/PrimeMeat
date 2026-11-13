@@ -58,13 +58,27 @@ class Product extends Model
             ->where('status', 'published')
             ->where(function (Builder $query) {
                 $query
-                    ->where(function (Builder $query) {
-                        $query
+                    ->where(function (Builder $fixed) {
+                        $fixed
                             ->where('product_type', self::TYPE_FIXED_PRICE)
-                            ->where('stock', '>', 0);
+                            ->where(function (Builder $stock) {
+                                $stock
+                                    // Products without variants use product stock.
+                                    ->where(function (Builder $simple) {
+                                        $simple
+                                            ->whereDoesntHave('variants')
+                                            ->where('stock', '>', 0);
+                                    })
+                                    // Products with variants use variant stock.
+                                    ->orWhereHas('variants', function (Builder $variants) {
+                                        $variants
+                                            ->where('is_active', true)
+                                            ->where('stock', '>', 0);
+                                    });
+                            });
                     })
-                    ->orWhere(function (Builder $query) {
-                        $query
+                    ->orWhere(function (Builder $carcass) {
+                        $carcass
                             ->where('product_type', self::TYPE_CARCASS)
                             ->whereHas('variants', function (Builder $variants) {
                                 $variants
@@ -83,6 +97,13 @@ class Product extends Model
         }
 
         if ($this->product_type === self::TYPE_FIXED_PRICE) {
+            if ($this->variants()->exists()) {
+                return $this->variants()
+                    ->where('is_active', true)
+                    ->where('stock', '>', 0)
+                    ->exists();
+            }
+
             return (int) $this->stock > 0;
         }
 

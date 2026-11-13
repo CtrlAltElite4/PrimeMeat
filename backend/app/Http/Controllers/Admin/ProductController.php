@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Admin product management. Uses the team's Product model as-is: new columns
@@ -78,9 +81,17 @@ class ProductController extends Controller
     {
         $data = $this->validated($request, imageRequired: false);
 
-        $product = new Product;
-        $this->fill($product, $data, $request);
-        $product->save();
+        $product = DB::transaction(function () use ($data, $request) {
+            $product = new Product;
+            $this->fill($product, $data, $request);
+            $product->save();
+
+            if (! empty($data['variants'])) {
+                $this->syncVariants($product, $data['variants']);
+            }
+
+            return $product->load('variants');
+        });
 
         return response()->json($this->present($product), 201);
     }
@@ -96,8 +107,14 @@ class ProductController extends Controller
         ]);
         $data = $this->validated($request, imageRequired: false);
 
-        $this->fill($product, $data, $request);
-        $product->save();
+        \DB::transaction(function () use ($product, $data, $request) {
+            $this->fill($product, $data, $request);
+            $product->save();
+
+            if (array_key_exists('variants', $data)) {
+                $this->syncVariants($product, $data['variants']);
+            }
+        });
 
         return response()->json($this->present($product));
     }
@@ -125,6 +142,9 @@ class ProductController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'product_type' => ['required', Rule::in([
+                Product::TYPE_FIXED_PRICE,
+            ])],
             'grade' => ['nullable', 'string', 'max:50'],
             'category' => ['nullable', 'array'],
             'category.*' => ['required', 'string', 'max:100'],
@@ -133,10 +153,80 @@ class ProductController extends Controller
             'stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'is_active' => ['required', 'boolean'],
+
             // Real image check (not just the file extension), max 2 MB
-            'image' => [$imageRequired ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => [
+                $imageRequired ? 'required' : 'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
             'remove_image' => ['nullable', 'boolean'],
+
+            'variants' => ['sometimes', 'array'],
+            'variants.*.id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_variants', 'id'),
+            ],
+            'variants.*.grade' => ['required', 'string', 'max:50'],
+            'variants.*.price' => ['required', 'numeric', 'min:0.01', 'max:9999999'],
+            'variants.*.stock' => ['required', 'integer', 'min:0', 'max:1000000'],
+            'variants.*.is_active' => ['sometimes', 'boolean'],
         ]);
+    }
+
+    private function syncVariants(Product $product, array $variants): void
+    {
+        $existingIds = $product->variants()->pluck('id')->all();
+        $submittedIds = [];
+
+        foreach ($variants as $variant) {
+            $variantId = $variant['id'] ?? null;
+
+            if ($variantId && ! in_array((int) $variantId, $existingIds, true)) {
+                throw ValidationException::withMessages([
+                    'variants' => ['One or more variants do not belong to this product.'],
+                ]);
+            }
+
+            $data = [
+                'grade' => $variant['grade'],
+                'weight_min_kg' => null,
+                'weight_max_kg' => null,
+                'price' => $variant['price'],
+                'stock' => $variant['stock'],
+                'is_active' => $variant['is_active'] ?? true,
+            ];
+
+            if ($variantId) {
+                $product->variants()->whereKey($variantId)->update($data);
+                $submittedIds[] = (int) $variantId;
+            } else {
+                $product->variants()->create($data);
+            }
+        }
+
+        $removedVariants = $product->variants()
+            ->when(
+                ! empty($submittedIds),
+                fn ($query) => $query->whereNotIn('id', $submittedIds)
+            )
+            ->get();
+
+        foreach ($removedVariants as $removedVariant) {
+            if (
+                $removedVariant->cartItems()->exists() ||
+                $removedVariant->orderItems()->exists()
+            ) {
+                $removedVariant->update([
+                    'is_active' => false,
+                    'stock' => 0,
+                ]);
+            } else {
+                $removedVariant->delete();
+            }
+        }
     }
 
     private function fill(Product $product, array $data, Request $request): void
@@ -151,6 +241,7 @@ class ProductController extends Controller
             'grade' => $data['grade'] ?? null,
             'category' => $categories,
             'description' => $data['description'] ?? null,
+            'product_type' => $data['product_type'],
             'price' => $data['price'],
             'stock' => $data['stock'],
             'status' => $data['status'],
@@ -196,6 +287,8 @@ class ProductController extends Controller
 
     private function present(Product $product): array
     {
+        $product->loadMissing('variants');
+
         $stock = (int) $product->stock;
         $isActive = (bool) $product->is_active;
 
@@ -219,6 +312,14 @@ class ProductController extends Controller
             'is_active' => $isActive,
             'display_status' => $display,
             'image_url' => $this->imageUrl($product->image),
+            'product_type' => $product->product_type,
+            'variants' => $product->variants->map(fn (ProductVariant $variant) => [
+                'id' => $variant->id,
+                'grade' => $variant->grade,
+                'price' => (float) $variant->price,
+                'stock' => (int) $variant->stock,
+                'is_active' => (bool) $variant->is_active,
+            ])->values(),
         ];
     }
 

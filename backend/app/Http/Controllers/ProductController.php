@@ -25,7 +25,8 @@ class ProductController extends Controller
             'variants' => function ($variants) {
                 $variants->where('is_active', true)
                     ->where('stock', '>', 0)
-                    ->orderBy('weight_min_kg');
+                    ->orderBy('weight_min_kg')
+                    ->orderBy('price');
             },
         ]);
 
@@ -59,31 +60,53 @@ class ProductController extends Controller
         $maxPrice = $validated['max_price'] ?? null;
 
         $query->where(function (Builder $products) use ($minPrice, $maxPrice) {
-            $products->where(function (Builder $fixed) use ($minPrice, $maxPrice) {
-                $fixed->where('product_type', Product::TYPE_FIXED_PRICE);
+            $products
+                ->where(function (Builder $fixed) use ($minPrice, $maxPrice) {
+                    $fixed->where('product_type', Product::TYPE_FIXED_PRICE)
+                        ->where(function (Builder $prices) use ($minPrice, $maxPrice) {
+                            // Fixed-price products without variants use product price.
+                            $prices->where(function (Builder $simple) use ($minPrice, $maxPrice) {
+                                $simple->whereDoesntHave('variants');
 
-                if ($minPrice !== null) {
-                    $fixed->where('price', '>=', $minPrice);
-                }
+                                if ($minPrice !== null) {
+                                    $simple->where('price', '>=', $minPrice);
+                                }
 
-                if ($maxPrice !== null) {
-                    $fixed->where('price', '<=', $maxPrice);
-                }
-            })->orWhere(function (Builder $carcasses) use ($minPrice, $maxPrice) {
-                $carcasses->where('product_type', Product::TYPE_CARCASS)
-                    ->whereHas('variants', function (Builder $variants) use ($minPrice, $maxPrice) {
-                        $variants->where('is_active', true)
-                            ->where('stock', '>', 0);
+                                if ($maxPrice !== null) {
+                                    $simple->where('price', '<=', $maxPrice);
+                                }
+                            });
 
-                        if ($minPrice !== null) {
-                            $variants->where('price', '>=', $minPrice);
-                        }
+                            // Fixed-price products with variants use variant prices.
+                            $prices->orWhereHas('variants', function (Builder $variants) use ($minPrice, $maxPrice) {
+                                $variants->where('is_active', true)
+                                    ->where('stock', '>', 0);
 
-                        if ($maxPrice !== null) {
-                            $variants->where('price', '<=', $maxPrice);
-                        }
-                    });
-            });
+                                if ($minPrice !== null) {
+                                    $variants->where('price', '>=', $minPrice);
+                                }
+
+                                if ($maxPrice !== null) {
+                                    $variants->where('price', '<=', $maxPrice);
+                                }
+                            });
+                        });
+                })
+                ->orWhere(function (Builder $carcasses) use ($minPrice, $maxPrice) {
+                    $carcasses->where('product_type', Product::TYPE_CARCASS)
+                        ->whereHas('variants', function (Builder $variants) use ($minPrice, $maxPrice) {
+                            $variants->where('is_active', true)
+                                ->where('stock', '>', 0);
+
+                            if ($minPrice !== null) {
+                                $variants->where('price', '>=', $minPrice);
+                            }
+
+                            if ($maxPrice !== null) {
+                                $variants->where('price', '<=', $maxPrice);
+                            }
+                        });
+                });
         });
 
         // Calculate the displayed price range across matching products.
@@ -95,7 +118,7 @@ class ProductController extends Controller
         ])->get();
 
         $prices = $priceProducts->flatMap(function (Product $product) {
-            if ($product->product_type === Product::TYPE_CARCASS) {
+            if ($product->variants->isNotEmpty()) {
                 return $product->variants->pluck('price');
             }
 
@@ -104,25 +127,41 @@ class ProductController extends Controller
 
         if (($validated['sort'] ?? null) === 'price-low-high') {
             $query->orderByRaw(
-                'CASE WHEN product_type = ? THEN price ELSE (
-                    SELECT MIN(pv.price)
-                    FROM product_variants pv
-                    WHERE pv.product_id = products.id
-                    AND pv.is_active = 1
-                    AND pv.stock > 0
-                ) END ASC',
-                [Product::TYPE_FIXED_PRICE]
+                'CASE
+            WHEN EXISTS (
+                SELECT 1 FROM product_variants pv
+                WHERE pv.product_id = products.id
+                AND pv.is_active = 1
+                AND pv.stock > 0
+            )
+            THEN (
+                SELECT MIN(pv.price)
+                FROM product_variants pv
+                WHERE pv.product_id = products.id
+                AND pv.is_active = 1
+                AND pv.stock > 0
+            )
+            ELSE products.price
+        END ASC'
             );
         } elseif (($validated['sort'] ?? null) === 'price-high-low') {
             $query->orderByRaw(
-                'CASE WHEN product_type = ? THEN price ELSE (
-                    SELECT MAX(pv.price)
-                    FROM product_variants pv
-                    WHERE pv.product_id = products.id
-                    AND pv.is_active = 1
-                    AND pv.stock > 0
-                ) END DESC',
-                [Product::TYPE_FIXED_PRICE]
+                'CASE
+            WHEN EXISTS (
+                SELECT 1 FROM product_variants pv
+                WHERE pv.product_id = products.id
+                AND pv.is_active = 1
+                AND pv.stock > 0
+            )
+            THEN (
+                SELECT MAX(pv.price)
+                FROM product_variants pv
+                WHERE pv.product_id = products.id
+                AND pv.is_active = 1
+                AND pv.stock > 0
+            )
+            ELSE products.price
+        END DESC'
             );
         } else {
             $query->inRandomOrder();

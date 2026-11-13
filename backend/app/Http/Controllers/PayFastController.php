@@ -122,108 +122,168 @@ class PayFastController extends Controller
                     ], 422);
                 }
             }
+
+            $variant = $item->productVariant;
+
+            if (
+                ! in_array($product->product_type, [
+                    Product::TYPE_CARCASS,
+                    Product::TYPE_FIXED_PRICE,
+                ], true)
+            ) {
+                return response()->json([
+                    'message' => "{$product->name} has an invalid product type.",
+                ], 422);
+            }
+
+            $hasVariants = $product->variants()->exists();
+
+            if ($product->product_type === Product::TYPE_CARCASS || $hasVariants) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id ||
+                    ! $variant->is_active
+                ) {
+                    return response()->json([
+                        'message' => "The selected variant for {$product->name} is no longer available.",
+                    ], 422);
+                }
+
+                $variantQuantity = $cart->items
+                    ->where('product_variant_id', $variant->id)
+                    ->sum('quantity');
+
+                if ($variantQuantity > (int) $variant->stock) {
+                    return response()->json([
+                        'message' => "Insufficient stock for {$product->name}, {$variant->grade}.",
+                    ], 422);
+                }
+            } else {
+                if ($variant) {
+                    return response()->json([
+                        'message' => "The selected variant for {$product->name} is invalid.",
+                    ], 422);
+                }
+
+                $productQuantity = $cart->items
+                    ->where('product_id', $product->id)
+                    ->whereNull('product_variant_id')
+                    ->sum('quantity');
+
+                if ($productQuantity > (int) $product->stock) {
+                    return response()->json([
+                        'message' => "Insufficient stock for {$product->name}.",
+                    ], 422);
+                }
+            }
         }
 
         $delivery = $data['fulfillment_type'] === Order::FULFILLMENT_DELIVERY;
-
         $subtotal = 0;
-
         foreach ($cart->items as $item) {
             $unitPrice = $item->productVariant
                 ? (float) $item->productVariant->price
                 : (float) $item->product->price;
 
-            $subtotal += round($unitPrice * (int) $item->quantity, 2);
-        }
+            $subtotal = 0;
 
-        $subtotal = round($subtotal, 2);
+            foreach ($cart->items as $item) {
+                $unitPrice = $item->productVariant
+                    ? (float) $item->productVariant->price
+                    : (float) $item->product->price;
 
-        $deliveryFee = 0;
-
-        if ($delivery) {
-            $deliveryResult = $deliveryPricing->calculate(
-                $data['postal_code'],
-                $subtotal
-            );
-
-            if (! $deliveryResult['eligible']) {
-                return response()->json([
-                    'message' => $deliveryResult['message'],
-                    'delivery' => $deliveryResult,
-                ], 422);
+                $subtotal += round($unitPrice * (int) $item->quantity, 2);
             }
 
-            $deliveryFee = (float) $deliveryResult['delivery_fee'];
-        }
-        $deliveryZoneNumber = $delivery
-            ? $deliveryResult['zone_number']
-            : null;
-        $total = round($subtotal + $deliveryFee, 2);
+            $subtotal = round($subtotal, 2);
 
-        [$order, $payment] = DB::transaction(function () use (
-            $cart,
-            $user,
-            $data,
-            $delivery,
-            $total,
-            $deliveryFee,
-            $deliveryZoneNumber
-        ) {
-            $order = new Order;
-            $order->forceFill([
-                'user_id' => $user->id,
-                'fulfillment_type' => $data['fulfillment_type'],
-                'status' => Order::STATUS_PENDING,
-                'total' => $total,
-                'delivery_fee' => $deliveryFee,
-                'delivery_zone_number' => $deliveryZoneNumber,
-                'delivery_address_line_1' => $delivery ? $data['address_line_1'] : null,
-                'delivery_address_line_2' => $delivery ? ($data['address_line_2'] ?? null) : null,
-                'delivery_city' => $delivery ? $data['city'] : null,
-                'delivery_province' => $delivery ? $data['province'] : null,
-                'delivery_postal_code' => $delivery ? $data['postal_code'] : null,
-                'delivery_instructions' => $delivery ? ($data['instructions'] ?? null) : null,
-            ])->save();
+            $deliveryFee = 0;
 
-            foreach ($cart->items as $cartItem) {
-                $price = $cartItem->productVariant
-                    ? (float) $cartItem->productVariant->price
-                    : (float) $cartItem->product->price;
-                $orderItem = $order->items()->create([
-                    'product_id' => $cartItem->product_id,
-                    'product_variant_id' => $cartItem->product_variant_id,
-                    'product_name' => $cartItem->product->name,
-                    'grade' => $cartItem->product->grade,
-                    'price' => $price,
-                    'unit_price' => $price,
-                    'quantity' => $cartItem->quantity,
-                    'line_total' => round($price * (int) $cartItem->quantity, 2),
-                    'cut_type' => $cartItem->cut_type,
-                    'selected_quarter' => $cartItem->selected_quarter,
+            if ($delivery) {
+                $deliveryResult = $deliveryPricing->calculate(
+                    $data['postal_code'],
+                    $subtotal
+                );
+
+                if (! $deliveryResult['eligible']) {
+                    return response()->json([
+                        'message' => $deliveryResult['message'],
+                        'delivery' => $deliveryResult,
+                    ], 422);
+                }
+
+                $deliveryFee = (float) $deliveryResult['delivery_fee'];
+            }
+            $deliveryZoneNumber = $delivery
+                ? $deliveryResult['zone_number']
+                : null;
+            $total = round($subtotal + $deliveryFee, 2);
+
+            [$order, $payment] = DB::transaction(function () use (
+                $cart,
+                $user,
+                $data,
+                $delivery,
+                $total,
+                $deliveryFee,
+                $deliveryZoneNumber
+            ) {
+                $order = new Order;
+                $order->forceFill([
+                    'user_id' => $user->id,
+                    'fulfillment_type' => $data['fulfillment_type'],
+                    'status' => Order::STATUS_PENDING,
+                    'total' => $total,
+                    'delivery_fee' => $deliveryFee,
+                    'delivery_zone_number' => $deliveryZoneNumber,
+                    'delivery_address_line_1' => $delivery ? $data['address_line_1'] : null,
+                    'delivery_address_line_2' => $delivery ? ($data['address_line_2'] ?? null) : null,
+                    'delivery_city' => $delivery ? $data['city'] : null,
+                    'delivery_province' => $delivery ? $data['province'] : null,
+                    'delivery_postal_code' => $delivery ? $data['postal_code'] : null,
+                    'delivery_instructions' => $delivery ? ($data['instructions'] ?? null) : null,
+                ])->save();
+
+                foreach ($cart->items as $cartItem) {
+                    $price = $cartItem->productVariant
+                        ? (float) $cartItem->productVariant->price
+                        : (float) $cartItem->product->price;
+                    $orderItem = $order->items()->create([
+                        'product_id' => $cartItem->product_id,
+                        'product_variant_id' => $cartItem->product_variant_id,
+                        'product_name' => $cartItem->product->name,
+                        'grade' => $cartItem->product->grade,
+                        'price' => $price,
+                        'unit_price' => $price,
+                        'quantity' => $cartItem->quantity,
+                        'line_total' => round($price * (int) $cartItem->quantity, 2),
+                        'cut_type' => $cartItem->cut_type,
+                        'selected_quarter' => $cartItem->selected_quarter,
+                    ]);
+
+                    foreach ($cartItem->cutSelections as $selection) {
+                        $orderItem->cutSelections()->create([
+                            'cut_option_id' => $selection->cut_option_id,
+                            'side' => $selection->side,
+                            'quarter' => $selection->quarter,
+                        ]);
+                    }
+                }
+
+                $payment = Payment::create([
+                    'order_id' => $order->id,
+                    'amount' => $total,
+                    'status' => Payment::STATUS_PENDING,
+                    'method' => 'payfast',
                 ]);
 
-                foreach ($cartItem->cutSelections as $selection) {
-                    $orderItem->cutSelections()->create([
-                        'cut_option_id' => $selection->cut_option_id,
-                        'side' => $selection->side,
-                        'quarter' => $selection->quarter,
-                    ]);
-                }
-            }
+                return [$order->fresh(), $payment->fresh()];
+            });
 
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'amount' => $total,
-                'status' => Payment::STATUS_PENDING,
-                'method' => 'payfast',
-            ]);
+            Log::info('PayFast checkout started', ['order' => $order->order_number, 'payment' => $payment->payment_number, 'amount' => $payment->amount]);
 
-            return [$order->fresh(), $payment->fresh()];
-        });
-
-        Log::info('PayFast checkout started', ['order' => $order->order_number, 'payment' => $payment->payment_number, 'amount' => $payment->amount]);
-
-        return $this->payfastForm($order, $payment, $user, 'PrimeMeat order '.$order->order_number);
+            return $this->payfastForm($order, $payment, $user, 'PrimeMeat order '.$order->order_number);
+        }
     }
 
     /**

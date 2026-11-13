@@ -47,7 +47,16 @@ export default function ProductFormModal({
   const [removeImage, setRemoveImage] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-
+  const [variants, setVariants] = useState(
+    (product?.variants ?? []).map((variant) => ({
+      id: variant.id,
+      grade: variant.grade ?? "",
+      weight_kg: variant.weight_kg ?? "",
+      price: variant.price ?? "",
+      stock: variant.stock ?? 0,
+      is_active: variant.is_active ?? true,
+    })),
+  );
   // Free the temporary preview URL when it changes
   useEffect(
     () => () => {
@@ -61,7 +70,35 @@ export default function ProductFormModal({
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
     setErrors((errs) => ({ ...errs, [name]: undefined }));
   };
+  const addVariant = () => {
+    setVariants((current) => [
+      ...current,
+      {
+        grade: "",
+        weight_kg: "",
+        price: "",
+        stock: 0,
+        is_active: true,
+      },
+    ]);
+  };
 
+  const updateVariant = (index, field, value) => {
+    setVariants((current) =>
+      current.map((variant, i) =>
+        i === index ? { ...variant, [field]: value } : variant,
+      ),
+    );
+
+    setErrors((current) => ({
+      ...current,
+      [`variants.${index}.${field}`]: undefined,
+    }));
+  };
+
+  const removeVariant = (index) => {
+    setVariants((current) => current.filter((_, i) => i !== index));
+  };
   // Add a category without creating duplicate entries.
   const addCategory = (value = newCategory) => {
     const category = value.trim();
@@ -136,6 +173,24 @@ export default function ProductFormModal({
         );
       }
     });
+
+    if (form.product_type === "fixed_price") {
+      variants.forEach((variant, index) => {
+        if (variant.id) {
+          body.append(`variants[${index}][id]`, variant.id);
+        }
+
+        body.append(`variants[${index}][grade]`, variant.grade);
+        body.append(`variants[${index}][weight_min_kg]`, variant.weight_min_kg);
+        body.append(`variants[${index}][weight_max_kg]`, variant.weight_min_kg);
+        body.append(`variants[${index}][price]`, variant.price);
+        body.append(`variants[${index}][stock]`, variant.stock);
+        body.append(
+          `variants[${index}][is_active]`,
+          variant.is_active ? "1" : "0",
+        );
+      });
+    }
 
     if (image) body.append("image", image);
     if (removeImage) body.append("remove_image", "1");
@@ -356,6 +411,136 @@ export default function ProductFormModal({
             </select>
           </label>
         </div>
+
+        {form.product_type === "fixed_price" && (
+          <div className="adm-field adm-field--full adm-variants">
+            <div className="adm-variants__header">
+              <div>
+                <strong>Product variants</strong>
+                <small className="adm-form__hint">
+                  Optional. Add different packages with their own prices and
+                  stock.
+                </small>
+              </div>
+
+              <button
+                type="button"
+                className="adm-btn adm-btn--outline"
+                onClick={addVariant}
+              >
+                Add variant
+              </button>
+            </div>
+
+            {variants.map((variant, index) => (
+              <div className="adm-variant" key={variant.id ?? `new-${index}`}>
+                <div className="adm-grid2">
+                  <label className="adm-field">
+                    <span>Variant name</span>
+                    <input
+                      value={variant.grade}
+                      onChange={(e) =>
+                        updateVariant(index, "grade", e.target.value)
+                      }
+                      placeholder="e.g. Small Box"
+                      className={
+                        errors[`variants.${index}.grade`] ? "has-error" : ""
+                      }
+                    />
+                    {errors[`variants.${index}.grade`] && (
+                      <small className="adm-field__error">
+                        {errors[`variants.${index}.grade`]}
+                      </small>
+                    )}
+                  </label>
+                  <label className="adm-field">
+                    <span>Exact weight (kg)</span>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={variant.weight_kg}
+                      onChange={(e) =>
+                        updateVariant(index, "weight_kg", e.target.value)
+                      }
+                      className={
+                        errors[`variants.${index}.weight_kg`] ? "has-error" : ""
+                      }
+                    />
+                    {errors[`variants.${index}.weight_kg`] && (
+                      <small className="adm-field__error">
+                        {errors[`variants.${index}.weight_kg`]}
+                      </small>
+                    )}
+                  </label>
+                  <label className="adm-field">
+                    <span>Price (R)</span>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={variant.price}
+                      onChange={(e) =>
+                        updateVariant(index, "price", e.target.value)
+                      }
+                      className={
+                        errors[`variants.${index}.price`] ? "has-error" : ""
+                      }
+                    />
+                    {errors[`variants.${index}.price`] && (
+                      <small className="adm-field__error">
+                        {errors[`variants.${index}.price`]}
+                      </small>
+                    )}
+                  </label>
+
+                  <label className="adm-field">
+                    <span>Stock (units)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={variant.stock}
+                      onChange={(e) =>
+                        updateVariant(index, "stock", e.target.value)
+                      }
+                    />
+                  </label>
+
+                  <label className="adm-check">
+                    <input
+                      type="checkbox"
+                      checked={variant.is_active}
+                      onChange={(e) =>
+                        updateVariant(index, "is_active", e.target.checked)
+                      }
+                    />
+                    Available for purchase
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  className="adm-linkbtn"
+                  onClick={() => removeVariant(index)}
+                >
+                  <FiX aria-hidden="true" /> Remove variant
+                </button>
+              </div>
+            ))}
+
+            {variants.length === 0 && (
+              <small className="adm-form__hint">
+                No variants added. The product's regular price and stock will be
+                used.
+              </small>
+            )}
+
+            {errors.variants && (
+              <small className="adm-field__error">{errors.variants}</small>
+            )}
+          </div>
+        )}
 
         <label className="adm-field">
           <span>Description</span>

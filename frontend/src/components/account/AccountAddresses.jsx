@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../api";
 
 const emptyForm = {
@@ -13,7 +13,38 @@ const emptyForm = {
   postal_code: "",
   is_default: false,
 };
+const provinces = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "Northern Cape",
+  "North West",
+  "Western Cape",
+];
+const normalizeProvince = (province) => {
+  const value = province
+    ?.toLowerCase()
+    .replace(/\s+province$/i, "")
+    .trim();
 
+  const provinces = {
+    "eastern cape": "Eastern Cape",
+    "free state": "Free State",
+    gauteng: "Gauteng",
+    "kwazulu-natal": "KwaZulu-Natal",
+    "kwazulu natal": "KwaZulu-Natal",
+    limpopo: "Limpopo",
+    mpumalanga: "Mpumalanga",
+    "northern cape": "Northern Cape",
+    "north west": "North West",
+    "western cape": "Western Cape",
+  };
+
+  return provinces[value] || province || "";
+};
 function AccountAddresses({ openAddAddress = false }) {
   const [addresses, setAddresses] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -25,6 +56,12 @@ function AccountAddresses({ openAddAddress = false }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [addressSearching, setAddressSearching] = useState(false);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [activeAddressField, setActiveAddressField] = useState(null);
+  const addressRequestRef = useRef(null);
 
   useEffect(() => {
     fetchAddresses();
@@ -48,6 +85,90 @@ function AccountAddresses({ openAddAddress = false }) {
     }
   };
 
+  useEffect(() => {
+    if (
+      !import.meta.env.VITE_GEOAPIFY_API_KEY ||
+      addressQuery.trim().length < 3
+    ) {
+      setAddressSuggestions([]);
+      setAddressSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timeout = setTimeout(async () => {
+      setAddressSearching(true);
+
+      try {
+        const params = new URLSearchParams({
+          text: addressQuery,
+          filter: "countrycode:za",
+          format: "json",
+          limit: "5",
+          apiKey: import.meta.env.VITE_GEOAPIFY_API_KEY,
+        });
+
+        if (activeAddressField === "suburb") {
+          params.set("type", "district");
+        } else if (activeAddressField === "city") {
+          params.set("type", "city");
+        }
+
+        const response = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?${params}`,
+          { signal: controller.signal },
+        );
+
+        if (!response.ok) {
+          throw new Error("Address search failed.");
+        }
+
+        const data = await response.json();
+        setAddressSuggestions(data.results || []);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Address autocomplete failed:", error);
+          setAddressSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setAddressSearching(false);
+        }
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [addressQuery, activeAddressField]);
+
+  const selectAddressSuggestion = (place) => {
+    setForm((previous) => ({
+      ...previous,
+      address_line_1:
+        place.address_line1 ||
+        [place.housenumber, place.street].filter(Boolean).join(" ") ||
+        place.street ||
+        previous.address_line_1,
+      suburb: place.suburb || place.district || previous.suburb,
+      city:
+        place.city ||
+        place.town ||
+        place.village ||
+        place.municipality ||
+        previous.city,
+      province: normalizeProvince(place.state) || previous.province,
+      postal_code: place.postcode || previous.postal_code,
+    }));
+
+    setAddressQuery("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
+    setValidationErrors({});
+  };
+
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
 
@@ -68,6 +189,9 @@ function AccountAddresses({ openAddAddress = false }) {
   const openAddForm = () => {
     setEditingAddress(null);
     setForm(emptyForm);
+    setAddressQuery("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
     setValidationErrors({});
     setMessage("");
     setError("");
@@ -89,7 +213,9 @@ function AccountAddresses({ openAddAddress = false }) {
       postal_code: address.postal_code || "",
       is_default: Boolean(address.is_default),
     });
-
+    setAddressQuery(address.address_line_1 || "");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
     setValidationErrors({});
     setMessage("");
     setError("");
@@ -103,6 +229,9 @@ function AccountAddresses({ openAddAddress = false }) {
     setEditingAddress(null);
     setForm(emptyForm);
     setValidationErrors({});
+    setAddressQuery("");
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
   };
 
   const handleSubmit = async (event) => {
@@ -237,7 +366,30 @@ function AccountAddresses({ openAddAddress = false }) {
   };
 
   const getValidationError = (field) => validationErrors[field]?.[0];
+  const renderAddressSuggestions = (field) => (
+    <>
+      {addressSearching && activeAddressField === field && (
+        <span className="account-address-search-status">
+          Searching addresses...
+        </span>
+      )}
 
+      {showAddressSuggestions === field && addressSuggestions.length > 0 && (
+        <div className="account-address-suggestions">
+          {addressSuggestions.map((place) => (
+            <button
+              key={place.place_id}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => selectAddressSuggestion(place)}
+            >
+              {place.formatted}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
   const renderField = ({
     id,
     label,
@@ -247,7 +399,30 @@ function AccountAddresses({ openAddAddress = false }) {
     autoComplete,
   }) => {
     const validationError = getValidationError(id);
+    const renderAddressSuggestions = (field) => (
+      <>
+        {addressSearching && (
+          <span className="account-address-search-status">
+            Searching addresses...
+          </span>
+        )}
 
+        {showAddressSuggestions === field && addressSuggestions.length > 0 && (
+          <div className="account-address-suggestions">
+            {addressSuggestions.map((place) => (
+              <button
+                key={place.place_id}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => selectAddressSuggestion(place)}
+              >
+                {place.formatted}
+              </button>
+            ))}
+          </div>
+        )}
+      </>
+    );
     return (
       <div
         className={`account-form-field account-address-field ${
@@ -376,12 +551,66 @@ function AccountAddresses({ openAddAddress = false }) {
                 autoComplete: "tel",
               })}
 
-              {renderField({
-                id: "address_line_1",
-                label: "Address Line 1",
-                required: true,
-                autoComplete: "address-line1",
-              })}
+              <div
+                className={`account-form-field account-address-field account-address-autocomplete ${
+                  getValidationError("address_line_1")
+                    ? "account-form-field--error"
+                    : ""
+                }`}
+              >
+                <label htmlFor="address-address_line_1">
+                  Address Line 1<span className="account-required"> *</span>
+                </label>
+
+                <input
+                  id="address-address_line_1"
+                  name="address_line_1"
+                  type="text"
+                  value={form.address_line_1}
+                  onChange={(event) => {
+                    handleChange(event);
+                    setAddressQuery(event.target.value);
+                    setActiveAddressField("address_line_1");
+                    setShowAddressSuggestions("address_line_1");
+                  }}
+                  onFocus={() => {
+                    setAddressQuery(form.address_line_1);
+                    setActiveAddressField("address_line_1");
+                    setShowAddressSuggestions("address_line_1");
+                  }}
+                  autoComplete="off"
+                  placeholder="Start typing your street address"
+                  required
+                  aria-invalid={Boolean(getValidationError("address_line_1"))}
+                />
+
+                {addressSearching && (
+                  <span className="account-address-search-status">
+                    Searching addresses...
+                  </span>
+                )}
+
+                {showAddressSuggestions && addressSuggestions.length > 0 && (
+                  <div className="account-address-suggestions">
+                    {addressSuggestions.map((place) => (
+                      <button
+                        key={place.place_id}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => selectAddressSuggestion(place)}
+                      >
+                        {place.formatted}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {getValidationError("address_line_1") && (
+                  <p className="account-field-error">
+                    {getValidationError("address_line_1")}
+                  </p>
+                )}
+              </div>
 
               {renderField({
                 id: "address_line_2",
@@ -389,25 +618,91 @@ function AccountAddresses({ openAddAddress = false }) {
                 autoComplete: "address-line2",
               })}
 
-              {renderField({
-                id: "suburb",
-                label: "Suburb",
-                autoComplete: "address-level3",
-              })}
+              <div className="account-form-field account-address-field account-address-autocomplete">
+                <label htmlFor="address-suburb">Suburb</label>
 
-              {renderField({
-                id: "city",
-                label: "City",
-                required: true,
-                autoComplete: "address-level2",
-              })}
+                <input
+                  id="address-suburb"
+                  name="suburb"
+                  value={form.suburb}
+                  onChange={(event) => {
+                    handleChange(event);
+                    setAddressQuery(event.target.value);
+                    setActiveAddressField("suburb");
+                    setShowAddressSuggestions("suburb");
+                  }}
+                  onFocus={() => {
+                    setAddressQuery(form.suburb);
+                    setActiveAddressField("suburb");
+                    setShowAddressSuggestions("suburb");
+                  }}
+                  autoComplete="off"
+                />
 
-              {renderField({
-                id: "province",
-                label: "Province",
-                required: true,
-                autoComplete: "address-level1",
-              })}
+                {renderAddressSuggestions("suburb")}
+              </div>
+
+              <div className="account-form-field account-address-field account-address-autocomplete">
+                <label htmlFor="address-city">
+                  City<span className="account-required"> *</span>
+                </label>
+
+                <input
+                  id="address-city"
+                  name="city"
+                  value={form.city}
+                  onChange={(event) => {
+                    handleChange(event);
+                    setAddressQuery(event.target.value);
+                    setActiveAddressField("city");
+                    setShowAddressSuggestions("city");
+                  }}
+                  onFocus={() => {
+                    setAddressQuery(form.city);
+                    setActiveAddressField("city");
+                    setShowAddressSuggestions("city");
+                  }}
+                  autoComplete="off"
+                  required
+                />
+
+                {renderAddressSuggestions("city")}
+              </div>
+
+              <div
+                className={`account-form-field account-address-field ${
+                  getValidationError("province")
+                    ? "account-form-field--error"
+                    : ""
+                }`}
+              >
+                <label htmlFor="address-province">
+                  Province<span className="account-required"> *</span>
+                </label>
+
+                <select
+                  id="address-province"
+                  name="province"
+                  value={form.province}
+                  onChange={handleChange}
+                  required
+                  aria-invalid={Boolean(getValidationError("province"))}
+                >
+                  <option value="">Select Province</option>
+
+                  {provinces.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+
+                {getValidationError("province") && (
+                  <p className="account-field-error">
+                    {getValidationError("province")}
+                  </p>
+                )}
+              </div>
 
               {renderField({
                 id: "postal_code",

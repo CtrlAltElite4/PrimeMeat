@@ -270,3 +270,49 @@
     grid-column: auto;
   }
 }
+
+.address-autocomplete {
+  position: relative;
+}
+
+.address-autocomplete-status {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #938f6f;
+}
+
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.address-suggestion {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  background: transparent;
+  color: #161616;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.address-suggestion:hover {
+  background: #f5f2ed;
+}
+
+.address-suggestion:last-child {
+  border-bottom: none;
+}

@@ -143,12 +143,36 @@ class CartController extends Controller
                 ]);
             }
         } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
-            if (! empty($validated['product_variant_id'])) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants && empty($validated['product_variant_id'])) {
                 throw ValidationException::withMessages([
                     'product_variant_id' => [
-                        'This product does not require a variant.',
+                        'Please select an option for this product.',
                     ],
                 ]);
+            }
+
+            if (! $hasVariants && ! empty($validated['product_variant_id'])) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'This product does not have selectable options.',
+                    ],
+                ]);
+            }
+
+            if ($hasVariants) {
+                $variant = ProductVariant::query()
+                    ->where('product_id', $product->id)
+                    ->find($validated['product_variant_id']);
+
+                if (! $variant) {
+                    throw ValidationException::withMessages([
+                        'product_variant_id' => [
+                            'The selected option does not belong to this product.',
+                        ],
+                    ]);
+                }
             }
         } else {
             return response()->json([
@@ -307,12 +331,36 @@ class CartController extends Controller
                 ]);
             }
         } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
-            if ($variantId !== null) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants && ! $variantId) {
                 throw ValidationException::withMessages([
                     'product_variant_id' => [
-                        'This product does not require a variant.',
+                        'Please select an option for this product.',
                     ],
                 ]);
+            }
+
+            if (! $hasVariants && $variantId !== null) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'This product does not have selectable options.',
+                    ],
+                ]);
+            }
+
+            if ($hasVariants) {
+                $variant = ProductVariant::query()
+                    ->where('product_id', $product->id)
+                    ->find($variantId);
+
+                if (! $variant) {
+                    throw ValidationException::withMessages([
+                        'product_variant_id' => [
+                            'The selected option does not belong to this product.',
+                        ],
+                    ]);
+                }
             }
         } else {
             return response()->json([
@@ -456,23 +504,48 @@ class CartController extends Controller
                 ->where('product_id', $product->id)
                 ->where('product_variant_id', $variant->id);
         } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
-            if ($variant !== null) {
-                return response()->json([
-                    'message' => 'This product does not require a variant.',
-                ], 422);
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id
+                ) {
+                    return response()->json([
+                        'message' => 'Please select a valid product option.',
+                    ], 422);
+                }
+
+                if (! $variant->is_active || (int) $variant->stock < 1) {
+                    return response()->json([
+                        'message' => 'Sorry, this product option is out of stock.',
+                    ], 422);
+                }
+
+                $availableStock = (int) $variant->stock;
+
+                $cartItemsQuery = $cart->items()
+                    ->where('product_id', $product->id)
+                    ->where('product_variant_id', $variant->id);
+            } else {
+                if ($variant !== null) {
+                    return response()->json([
+                        'message' => 'This product does not have selectable options.',
+                    ], 422);
+                }
+
+                if ((int) $product->stock < 1) {
+                    return response()->json([
+                        'message' => 'Sorry, this product is out of stock.',
+                    ], 422);
+                }
+
+                $availableStock = (int) $product->stock;
+
+                $cartItemsQuery = $cart->items()
+                    ->where('product_id', $product->id)
+                    ->whereNull('product_variant_id');
             }
-
-            if ((int) $product->stock < 1) {
-                return response()->json([
-                    'message' => 'Sorry, this product is out of stock.',
-                ], 422);
-            }
-
-            $availableStock = (int) $product->stock;
-
-            $cartItemsQuery = $cart->items()
-                ->where('product_id', $product->id)
-                ->whereNull('product_variant_id');
         } else {
             return response()->json([
                 'message' => 'This product cannot currently be purchased.',
