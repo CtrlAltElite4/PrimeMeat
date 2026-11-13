@@ -295,25 +295,76 @@ class PayFastController extends Controller
             'postal_code' => ['required', 'string', 'max:20'],
         ]);
 
-        $cart = Cart::where('user_id', $request->user()->id)
-            ->with(['items.product', 'items.productVariant'])
+        $user = $request->user();
+
+        $cart = Cart::where('user_id', $user->id)
+            ->with([
+                'items.product',
+                'items.productVariant',
+                'groupOrder',
+            ])
             ->first();
+
+        if (! $cart || $cart->items->isEmpty()) {
+            return response()->json([
+                'delivery' => [
+                    'eligible' => false,
+                    'message' => 'Add products to your cart before checking delivery availability.',
+                ],
+            ]);
+        }
+
+        if ($cart->groupOrder) {
+            return response()->json([
+                'delivery' => [
+                    'eligible' => false,
+                    'message' => 'Group orders have a separate checkout process.',
+                ],
+            ]);
+        }
 
         $subtotal = 0;
 
-        if ($cart) {
-            foreach ($cart->items as $item) {
-                $price = $item->productVariant
-                    ? (float) $item->productVariant->price
-                    : (float) $item->product->price;
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+            $variant = $item->productVariant;
 
-                $subtotal += $price * (int) $item->quantity;
+            if (! $product || ! $product->is_active || $product->status !== 'published') {
+                return response()->json([
+                    'delivery' => [
+                        'eligible' => false,
+                        'message' => 'One or more products in your cart are no longer available.',
+                    ],
+                ]);
             }
+
+            if ($product->product_type === Product::TYPE_CARCASS) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id ||
+                    ! $variant->is_active
+                ) {
+                    return response()->json([
+                        'delivery' => [
+                            'eligible' => false,
+                            'message' => "The selected variant for {$product->name} is no longer available.",
+                        ],
+                    ]);
+                }
+
+                $unitPrice = (float) $variant->price;
+            } else {
+                $unitPrice = (float) $product->price;
+            }
+
+            $subtotal += round($unitPrice * (int) $item->quantity, 2);
         }
+
+        $subtotal = round($subtotal, 2);
 
         $delivery = $deliveryPricing->calculate(
             $data['postal_code'],
-            round($subtotal, 2)
+            $subtotal
         );
 
         return response()->json([
@@ -321,7 +372,6 @@ class PayFastController extends Controller
         ]);
     }
 
-    /** POST /api/checkout/delivery-quote */
     public function quote(
         Request $request,
         DeliveryPricingService $deliveryPricing
@@ -331,13 +381,13 @@ class PayFastController extends Controller
             'subtotal' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $delivery = $deliveryPricing->calculate(
+        $result = $deliveryPricing->calculate(
             $data['postal_code'],
             (float) $data['subtotal']
         );
 
         return response()->json([
-            'delivery' => $delivery,
+            'delivery' => $result,
         ]);
     }
 
