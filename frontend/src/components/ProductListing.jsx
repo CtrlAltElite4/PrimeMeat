@@ -28,7 +28,11 @@ function ProductListing({
     setPriceRange([minimumPrice, maximumPrice]);
     setPriceFilterActive(false);
   }, [minimumPrice, maximumPrice]);
-
+  useEffect(() => {
+    fetchWithFilters({
+      page: 1,
+    });
+  }, [search]);
   const fetchWithFilters = ({
     newCategory = category,
     newPriceRange = priceRange,
@@ -55,7 +59,6 @@ function ProductListing({
       page: 1,
     });
   };
-
 
   const handleMinimumPriceChange = (event) => {
     const value = Number(event.target.value);
@@ -182,31 +185,31 @@ function ProductListing({
         </div>
 
         <div className="product-filter-sidebar-content">
-<div className="product-filter-group">
-  <h4>Category</h4>
+          <div className="product-filter-group">
+            <h4>Category</h4>
 
-  <label className="product-filter-option">
-    <input
-      type="radio"
-      name="category"
-      checked={category === "all"}
-      onChange={() => handleCategoryChange("all")}
-    />
-    <span>All</span>
-  </label>
+            <label className="product-filter-option">
+              <input
+                type="radio"
+                name="category"
+                checked={category === "all"}
+                onChange={() => handleCategoryChange("all")}
+              />
+              <span>All</span>
+            </label>
 
-  {(pagination.categories || []).map((value) => (
-    <label className="product-filter-option" key={value}>
-      <input
-        type="radio"
-        name="category"
-        checked={category === value}
-        onChange={() => handleCategoryChange(value)}
-      />
-      <span>{value}</span>
-    </label>
-  ))}
-</div>
+            {(pagination.categories || []).map((value) => (
+              <label className="product-filter-option" key={value}>
+                <input
+                  type="radio"
+                  name="category"
+                  checked={category === value}
+                  onChange={() => handleCategoryChange(value)}
+                />
+                <span>{value}</span>
+              </label>
+            ))}
+          </div>
 
           <div className="product-filter-group">
             <h4>Price</h4>

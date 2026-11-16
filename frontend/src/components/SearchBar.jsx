@@ -1,45 +1,41 @@
-import { NavLink } from "react-router-dom";
-import "../styles/Home.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
+import "../styles/SearchBar.css";
+function SearchBar() {
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
-function HomeFilterBar() {
-  const filters = [
-    {
-      name: "Beef Carcasses",
-      value: "beef-carcasses",
-      path: "/products?filter=beef-carcasses",
-    },
-    {
-      name: "Beef Products",
-      value: "beef-products",
-      path: "/products?filter=beef-products",
-    },
-    {
-      name: "Mutton Products",
-      value: "mutton-products",
-      path: "/products?filter=mutton-products",
-    },
-    {
-      name: "Lamb Products",
-      value: "lamb-products",
-      path: "/products?filter=lamb-products",
-    },
-  ];
+  const handleSearch = (e) => {
+    e.preventDefault();
+
+    const keyword = search.trim();
+
+    if (!keyword) return;
+
+    navigate(`/products?search=${encodeURIComponent(keyword)}`);
+  };
 
   return (
-    <section className="home-filter-bar">
-      <div className="home-filter-container">
-        {filters.map((filter) => (
-          <NavLink
-            key={filter.value}
-            className="home-filter-link"
-            to={filter.path}
-          >
-            {filter.name}
-          </NavLink>
-        ))}
-      </div>
-    </section>
+    <div className="search-bar">
+      <form onSubmit={handleSearch}>
+        <div className="search-bar-container">
+          <input
+            type="search"
+            className="search-bar-input"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search products"
+          />
+        </div>
+
+        <button type="submit" className="search-bar-button" aria-label="Search">
+          <Search className="search-bar-icon" size={18} />
+        </button>
+      </form>
+    </div>
   );
 }
 
-export default HomeFilterBar;
+export default SearchBar;

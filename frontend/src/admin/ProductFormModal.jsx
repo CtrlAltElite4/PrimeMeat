@@ -51,12 +51,14 @@ export default function ProductFormModal({
     (product?.variants ?? []).map((variant) => ({
       id: variant.id,
       grade: variant.grade ?? "",
-      weight_kg: variant.weight_kg ?? "",
+      weight_kg: variant.weight_min_kg ?? variant.weight_max_kg ?? "",
       price: variant.price ?? "",
       stock: variant.stock ?? 0,
       is_active: variant.is_active ?? true,
     })),
   );
+  const hasVariants = variants.length > 0;
+
   // Free the temporary preview URL when it changes
   useEffect(
     () => () => {
@@ -166,6 +168,8 @@ export default function ProductFormModal({
     Object.entries(form).forEach(([key, value]) => {
       if (key === "category") {
         value.forEach((category) => body.append("category[]", category));
+      } else if ((key === "price" || key === "stock") && hasVariants) {
+        body.append(key, "0");
       } else {
         body.append(
           key,
@@ -181,8 +185,8 @@ export default function ProductFormModal({
         }
 
         body.append(`variants[${index}][grade]`, variant.grade);
-        body.append(`variants[${index}][weight_min_kg]`, variant.weight_min_kg);
-        body.append(`variants[${index}][weight_max_kg]`, variant.weight_min_kg);
+        body.append(`variants[${index}][weight_min_kg]`, variant.weight_kg);
+        body.append(`variants[${index}][weight_max_kg]`, variant.weight_kg);
         body.append(`variants[${index}][price]`, variant.price);
         body.append(`variants[${index}][stock]`, variant.stock);
         body.append(
@@ -190,6 +194,8 @@ export default function ProductFormModal({
           variant.is_active ? "1" : "0",
         );
       });
+
+      body.append("variants_present", "1");
     }
 
     if (image) body.append("image", image);
@@ -389,19 +395,23 @@ export default function ProductFormModal({
             )}
           </div>
 
-          {input("price", "Price (R)", {
-            type: "number",
-            min: 0,
-            step: "0.01",
-            inputMode: "decimal",
-          })}
+          {!hasVariants && (
+            <>
+              {input("price", "Price (R)", {
+                type: "number",
+                min: 0,
+                step: "0.01",
+                inputMode: "decimal",
+              })}
 
-          {input("stock", "Stock (units)", {
-            type: "number",
-            min: 0,
-            step: 1,
-            inputMode: "numeric",
-          })}
+              {input("stock", "Stock (units)", {
+                type: "number",
+                min: 0,
+                step: 1,
+                inputMode: "numeric",
+              })}
+            </>
+          )}
 
           <label className="adm-field">
             <span>Status</span>
@@ -454,7 +464,7 @@ export default function ProductFormModal({
                     )}
                   </label>
                   <label className="adm-field">
-                    <span>Exact weight (kg)</span>
+                    <span>Weight (kg)</span>
                     <input
                       type="number"
                       min="0.01"

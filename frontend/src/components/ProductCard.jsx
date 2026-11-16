@@ -12,7 +12,10 @@ function ProductCard({ product, onCartUpdated }) {
   const closeMessage = useCallback(() => setMessage(""), []);
 
   const isCarcass = product.product_type === "carcass";
-
+  const hasVariants =
+    Array.isArray(product.variants) && product.variants.length > 0;
+  const hasFixedPriceVariants =
+    product.product_type === "fixed_price" && hasVariants;
   const variants = Array.isArray(product.variants)
     ? product.variants.filter((variant) => variant.is_active !== false)
     : [];
@@ -21,13 +24,16 @@ function ProductCard({ product, onCartUpdated }) {
     (variant) => variant.in_stock !== false && Number(variant.stock) > 0,
   );
 
-  const prices = (isCarcass ? availableVariants : [])
-    .map((variant) => Number(variant.price))
-    .filter(Number.isFinite);
+  const prices = hasVariants
+    ? availableVariants
+        .map((variant) => Number(variant.price))
+        .filter(Number.isFinite)
+    : [];
 
   const minimumPrice = prices.length
     ? Math.min(...prices)
     : Number(product.price);
+
   const maximumPrice = prices.length
     ? Math.max(...prices)
     : Number(product.price);
@@ -45,15 +51,18 @@ function ProductCard({ product, onCartUpdated }) {
           (variant) =>
             variant.weight_min_kg != null && variant.weight_max_kg != null,
         )
-        .map(
-          (variant) => `${variant.weight_min_kg}–${variant.weight_max_kg} kg`,
-        ),
+        .map((variant) => {
+          const min = Number(variant.weight_min_kg);
+          const max = Number(variant.weight_max_kg);
+
+          return min === max ? `${min} kg` : `${min}–${max} kg`;
+        }),
     ),
   ];
 
-  const inStock = isCarcass
+  const inStock = hasVariants
     ? availableVariants.length > 0
-    : product.in_stock !== false;
+    : product.in_stock !== false && Number(product.stock) > 0;
 
   const formatPrice = (price) =>
     `R${Number(price).toLocaleString("en-ZA", {
@@ -102,7 +111,7 @@ function ProductCard({ product, onCartUpdated }) {
 
   const productWeight = weightMatch ? `${weightMatch[1]} kg` : null;
 
-  const displayPrice = isCarcass
+  const displayPrice = hasVariants
     ? prices.length
       ? minimumPrice === maximumPrice
         ? formatPrice(minimumPrice)
@@ -128,11 +137,11 @@ function ProductCard({ product, onCartUpdated }) {
         aria-label={`View ${product.name}`}
       >
         <div className="product-card-image-container">
-          {(isCarcass ? weightRanges.length > 0 : productWeight) && (
+          {(hasVariants ? weightRanges.length > 0 : productWeight) && (
             <div className="product-card-weight">
               <Scale className="product-card-weight-icon" />
               <span>
-                {isCarcass
+                {hasVariants
                   ? weightRanges.length === 1
                     ? weightRanges[0]
                     : `${weightRanges.length} weight options`
@@ -182,18 +191,17 @@ function ProductCard({ product, onCartUpdated }) {
         )}
 
         <div
-          className={`product-card-actions ${isCarcass ? "product-card-actions-single" : ""}`}
+          className={`product-card-actions ${hasVariants ? "product-card-actions-single" : ""}`}
         >
           <Link
             to={`/products/${product.id}`}
             className="product-card-view-button"
             aria-label={`View ${product.name}`}
           >
-            <EyeIcon size={24} strokeWidth={2.0} aria-hidden="true" />
-            <span className="product-action-tooltip">View</span>
+            View Product
           </Link>
 
-          {!isCarcass && (
+          {!hasVariants && (
             <button
               className="product-card-cart-button"
               type="button"
@@ -201,20 +209,11 @@ function ProductCard({ product, onCartUpdated }) {
               disabled={addingToCart || !inStock}
               aria-label={!inStock ? "Out of stock" : "Add to cart"}
             >
-              {!inStock ? (
-                "Out of Stock"
-              ) : addingToCart ? (
-                "Adding..."
-              ) : (
-                <>
-                  <ShoppingCartPlus
-                    size={24}
-                    strokeWidth={2.0}
-                    aria-hidden="true"
-                  />
-                  <span className="product-action-tooltip">Add to cart</span>
-                </>
-              )}
+              {!inStock
+                ? "Out of Stock"
+                : addingToCart
+                  ? "Adding..."
+                  : "Add to Cart"}
             </button>
           )}
         </div>
