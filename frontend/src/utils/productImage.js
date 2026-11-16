@@ -1,7 +1,7 @@
 // The image the shop shows for a product. Used by the shop, the cart and the admin
 // panel so they always match. Carcass products use the photos in public/images;
 // anything else falls back to an uploaded image, if there is one.
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export default function productImage(product) {
   const image = product?.image_url || product?.image;

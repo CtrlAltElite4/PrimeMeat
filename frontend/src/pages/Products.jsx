@@ -1,14 +1,17 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import api from "../api";
 import ProductListing from "../components/ProductListing";
+
 const categoryFilters = {
   "beef-carcasses": "Beef Carcasses",
   "beef-products": "Beef Products",
   "mutton-products": "Mutton Products",
   "lamb-products": "Lamb Products",
 };
+
 function Products({ onCartUpdated }) {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({
@@ -27,13 +30,13 @@ function Products({ onCartUpdated }) {
 
   const filter = searchParams.get("filter") || "";
   const selectedCategory = categoryFilters[filter] || "all";
-  const search = searchParams.get("search") || "";
+  const search = searchParams.get("search")?.trim() || "";
   const urlSort = searchParams.get("sort") || "none";
 
   const fetchProducts = useCallback(
     async ({
       page = 1,
-      perPage = 12,
+      perPage = pagination.perPage,
       category = selectedCategory,
       minPrice = "",
       maxPrice = "",
@@ -78,11 +81,11 @@ function Products({ onCartUpdated }) {
         setLoading(false);
       }
     },
-    [filter, search, urlSort],
+    [search, selectedCategory, urlSort, pagination.perPage],
   );
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts({ page: 1 });
   }, [fetchProducts]);
 
   if (error) {

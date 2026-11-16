@@ -15,10 +15,9 @@
 }
 
 .search-bar-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 12px;
-  color: white;
+  width: 25px;
+  height: 25px;
+  color: #161616;
   flex-shrink: 0;
 }
 
@@ -60,4 +59,20 @@
   .search-bar-input {
     font-size: 12px;
   }
+}
+
+.search-bar form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-bar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
 }

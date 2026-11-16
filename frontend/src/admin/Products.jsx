@@ -373,7 +373,18 @@ export default function Products() {
                     {/* Off (and locked) whenever customers can't buy it: no stock or still a draft.
                         Add stock or publish the product first, then switch it on. */}
                     {(() => {
-                      const canSell = p.status !== "draft" && p.stock > 0;
+                      const hasVariants =
+                        Array.isArray(p.variants) && p.variants.length > 0;
+
+                      const hasStock = hasVariants
+                        ? p.variants.some(
+                            (variant) =>
+                              variant.is_active && Number(variant.stock) > 0,
+                          )
+                        : Number(p.stock) > 0;
+
+                      const canSell = p.status !== "draft" && hasStock;
+
                       return (
                         <span
                           title={
@@ -385,7 +396,7 @@ export default function Products() {
                           }
                         >
                           <Toggle
-                            checked={p.is_active && canSell}
+                            checked={Boolean(p.is_active)}
                             disabled={busyId === p.id || !canSell}
                             label={`${p.name} available for purchase`}
                             onChange={(on) => toggleAvailability(p, on)}
@@ -399,7 +410,14 @@ export default function Products() {
                       <button
                         type="button"
                         className="adm-view"
-                        onClick={() => setEditing(p)}
+                        onClick={() => {
+                          if (p.product_type === "carcass") {
+                            setCarcassAnimalType(p.animal_type || "Beef");
+                            setEditingCarcass(p);
+                          } else {
+                            setEditing(p);
+                          }
+                        }}
                         aria-label={`Edit ${p.name}`}
                       >
                         <FiEdit2 aria-hidden="true" /> Edit

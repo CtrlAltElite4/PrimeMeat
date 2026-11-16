@@ -22,6 +22,13 @@ const formatVariantWeight = (variant) => {
 
   return `${variant.weight_min_kg}–${variant.weight_max_kg} kg`;
 };
+
+const getFixedVariantWeight = (variant) => {
+  const weight = variant.weight_min_kg ?? variant.weight_max_kg;
+
+  return weight == null ? "" : String(weight);
+};
+
 function ProductDetail({ product, onCartUpdated }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -61,6 +68,7 @@ function ProductDetail({ product, onCartUpdated }) {
   const closeCartMessage = useCallback(() => setCartMessage(""), []);
 
   const variants = Array.isArray(product.variants) ? product.variants : [];
+  const hasVariants = product.has_variants === true || variants.length > 0;
   const variantOptions = [...variants];
 
   // Preserve a saved variant in the selector even if it is no longer in the product's active variant list.
@@ -73,7 +81,7 @@ function ProductDetail({ product, onCartUpdated }) {
     variantOptions.push(editingVariantDetails);
   }
 
-  const selectedVariant = isCarcass
+  const selectedVariant = hasVariants
     ? variantOptions.find(
         (variant) => Number(variant.id) === Number(selectedVariantId),
       ) || null
@@ -110,15 +118,16 @@ function ProductDetail({ product, onCartUpdated }) {
     return aMin - bMin;
   });
   const variantStock = Number(selectedVariant?.stock);
+
   const variantInStock =
     selectedVariant !== null &&
     selectedVariant.is_active !== false &&
     selectedVariant.in_stock !== false &&
     variantStock > 0;
 
-  const inStock = isCarcass ? variantInStock : product.in_stock !== false;
+  const inStock = hasVariants ? variantInStock : product.in_stock !== false;
 
-  const availableStock = isCarcass
+  const availableStock = hasVariants
     ? variantInStock
       ? variantStock
       : 0
@@ -126,22 +135,23 @@ function ProductDetail({ product, onCartUpdated }) {
 
   const maxQuantity = availableStock > 0 ? availableStock : undefined;
 
-  const displayedPrice = isCarcass ? selectedVariant?.price : product.price;
+  const displayedPrice = hasVariants ? selectedVariant?.price : product.price;
 
   const displayedGrade = isCarcass ? selectedVariant?.grade : product.grade;
 
-  const variantWeight =
-    selectedVariant?.weight_min_kg != null &&
-    selectedVariant?.weight_max_kg != null
-      ? `${selectedVariant.weight_min_kg}–${selectedVariant.weight_max_kg} kg`
+  const variantWeight = isCarcass
+    ? formatVariantWeight(selectedVariant || {})
+    : hasVariants && selectedVariant
+      ? `${getFixedVariantWeight(selectedVariant)} kg`
       : null;
 
   const weightMatch = product.description?.match(/(\d+(?:\.\d+)?)\s*kg/i);
   const productWeight = weightMatch ? `${weightMatch[1]} kg` : null;
 
   // Choose an available variant for a new carcass order.
+  // Choose an available variant for a new product order.
   useEffect(() => {
-    if (isEditMode || !isCarcass) {
+    if (isEditMode || !hasVariants) {
       return;
     }
 
@@ -159,15 +169,27 @@ function ProductDetail({ product, onCartUpdated }) {
     const defaultVariant = availableVariant || firstActiveVariant;
 
     setSelectedVariantId(defaultVariant ? String(defaultVariant.id) : "");
+
     setSelectedGrade(
-      defaultVariant?.grade ? String(defaultVariant.grade).toUpperCase() : "",
+      isCarcass && defaultVariant?.grade
+        ? String(defaultVariant.grade).toUpperCase()
+        : "",
     );
-    setSelectedWeight(defaultVariant ? getVariantWeight(defaultVariant) : "");
+
+    setSelectedWeight(
+      defaultVariant
+        ? isCarcass
+          ? getVariantWeight(defaultVariant)
+          : getFixedVariantWeight(defaultVariant)
+        : "",
+    );
+
     setEditingVariantDetails(null);
   }, [
     product.id,
     product.product_type,
     product.variants,
+    hasVariants,
     isCarcass,
     isEditMode,
   ]);
@@ -358,12 +380,16 @@ function ProductDetail({ product, onCartUpdated }) {
     setCartMessage("");
     setCartMessageType("error");
 
-    if (isCarcass && !selectedVariant) {
-      setCartMessage("Please select a carcass variant.");
+    if (hasVariants && !selectedVariant) {
+      setCartMessage(
+        isCarcass
+          ? "Please select a carcass variant."
+          : "Please select a product weight.",
+      );
       return;
     }
 
-    if (isCarcass && !variantInStock) {
+    if (hasVariants && !variantInStock) {
       setCartMessage("This variant is out of stock.");
       return;
     }
@@ -398,7 +424,7 @@ function ProductDetail({ product, onCartUpdated }) {
 
       const cartData = {
         product_id: product.id,
-        product_variant_id: isCarcass ? selectedVariant.id : null,
+        product_variant_id: hasVariants ? selectedVariant.id : null,
         quantity: Number(quantity),
         cut_type: cutType,
         selected_quarter: cutType === "custom" ? selectedQuarter : null,
@@ -458,7 +484,7 @@ function ProductDetail({ product, onCartUpdated }) {
             <div className="product-card-weight-d">
               <Scale className="product-card-weight-icon" />
               <span>
-                {isCarcass ? variantWeight || "Weight varies" : productWeight}
+                {hasVariants ? variantWeight || "Weight varies" : productWeight}
               </span>
             </div>
           )}
@@ -487,7 +513,45 @@ function ProductDetail({ product, onCartUpdated }) {
           </h1>
 
           <p className="product-detail-description">{product.description}</p>
+          {!isCarcass && hasVariants && (
+            <div className="product-weight-selection">
+              <label htmlFor="fixed-product-weight">Select Weight</label>
 
+              <select
+                id="fixed-product-weight"
+                value={selectedVariantId}
+                onChange={handleVariantChange}
+                disabled={variantOptions.length === 0}
+              >
+                <option value="" disabled>
+                  {variantOptions.length === 0
+                    ? "No weights available"
+                    : "Select a weight"}
+                </option>
+
+                {variantOptions.map((variant) => {
+                  const available =
+                    variant.is_active !== false &&
+                    variant.in_stock !== false &&
+                    Number(variant.stock) > 0;
+
+                  const weight = getFixedVariantWeight(variant);
+
+                  return (
+                    <option
+                      key={variant.id}
+                      value={String(variant.id)}
+                      disabled={!available}
+                    >
+                      {`${weight ? `${weight} kg` : "Weight not specified"}${
+                        available ? "" : " (Out of stock)"
+                      }`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
           {isBeefCarcass && (
             <div className="product-detail-variant">
               <div className="product-grade-selection">
@@ -641,15 +705,15 @@ function ProductDetail({ product, onCartUpdated }) {
           {cutType === "custom" && customSheetOpen && (
             <CutSelectionSummary selectedCuts={selectedCuts} />
           )}
-
-          {cartMessage && (
-            <CartToast
-              message={cartMessage}
-              type={cartMessageType}
-              onClose={closeCartMessage}
-            />
-          )}
         </>
+      )}
+
+      {cartMessage && (
+        <CartToast
+          message={cartMessage}
+          type={cartMessageType}
+          onClose={closeCartMessage}
+        />
       )}
       <section className="product-detail-actions">
         <NavLink
@@ -664,7 +728,7 @@ function ProductDetail({ product, onCartUpdated }) {
           className="product-detail-cart"
           onClick={handleSubmit}
           disabled={
-            savingCartItem || !inStock || (isCarcass && !selectedVariant)
+            savingCartItem || !inStock || (hasVariants && !selectedVariant)
           }
         >
           {!inStock

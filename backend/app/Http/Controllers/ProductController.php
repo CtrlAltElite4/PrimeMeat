@@ -43,15 +43,20 @@ class ProductController extends Controller
         }
 
         if (! empty($validated['search'])) {
-            $search = $validated['search'];
+            $searchTerms = preg_split(
+                '/\s+/',
+                trim($validated['search']),
+                -1,
+                PREG_SPLIT_NO_EMPTY
+            );
 
-            $query->where(function (Builder $products) use ($search) {
-                $products->where('name', 'like', "%{$search}%")
-                    ->orWhere('grade', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('variants', function (Builder $variants) use ($search) {
-                        $variants->where('grade', 'like', "%{$search}%");
+            $query->where(function (Builder $products) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    $products->where(function (Builder $match) use ($term) {
+                        $match->where('name', 'like', "%{$term}%")
+                            ->orWhere('description', 'like', "%{$term}%");
                     });
+                }
             });
         }
 
@@ -117,9 +122,13 @@ class ProductController extends Controller
             },
         ])->get();
 
-        $prices = $priceProducts->flatMap(function (Product $product) {
+        $prices = $priceProducts->flatMap(function (Product $product) use ($minPrice, $maxPrice) {
             if ($product->variants->isNotEmpty()) {
-                return $product->variants->pluck('price');
+                return $product->variants
+                    ->pluck('price')
+                    ->filter(fn ($price) => ($minPrice === null || $price >= $minPrice) &&
+                        ($maxPrice === null || $price <= $maxPrice)
+                    );
             }
 
             return [$product->price];
@@ -168,6 +177,21 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate($perPage);
+        $products->getCollection()->transform(function (Product $product) {
+            $variantPrices = $product->variants->pluck('price');
+
+            if ($variantPrices->isNotEmpty()) {
+                $product->setAttribute('has_variants', true);
+                $product->setAttribute('price_min', (float) $variantPrices->min());
+                $product->setAttribute('price_max', (float) $variantPrices->max());
+            } else {
+                $product->setAttribute('has_variants', false);
+                $product->setAttribute('price_min', (float) $product->price);
+                $product->setAttribute('price_max', (float) $product->price);
+            }
+
+            return $product;
+        });
         $categories = Product::available()
             ->whereNotNull('category')
             ->pluck('category')
@@ -191,7 +215,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        if (! $product->is_active || $product->status === 'draft') {
+        if (! $product->isPurchasable()) {
             return response()->json([
                 'message' => 'Product not found.',
             ], 404);
@@ -204,10 +228,24 @@ class ProductController extends Controller
                     ->orderBy('weight_min_kg');
             },
         ]);
+        $hasVariants = $product->variants()->exists();
+
+        $variantPrices = $product->variants->pluck('price');
+
+        $priceMin = $variantPrices->isNotEmpty()
+            ? (float) $variantPrices->min()
+            : ($hasVariants ? null : (float) $product->price);
+
+        $priceMax = $variantPrices->isNotEmpty()
+            ? (float) $variantPrices->max()
+            : ($hasVariants ? null : (float) $product->price);
 
         return response()->json([
             ...$product->toArray(),
             'in_stock' => $product->isPurchasable(),
+            'has_variants' => $hasVariants,
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
         ]);
     }
 }

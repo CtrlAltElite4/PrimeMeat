@@ -37,7 +37,7 @@ class ProductController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $products = Product::query()
+        $products = Product::query()->with('variants')
             ->when($data['category'] ?? null, function ($q, $category) {
                 $q->whereJsonContains('category', $category);
             })
@@ -115,6 +115,7 @@ class ProductController extends Controller
                 $this->syncVariants($product, $data['variants']);
             }
         });
+        $product->unsetRelation('variants');
 
         return response()->json($this->present($product));
     }
@@ -125,6 +126,8 @@ class ProductController extends Controller
         $data = $request->validate(['is_active' => ['required', 'boolean']]);
 
         $product->forceFill(['is_active' => $data['is_active']])->save();
+
+        $product->load('variants');
 
         return response()->json($this->present($product));
     }
@@ -140,7 +143,13 @@ class ProductController extends Controller
 
     private function validated(Request $request, bool $imageRequired): array
     {
-        return $request->validate([
+        if (
+            $request->boolean('variants_present') &&
+            ! array_key_exists('variants', $request->all())
+        ) {
+            $request->merge(['variants' => []]);
+        }
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'product_type' => ['required', Rule::in([
                 Product::TYPE_FIXED_PRICE,
@@ -162,7 +171,7 @@ class ProductController extends Controller
                 'max:2048',
             ],
             'remove_image' => ['nullable', 'boolean'],
-
+            'variants_present' => ['sometimes', 'boolean'],
             'variants' => ['sometimes', 'array'],
             'variants.*.id' => [
                 'nullable',
@@ -171,9 +180,18 @@ class ProductController extends Controller
             ],
             'variants.*.grade' => ['required', 'string', 'max:50'],
             'variants.*.price' => ['required', 'numeric', 'min:0.01', 'max:9999999'],
+            'variants.*.weight_min_kg' => ['nullable', 'numeric', 'min:0.01'],
+            'variants.*.weight_max_kg' => ['nullable', 'numeric', 'min:0.01'],
             'variants.*.stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'variants.*.is_active' => ['sometimes', 'boolean'],
         ]);
+        if (! empty($validated['variants'])) {
+            $validated['price'] = 0;
+            $validated['stock'] = 0;
+        }
+        unset($validated['variants_present']);
+
+        return $validated;
     }
 
     private function syncVariants(Product $product, array $variants): void
@@ -192,8 +210,8 @@ class ProductController extends Controller
 
             $data = [
                 'grade' => $variant['grade'],
-                'weight_min_kg' => null,
-                'weight_max_kg' => null,
+                'weight_min_kg' => $variant['weight_min_kg'] ?? null,
+                'weight_max_kg' => $variant['weight_max_kg'] ?? null,
                 'price' => $variant['price'],
                 'stock' => $variant['stock'],
                 'is_active' => $variant['is_active'] ?? true,
@@ -203,15 +221,13 @@ class ProductController extends Controller
                 $product->variants()->whereKey($variantId)->update($data);
                 $submittedIds[] = (int) $variantId;
             } else {
-                $product->variants()->create($data);
+                $newVariant = $product->variants()->create($data);
+                $submittedIds[] = $newVariant->id;
             }
         }
 
         $removedVariants = $product->variants()
-            ->when(
-                ! empty($submittedIds),
-                fn ($query) => $query->whereNotIn('id', $submittedIds)
-            )
+            ->whereNotIn('id', $submittedIds)
             ->get();
 
         foreach ($removedVariants as $removedVariant) {
@@ -274,14 +290,42 @@ class ProductController extends Controller
 
     private function filterStatus(Builder $q, string $status): Builder
     {
+        $availableVariant = fn (Builder $variantQuery) => $variantQuery
+            ->where('is_active', true)
+            ->where('stock', '>', 0);
+
         return match ($status) {
             'draft' => $q->where('status', 'draft'),
+
             'unavailable' => $q->where('status', '!=', 'draft')
-                ->where(fn ($q) => $q->where('is_active', false)->orWhere('stock', 0)),
-            'low_stock' => $q->where('status', '!=', 'draft')->where('is_active', true)
-                ->whereBetween('stock', [1, self::LOW_STOCK]),
-            // "Active" = available for purchase, including low stock
-            'active' => $q->where('status', '!=', 'draft')->where('is_active', true)->where('stock', '>', 0),
+                ->where(fn ($q) => $q
+                    ->where('is_active', false)
+                    ->orWhere(fn ($q) => $q
+                        ->whereHas('variants')
+                        ->whereDoesntHave('variants', $availableVariant))
+                    ->orWhere(fn ($q) => $q
+                        ->whereDoesntHave('variants')
+                        ->where('stock', 0))),
+
+            'low_stock' => $q->where('status', '!=', 'draft')
+                ->where('is_active', true)
+                ->where(fn ($q) => $q
+                    ->where(fn ($q) => $q
+                        ->whereDoesntHave('variants')
+                        ->whereBetween('stock', [1, self::LOW_STOCK]))
+                    ->orWhereHas('variants', fn ($variantQuery) => $variantQuery
+                        ->where('is_active', true)
+                        ->whereBetween('stock', [1, self::LOW_STOCK]))),
+
+            'active' => $q->where('status', '!=', 'draft')
+                ->where('is_active', true)
+                ->where(fn ($q) => $q
+                    ->where(fn ($q) => $q
+                        ->whereDoesntHave('variants')
+                        ->where('stock', '>', 0))
+                    ->orWhereHas('variants', $availableVariant)),
+
+            default => $q,
         };
     }
 
@@ -289,13 +333,39 @@ class ProductController extends Controller
     {
         $product->loadMissing('variants');
 
+        $variants = $product->variants;
+        $hasVariants = $variants->isNotEmpty();
+
         $stock = (int) $product->stock;
         $isActive = (bool) $product->is_active;
 
+        $hasAvailableVariants = $variants->contains(
+            fn (ProductVariant $variant) => $variant->is_active && $variant->stock > 0
+        );
+
+        $hasLowStockVariant = $variants->contains(
+            fn (ProductVariant $variant) => $variant->is_active &&
+                $variant->stock > 0 &&
+                $variant->stock <= self::LOW_STOCK
+        );
+        $availableVariantPrices = $variants
+            ->filter(fn (ProductVariant $variant) => $variant->is_active && $variant->stock > 0)
+            ->pluck('price');
+
+        $priceMin = $hasVariants
+            ? ($availableVariantPrices->isNotEmpty() ? (float) $availableVariantPrices->min() : null)
+            : (float) $product->price;
+
+        $priceMax = $hasVariants
+            ? ($availableVariantPrices->isNotEmpty() ? (float) $availableVariantPrices->max() : null)
+            : (float) $product->price;
         $display = match (true) {
             $product->status === 'draft' => 'draft',
-            ! $isActive || $stock === 0 => 'unavailable',
-            $stock <= self::LOW_STOCK => 'low_stock',
+            ! $isActive => 'unavailable',
+            $hasVariants && ! $hasAvailableVariants => 'unavailable',
+            $hasVariants && $hasLowStockVariant => 'low_stock',
+            ! $hasVariants && $stock === 0 => 'unavailable',
+            ! $hasVariants && $stock <= self::LOW_STOCK => 'low_stock',
             default => 'active',
         };
 
@@ -307,16 +377,21 @@ class ProductController extends Controller
             'category' => $product->category ?? [],
             'description' => $product->description,
             'price' => (float) $product->price,
+            'has_variants' => $hasVariants,
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
             'stock' => $stock,
             'status' => $product->status,
             'is_active' => $isActive,
             'display_status' => $display,
             'image_url' => $this->imageUrl($product->image),
             'product_type' => $product->product_type,
-            'variants' => $product->variants->map(fn (ProductVariant $variant) => [
+            'variants' => $variants->map(fn (ProductVariant $variant) => [
                 'id' => $variant->id,
                 'grade' => $variant->grade,
                 'price' => (float) $variant->price,
+                'weight_min_kg' => $variant->weight_min_kg,
+                'weight_max_kg' => $variant->weight_max_kg,
                 'stock' => (int) $variant->stock,
                 'is_active' => (bool) $variant->is_active,
             ])->values(),
