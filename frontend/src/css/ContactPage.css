@@ -116,6 +116,7 @@ animation-fill-mode: forwards;
   font-size: 17px;
 }
 
+
 .ContactLName {
   position: absolute;
   margin-left: 370px;
@@ -143,6 +144,12 @@ animation-fill-mode: forwards;
   align-items: center;
   justify-content: center;
   font-size: 19px;
+}
+
+.FieldError {
+  color: #d00000;
+  font-size: 14px;
+  margin: 4px 0 12px;
 }
 
 .MapBack {

@@ -101,11 +101,35 @@ row={3}
 />
 </label>
 
+<details className="MarkdownHelp">
+  <summary>How to format the answer</summary>
+  <table>
+    <thead>
+      <tr><th>You want</th><th>Type this</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>New paragraph</td><td>Leave a blank line between paragraphs</td></tr>
+      <tr><td>Bullet list</td><td><code>- Item one</code> (one item per line)</td></tr>
+      <tr><td>Numbered list</td><td><code>1. First step</code></td></tr>
+      <tr><td>Bold</td><td><code>**bold text**</code></td></tr>
+      <tr><td>Italic</td><td><code>*italic text*</code></td></tr>
+      <tr><td>Heading</td><td><code>### Heading</code></td></tr>
+      <tr><td>Link</td><td><code>[link text](https://example.com)</code></td></tr>
+    </tbody>
+  </table>
+  <p>Leave a blank line before a list, or it won't format.</p>
+</details>
+
 <label>Keywords:
 <input value = {keywords}
 onChange = {(e)=>setKeywords(e.target.value)}
 />
 </label>
+
+<details className="MarkdownHelp">
+    <p>Keywords will be used to aid users in their search. Separate words with a comma.</p>
+</details>
+
 
 <button type ="button"
 onClick ={helpFaqSave}

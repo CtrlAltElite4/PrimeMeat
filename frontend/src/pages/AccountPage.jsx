@@ -14,6 +14,7 @@ import AccountOrders from "../components/account/AccountOrders";
 import AccountProfile from "../components/account/AccountProfile";
 import AccountAddresses from "../components/account/AccountAddresses";
 import AccountSecurity from "../components/account/AccountSecurity";
+import AccountNotifications from "../components/account/AccountNotifications";
 import "../styles/account/Account.css";
 
 function AccountPage({
@@ -65,16 +66,7 @@ function AccountPage({
         return <AccountSecurity />;
 
       case "notifications":
-        return (
-          <section className="account-section">
-            <div className="account-section-header">
-              <div>
-                <h1>Notifications</h1>
-                <p>Manage your account notifications.</p>
-              </div>
-            </div>
-          </section>
-        );
+        return <AccountNotifications />; 
 
       case "dashboard":
       default:

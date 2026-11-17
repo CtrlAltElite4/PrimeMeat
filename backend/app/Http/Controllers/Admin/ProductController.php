@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\User;
+use App\Notifications\CustomerNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,16 +75,27 @@ class ProductController extends Controller
         $this->fill($product, $data, $request);
         $product->save();
 
+
+        if($product-> isPurchasable()){
+            $this->notifyNewArrival($product);
+        }
+
         return response()->json($this->present($product), 201);
     }
 
     /** Sent as POST with _method=PUT, because file uploads only work with POST. */
     public function update(Request $request, Product $product): JsonResponse
     {
+            $wasPurchasable = $product->isPurchasable();
+
         $data = $this->validated($request, imageRequired: false);
 
         $this->fill($product, $data, $request);
         $product->save();
+
+        if(!$wasPurchasable && $product-> isPurchasable()){
+            $this->notifyNewArrival($product);
+        }
 
         return response()->json($this->present($product));
     }
@@ -92,7 +105,13 @@ class ProductController extends Controller
     {
         $data = $request->validate(['is_active' => ['required', 'boolean']]);
 
+            $wasPurchasable = $product->isPurchasable();
+
         $product->forceFill(['is_active' => $data['is_active']])->save();
+
+        if(!$wasPurchasable && $product-> isPurchasable()){
+            $this->notifyNewArrival($product);
+        }
 
         return response()->json($this->present($product));
     }
@@ -105,6 +124,36 @@ class ProductController extends Controller
 
         return response()->json(['deleted' => true]);
     }
+
+
+     private function notifyNewArrival(Product $product): void
+    {
+        $customers = User::query()
+            ->where('is_admin', false)
+            ->where(function ($query) {
+                $query->whereDoesntHave('notificationPreference')
+                    ->orWhereHas('notificationPreference', function ($preferences) {
+                        $preferences->where('new_arrivals', true);
+                    });
+            })
+            ->get();
+
+        foreach ($customers as $customer) {
+            $customer->notify(new CustomerNotification(
+                subject: 'New product available!',
+                lines: [
+                    'A new product has been added to the PrimeMeat catalogue.',
+                    'Product: '.$product->name,
+                    'Grade: '.$product->grade,
+                    'Price: R'.number_format((float) $product->price, 2),
+                ],
+                buttonText: 'View Product',
+                path: '/products/'.$product->id,
+                category: 'new_arrivals',
+            ));
+        }
+    }
+
 
     private function validated(Request $request, bool $imageRequired): array
     {

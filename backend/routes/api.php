@@ -20,12 +20,19 @@ use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\NotificationPreferenceController;
+use App\Http\Controllers\CustomerNotificationController;
+use App\Http\Controllers\CustomerNotiPrefController;
 use App\Http\Controllers\PayFastController;
+use App\Http\Controllers\PasswordResetController;
 
 // 5 attempts per minute per IP to slow down brute forcing / spam signups
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Forgot password: email a reset link, then set the new password
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 });
 
 // Logged-in routes. Suspended users are logged out on their next request.
@@ -48,16 +55,12 @@ Route::middleware(['auth:sanctum', EnsureUserIsNotSuspended::class])->group(func
     Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::post('/orders', [CustomerOrderController::class, 'store']);
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
-           
-    // PayFast checkout
-       Route::post('/checkout/payfast', [PayFastController::class, 'start']);
-       Route::get('/checkout/payments/{paymentNumber}', [PayFastController::class, 'status']);
-       Route::post('/checkout/payments/{paymentNumber}/cancel', [PayFastController::class, 'cancel']);
 
     // Group orders
     Route::post('/group-orders', [GroupOrderController::class, 'store']);
     Route::post('/group-orders/checkout', [GroupOrderController::class, 'checkout']);
     Route::get('/group-orders/{groupOrder}', [GroupOrderController::class, 'show']);
+    Route::post('/group-orders/{groupOrder}/payfast', [PayFastController::class, 'startGroup']);
     Route::delete('/group-orders', [GroupOrderController::class, 'destroy']);
     // Addresses
     Route::get('/addresses', [AddressController::class, 'index']);
@@ -92,12 +95,26 @@ Route::put('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'update']);
 Route::delete('/helpfaqs/{helpFaq}', [HelpfaqController::class, 'destroy']);
 });
 
+//Customer Notifications (Preferences)
+Route::middleware(['auth:sanctum'])->group(function () {
+Route::get(
+    '/notification-preferences',
+    [CustomerNotiPrefController::class, 'show']
+);
+
+Route::put(
+    '/notification-preferences',
+    [CustomerNotiPrefController::class, 'update']
+);
+
+// Customer Notifications
+Route::get('/notifications', [CustomerNotificationController::class, 'index']);
+
+Route::delete('/notifications/{id}', [CustomerNotificationController::class, 'destroy']);
+});
 
 // Chatbot
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask']);
-
-// PayFast payment notifications (ITN). Called by PayFast's server
-   Route::post('/payfast/notify', [PayFastController::class, 'notify'])->middleware('throttle:60,1');
 
 // PayFast payment notifications (ITN). Called by PayFast's server, checked in PayFastController
 Route::post('/payfast/notify', [PayFastController::class, 'notify'])->middleware('throttle:60,1');

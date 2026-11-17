@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
+import NotificationBell from "./NotificationBell";
 import "../styles/Navbar.css";
 
 function Navbar({ user, onLogout, cartCount }) {
@@ -11,9 +12,25 @@ function Navbar({ user, onLogout, cartCount }) {
     setSearchOpen(!searchOpen);
     setMenuOpen(false);
   };
+  const menuRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
   return (
-    <nav className="navbar">
+    <nav className="navbar" ref={menuRef}>
       <div className="navbar-container">
         <div className="navbar-background" aria-hidden="true"></div>
 
@@ -108,6 +125,7 @@ function Navbar({ user, onLogout, cartCount }) {
                 </button>
               </div>
             )}
+             {user && <NotificationBell user={user} />}
           </div>
         </div>
 
@@ -205,12 +223,15 @@ function Navbar({ user, onLogout, cartCount }) {
               to="/cart"
               onClick={() => setMenuOpen(false)}
             >
-              <ShoppingCart />
+              <span className="navbar-mobile-cart-icon">
+                <ShoppingCart />
+                {cartCount > 0 && (
+                  <span className="navbar-cart-count">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </span>
               <span>Cart</span>
-
-              {cartCount > 0 && (
-                <span className="navbar-cart-count">{cartCount}</span>
-              )}
             </NavLink>
           </div>
         </div>
