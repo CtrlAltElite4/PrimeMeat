@@ -5,6 +5,10 @@ import api from "../api";
 import productImage from "../utils/productImage";
 import "../styles/Cart.css";
 
+
+// Must match backend/config/delivery.php "minimum_order".
+const DELIVERY_MINIMUM = 2500;
+
 function Cart({ onCartUpdated }) {
   const navigate = useNavigate();
 
@@ -84,14 +88,12 @@ function Cart({ onCartUpdated }) {
     fetchSavedAddresses();
   }, []);
   useEffect(() => {
-    if (
-      !deliveryEligibility.checking &&
-      !deliveryEligibility.eligible &&
-      deliveryMethod === "delivery"
-    ) {
+    // Delivery needs a minimum order. The address check happens after the
+    // customer picks Delivery and fills in their address.
+    if (deliveryMethod === "delivery" && getCartTotal() < DELIVERY_MINIMUM) {
       setDeliveryMethod("collection");
     }
-  }, [deliveryEligibility, deliveryMethod]);
+  }, [cart, deliveryMethod]);
   // Keep the selected saved address in sync with checkout details.
   const handleSavedAddressChange = (event) => {
     const addressId = event.target.value;
@@ -520,7 +522,9 @@ function Cart({ onCartUpdated }) {
               );
 
               const product = item.product;
-              const isBeefCarcass = product?.category === "Beef Carcasses";
+              const isBeefCarcass = Array.isArray(product?.category)
+                ? product.category.includes("Beef Carcasses")
+                : product?.category === "Beef Carcasses";
               const grade = getItemGrade(item);
               const weight = getItemWeight(item);
               const unavailable = isItemUnavailable(item);
@@ -675,9 +679,7 @@ function Cart({ onCartUpdated }) {
                     ? "cart-delivery-option--selected"
                     : ""
                 }`}
-                disabled={
-                  deliveryEligibility.checking || !deliveryEligibility.eligible
-                }
+                disabled={getCartTotal() < DELIVERY_MINIMUM}
                 onClick={() => setDeliveryMethod("delivery")}
               >
                 <strong>Delivery</strong>
@@ -699,6 +701,12 @@ function Cart({ onCartUpdated }) {
                 <span>Collect your order from our location.</span>
               </button>
             </div>
+            {getCartTotal() < DELIVERY_MINIMUM && (
+              <p className="cart-delivery-message" role="status">
+                Delivery is available on orders of {formatPrice(DELIVERY_MINIMUM)} or more.
+                Add {formatPrice(DELIVERY_MINIMUM - getCartTotal())} more to qualify.
+              </p>
+            )}
             {deliveryMethod === "delivery" &&
               (deliveryEligibility.checking ? (
                 <p className="cart-delivery-message">
@@ -818,5 +826,6 @@ function Cart({ onCartUpdated }) {
     </main>
   );
 }
+
 
 export default Cart;

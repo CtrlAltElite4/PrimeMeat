@@ -500,7 +500,7 @@ function Checkout() {
           </div>
 
           <div>
-            <span>Delivery</span>
+            <span>{deliveryMethod === "collection" ? "Collection" : "Delivery"}</span>
             <strong>
               {deliveryMethod === "collection"
                 ? "Free"

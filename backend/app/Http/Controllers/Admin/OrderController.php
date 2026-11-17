@@ -76,24 +76,97 @@ class OrderController extends Controller
         ]);
     }
 
-    /** Full order details for the "View" button. */
+    /** Full order details for the "View" button, including everything needed to prepare it. */
     public function show(Order $order): JsonResponse
     {
-        $order->load(['user:id,name,email', 'items']);
+        $order->load([
+            'user:id,name,email,phone',
+            'items.productVariant',
+            'items.cutSelections.cutOption',
+            'groupOrder.members',
+            'groupOrder.deliveryMember',
+        ]);
+
+        $isDelivery = $order->fulfillment_type === Order::FULFILLMENT_DELIVERY;
 
         return response()->json([
             ...$this->summary($order),
             'customer_email' => $order->user?->email,
+            'customer_phone' => $order->user?->phone,
             'created_at' => $order->created_at->toIso8601String(),
-            'allowed_statuses' => Order::statusesFor($order->fulfillment_type),
-            'items' => $order->items->map(fn ($item) => [
-                'id' => $item->id,
-                'product_name' => $item->product_name,
-                'quantity' => $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-                'line_total' => (float) $item->line_total,
-            ]),
+            'delivery_fee' => (float) ($order->delivery_fee ?? 0),
+            'delivery' => $isDelivery ? [
+                'address_line_1' => $order->delivery_address_line_1,
+                'address_line_2' => $order->delivery_address_line_2,
+                'city' => $order->delivery_city,
+                'province' => $order->delivery_province,
+                'postal_code' => $order->delivery_postal_code,
+                'instructions' => $order->delivery_instructions,
+                'zone' => $order->delivery_zone_number,
+            ] : null,
+            'items' => $order->items->map(fn ($item) => $this->itemDetails($item)),
+            'group_order' => $this->groupOrderDetails($order),
         ]);
+    }
+
+    /** One order line, with its cut sheet when the customer chose custom cuts. */
+    private function itemDetails($item): array
+    {
+        $variant = $item->productVariant;
+
+        return [
+            'id' => $item->id,
+            'product_name' => $item->product_name,
+            'grade' => $item->grade ?? $variant?->grade,
+            'weight_range' => $variant && $variant->weight_min_kg !== null
+                ? rtrim(rtrim((string) $variant->weight_min_kg, '0'), '.').'–'
+                    .rtrim(rtrim((string) $variant->weight_max_kg, '0'), '.').' kg'
+                : null,
+            'quantity' => $item->quantity,
+            'unit_price' => (float) $item->unit_price,
+            'line_total' => (float) $item->line_total,
+            'cut_type' => $item->cut_type,
+            'selected_quarter' => $item->selected_quarter,
+            'remaining_meat_preferences' => $item->remaining_meat_preferences ?? [],
+            'special_instructions' => $item->special_instructions,
+            // Grouped so the butcher can work side by side, quarter by quarter
+            'cut_selections' => $item->cutSelections
+                ->sortBy(fn ($s) => $s->side.'-'.($s->quarter === 'front' ? 0 : 1))
+                ->groupBy(fn ($s) => 'Side '.$s->side.', '.ucfirst($s->quarter).' quarter')
+                ->map(fn ($group) => $group->map(fn ($s) => $s->cutOption?->name ?? 'Unknown cut')->values())
+                ->toArray(),
+        ];
+    }
+
+    /** Members, delivery recipient and extras when this order pays for a group order. */
+    private function groupOrderDetails(Order $order): ?array
+    {
+        $group = $order->groupOrder;
+
+        if (! $group) {
+            return null;
+        }
+
+        return [
+            'weight_range' => $group->weight_range,
+            'number_of_people' => $group->number_of_people,
+            'include_ground_beef' => (bool) $group->include_ground_beef,
+            'delivery_method' => $group->delivery_method,
+            'address' => $group->delivery_method === 'collection' ? null : [
+                'address_line_1' => $group->address_line_1,
+                'address_line_2' => $group->address_line_2,
+                'city' => $group->city,
+                'province' => $group->province,
+                'postal_code' => $group->postal_code,
+                'instructions' => $group->delivery_instructions,
+            ],
+            'delivery_member' => $group->deliveryMember?->name,
+            'members' => $group->members->map(fn ($m) => [
+                'name' => $m->name,
+                'email' => $m->email,
+                'phone' => $m->phone,
+            ])->values(),
+        ];
     }
 
     /** "Change Status" button: PATCH /api/admin/orders/{order}/status */
