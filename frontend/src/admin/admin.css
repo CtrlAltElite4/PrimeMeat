@@ -1967,3 +1967,101 @@
 .adm-modal__title h2 {
   margin: 0;
 }
+
+/* ---------- Order details (preparation view) ---------- */
+.adm-modal__meta-full {
+  grid-column: 1 / -1;
+}
+.adm-modal__meta-note {
+  color: var(--adm-muted);
+}
+.adm-order-details__heading,
+.adm-order-group h3 {
+  margin: 1.25rem 0 0.6rem;
+  font-size: 0.95rem;
+}
+.adm-order-group p,
+.adm-order-group ul {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+}
+.adm-order-group ul {
+  padding-left: 1.1rem;
+}
+.adm-order-item {
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.88rem;
+}
+.adm-order-item__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.adm-order-item__sub {
+  display: block;
+  color: var(--adm-muted);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+.adm-order-item__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0.75rem 0 0;
+}
+.adm-order-item__facts dt {
+  font-size: 0.75rem;
+  color: var(--adm-muted);
+}
+.adm-order-item__facts dd {
+  margin: 0.1rem 0 0;
+}
+.adm-order-item__cuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--adm-head);
+  border-radius: var(--adm-r-sm);
+}
+.adm-order-item__cuts h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+}
+.adm-order-item__cuts ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.adm-order-item__note {
+  margin: 0.75rem 0 0;
+}
+.adm-order-totals {
+  margin: 0.5rem 0 0;
+  text-align: right;
+  font-size: 0.9rem;
+}
+.adm-order-totals div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.adm-order-totals dd {
+  margin: 0;
+  min-width: 7rem;
+  font-weight: 600;
+}
+.adm-order-details__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+@media print {
+  .adm-order-details__actions,
+  .adm-modal__close {
+    display: none;
+  }
+}

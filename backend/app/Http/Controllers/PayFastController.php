@@ -252,13 +252,15 @@ class PayFastController extends Controller
                         'product_id' => $cartItem->product_id,
                         'product_variant_id' => $cartItem->product_variant_id,
                         'product_name' => $cartItem->product->name,
-                        'grade' => $cartItem->product->grade,
+                        'grade' => $cartItem->productVariant?->grade ?? $cartItem->product->grade,
                         'price' => $price,
                         'unit_price' => $price,
                         'quantity' => $cartItem->quantity,
                         'line_total' => round($price * (int) $cartItem->quantity, 2),
                         'cut_type' => $cartItem->cut_type,
                         'selected_quarter' => $cartItem->selected_quarter,
+                        'remaining_meat_preferences' => $cartItem->remaining_meat_preferences,
+                        'special_instructions' => $cartItem->special_instructions,
                     ]);
 
                     foreach ($cartItem->cutSelections as $selection) {
