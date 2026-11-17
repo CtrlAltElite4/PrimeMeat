@@ -7,21 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Adds the original single-choice column. 2026_10_01_142540 later replaces it with
+     * remaining_meat_preferences (JSON), and 2026_10_01_151343 adds special_instructions.
      */
     public function up(): void
     {
         Schema::table('cart_items', function (Blueprint $table) {
-            $table->text('special_instructions')
-                ->nullable()
-                ->after('remaining_meat_preference');
+            $table->string('remaining_meat_preference')->nullable()->after('selected_quarter');
         });
     }
 
     public function down(): void
     {
         Schema::table('cart_items', function (Blueprint $table) {
-            $table->dropColumn('special_instructions');
+            $table->dropColumn('remaining_meat_preference');
         });
     }
 };

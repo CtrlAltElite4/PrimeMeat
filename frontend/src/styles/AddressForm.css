@@ -26,6 +26,7 @@
 }
 
 .address-form-field input,
+.address-form-field select,
 .address-form-field textarea {
   width: 100%;
   box-sizing: border-box;
@@ -39,7 +40,8 @@
   transition: border-color 0.2s ease;
 }
 
-.address-form-field input {
+.address-form-field input,
+.address-form-field select {
   min-height: 48px;
   padding: 12px 14px;
 }
@@ -51,6 +53,7 @@
 }
 
 .address-form-field input:focus,
+.address-form-field select:focus,
 .address-form-field textarea:focus {
   border-color: #710014;
 }
@@ -58,6 +61,12 @@
 .address-form-field input::placeholder,
 .address-form-field textarea::placeholder {
   color: #999999;
+}
+.address-form-field select {
+  min-height: 48px;
+  padding: 12px 14px;
+  cursor: pointer;
+  appearance: auto;
 }
 .address-form-search {
   position: relative;
@@ -236,6 +245,7 @@
   color: #710014;
   font-size: 13px;
 }
+
 @media (max-width: 600px) {
   .address-form-map {
     height: 300px;
@@ -259,4 +269,50 @@
   .address-form-field--full {
     grid-column: auto;
   }
+}
+
+.address-autocomplete {
+  position: relative;
+}
+
+.address-autocomplete-status {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #938f6f;
+}
+
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.address-suggestion {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  background: transparent;
+  color: #161616;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.address-suggestion:hover {
+  background: #f5f2ed;
+}
+
+.address-suggestion:last-child {
+  border-bottom: none;
 }

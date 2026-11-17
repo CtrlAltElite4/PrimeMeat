@@ -286,3 +286,35 @@
     grid-template-columns: 1fr;
   }
 }
+.custom-cut-sheet,
+.cut-selection-summary {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-cut-sheet *,
+.cut-selection-summary * {
+  box-sizing: border-box;
+}
+
+.cut-sheet-grid,
+.cut-section,
+.cut-options,
+.cut-option {
+  min-width: 0;
+}
+
+.cut-option {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .custom-cut-sheet {
+    padding: 16px;
+  }
+
+  .cut-section {
+    padding: 18px;
+  }
+}

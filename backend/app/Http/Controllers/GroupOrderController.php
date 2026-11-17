@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\GroupOrder;
+use App\Models\GroupOrderProduct;
+use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +14,9 @@ use Illuminate\Validation\Rule;
 class GroupOrderController extends Controller
 {
     private const WEIGHT_RANGES = [
-        '400-440' => 17000,
-        '441-480' => 20750,
-        '481-520' => 23750,
+        '200-240' => 17000,
+        '241-280' => 20750,
+        '281-320' => 23750,
     ];
 
     public function store(Request $request): JsonResponse
@@ -178,131 +180,54 @@ class GroupOrderController extends Controller
     public function checkout(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'weight_range' => [
-                'required',
-                Rule::in(array_keys(self::WEIGHT_RANGES)),
-            ],
-
-            'number_of_people' => [
+            'group_order_product_id' => [
                 'required',
                 'integer',
-                'min:2',
-                'max:8',
+                'exists:group_orders_products,id',
             ],
-
-            'members' => [
-                'required',
-                'array',
-                'min:2',
-                'max:8',
-            ],
-
-            'members.*.name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'members.*.email' => [
-                'required',
-                'email',
-                'max:255',
-            ],
-
-            'members.*.phone' => [
-                'required',
-                'string',
-                'max:30',
-            ],
-
-            'delivery_member_index' => [
-                'required',
-                'integer',
-                'min:0',
-            ],
-
-            'delivery_method' => [
-                'required',
-                Rule::in(['delivery', 'collection']),
-            ],
-
-            'address_line_1' => [
-                'required_if:delivery_method,delivery',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'address_line_2' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'city' => [
-                'required_if:delivery_method,delivery',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'province' => [
-                'required_if:delivery_method,delivery',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'postal_code' => [
-                'required_if:delivery_method,delivery',
-                'nullable',
-                'string',
-                'max:20',
-            ],
-
-            'delivery_instructions' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-
-            'include_ground_beef' => [
-                'required',
-                'boolean',
-            ],
+            'number_of_people' => ['required', 'integer', 'min:2', 'max:8'],
+            'members' => ['required', 'array', 'min:2', 'max:8'],
+            'members.*.name' => ['required', 'string', 'max:255'],
+            'members.*.email' => ['required', 'email', 'max:255'],
+            'members.*.phone' => ['required', 'string', 'max:30'],
+            'delivery_member_index' => ['required', 'integer', 'min:0'],
+            'delivery_method' => ['required', Rule::in(['delivery', 'collection'])],
+            'address_line_1' => ['required_if:delivery_method,delivery', 'nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['required_if:delivery_method,delivery', 'nullable', 'string', 'max:255'],
+            'province' => ['required_if:delivery_method,delivery', 'nullable', 'string', 'max:255'],
+            'postal_code' => ['required_if:delivery_method,delivery', 'nullable', 'string', 'max:20'],
+            'delivery_instructions' => ['nullable', 'string', 'max:2000'],
+            'include_ground_beef' => ['required', 'boolean'],
         ]);
 
-        if (
-            count($validated['members']) !==
-            $validated['number_of_people']
-        ) {
+        if (count($validated['members']) !== $validated['number_of_people']) {
             return response()->json([
                 'message' => 'The number of members must match the group size.',
             ], 422);
         }
 
-        if (
-            $validated['delivery_member_index'] >=
-            $validated['number_of_people']
-        ) {
+        if ($validated['delivery_member_index'] >= $validated['number_of_people']) {
             return response()->json([
                 'message' => 'The selected delivery recipient is invalid.',
             ], 422);
         }
 
-        $price = self::WEIGHT_RANGES[$validated['weight_range']];
+        $groupOrder = DB::transaction(function () use ($request, $validated) {
+            $product = GroupOrderProduct::whereKey($validated['group_order_product_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $groupOrder = DB::transaction(function () use (
+            if (! $product->is_active || $product->stock < 1) {
+                abort(422, 'This group order package is currently unavailable.');
+            }
 
-            $request,
-            $validated,
-            $price
-        ) {
             $groupOrder = GroupOrder::create([
                 'user_id' => $request->user()->id,
                 'cart_id' => null,
-                'weight_range' => $validated['weight_range'],
-                'price' => $price,
+                'group_order_product_id' => $product->id,
+                'weight_range' => $product->weight_range,
+                'price' => $product->price,
                 'number_of_people' => $validated['number_of_people'],
                 'delivery_method' => $validated['delivery_method'],
                 'address_line_1' => $validated['address_line_1'] ?? null,
@@ -331,16 +256,12 @@ class GroupOrderController extends Controller
             return $groupOrder;
         });
 
+        $price = (float) $groupOrder->price;
+
         return response()->json([
             'message' => 'Group order checkout created successfully.',
-            'group_order' => $groupOrder->load([
-                'members',
-                'deliveryMember',
-            ]),
-            'price_per_person' => round(
-                $price / $validated['number_of_people'],
-                2
-            ),
+            'group_order' => $groupOrder->load(['members', 'deliveryMember']),
+            'price_per_person' => round($price / $validated['number_of_people'], 2),
             'total_price' => $price,
         ], 201);
     }
@@ -380,16 +301,24 @@ class GroupOrderController extends Controller
             ], 404);
         }
 
+        // Has the organiser already paid for this group order?
+        $paid = $groupOrder->order_id
+            && Payment::where('order_id', $groupOrder->order_id)
+                ->where('status', Payment::STATUS_COMPLETED)
+                ->exists();
+
         return response()->json([
             'group_order' => $groupOrder->load([
                 'members',
                 'deliveryMember',
+                'order:id,order_number,status',
             ]),
             'price_per_person' => round(
                 $groupOrder->price / $groupOrder->number_of_people,
                 2
             ),
             'total_price' => $groupOrder->price,
+            'paid' => $paid,
         ]);
     }
 }

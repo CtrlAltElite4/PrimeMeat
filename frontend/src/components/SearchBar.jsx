@@ -2,39 +2,39 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import "../styles/SearchBar.css";
-
 function SearchBar() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
-  const handleSearch = (event) => {
-    event.preventDefault();
+  const handleSearch = (e) => {
+    e.preventDefault();
 
-    const searchTerm = search.trim();
+    const keyword = search.trim();
 
-    if (!searchTerm) {
-      navigate("/products");
-      return;
-    }
+    if (!keyword) return;
 
-    navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+    navigate(`/products?search=${encodeURIComponent(keyword)}`);
   };
 
   return (
-    <nav className="search-bar">
-      <form className="search-bar-container" onSubmit={handleSearch}>
-        <Search className="search-bar-icon" />
+    <div className="search-bar">
+      <form onSubmit={handleSearch}>
+        <div className="search-bar-container">
+          <input
+            type="search"
+            className="search-bar-input"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search products"
+          />
+        </div>
 
-        <input
-          className="search-bar-input"
-          type="text"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search..."
-          aria-label="Search products"
-        />
+        <button type="submit" className="search-bar-button" aria-label="Search">
+          <Search className="search-bar-icon" size={18} />
+        </button>
       </form>
-    </nav>
+    </div>
   );
 }
 

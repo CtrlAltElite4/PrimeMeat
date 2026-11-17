@@ -11,6 +11,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'product_variant_id',
         'product_name',
         'grade',
         'price',
@@ -19,6 +20,8 @@ class OrderItem extends Model
         'quantity',
         'cut_type',
         'selected_quarter',
+        'remaining_meat_preferences',
+        'special_instructions',
     ];
 
     protected $casts = [
@@ -26,6 +29,7 @@ class OrderItem extends Model
         'unit_price' => 'decimal:2',
         'line_total' => 'decimal:2',
         'quantity' => 'integer',
+        'remaining_meat_preferences' => 'array',
     ];
 
     public function order(): BelongsTo
@@ -41,5 +45,10 @@ class OrderItem extends Model
     public function cutSelections(): HasMany
     {
         return $this->hasMany(OrderItemCutSelection::class);
+    }
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 }

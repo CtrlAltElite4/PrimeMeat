@@ -71,6 +71,7 @@ setStatus('Sending');
 
 try {
     
+    // Get the CSRF cookie first (same as the login page), then send
     await api.get('/sanctum/csrf-cookie');
     const { data: result } = await api.post('/api/contact', submit);
 

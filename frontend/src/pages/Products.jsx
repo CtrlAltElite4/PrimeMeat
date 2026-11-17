@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import api from "../api";
 import ProductListing from "../components/ProductListing";
+
+const categoryFilters = {
+  "beef-carcasses": "Beef Carcasses",
+  "beef-products": "Beef Products",
+  "mutton-products": "Mutton Products",
+  "lamb-products": "Lamb Products",
+};
 
 function Products({ onCartUpdated }) {
   const [products, setProducts] = useState([]);
@@ -12,98 +21,81 @@ function Products({ onCartUpdated }) {
     total: 0,
     minimumPrice: 0,
     maximumPrice: 0,
+    categories: [],
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [searchParams] = useSearchParams();
 
   const filter = searchParams.get("filter") || "";
-  const search = searchParams.get("search") || "";
-  const sort = searchParams.get("sort") || "none";
+  const selectedCategory = categoryFilters[filter] || "all";
+  const search = searchParams.get("search")?.trim() || "";
+  const urlSort = searchParams.get("sort") || "none";
 
-  const fetchProducts = async ({
-    page = 1,
-    perPage = 12,
-    category = "all",
-    grade = "all",
-    minPrice = "",
-    maxPrice = "",
-    sort = "none",
-  } = {}) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchProducts = useCallback(
+    async ({
+      page = 1,
+      perPage = pagination.perPage,
+      category = selectedCategory,
+      minPrice = "",
+      maxPrice = "",
+      sort = urlSort,
+    } = {}) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = new URLSearchParams();
+        const params = new URLSearchParams({
+          page: String(page),
+          per_page: String(perPage),
+        });
 
-      params.set("page", page);
-      params.set("per_page", perPage);
+        if (search) params.set("search", search);
+        if (category !== "all") params.set("category", category);
+        if (minPrice !== "") params.set("min_price", String(minPrice));
+        if (maxPrice !== "") params.set("max_price", String(maxPrice));
+        if (sort !== "none") params.set("sort", sort);
 
-      if (filter) {
-        params.set("filter", filter);
+        const { data } = await api.get(`/api/products?${params.toString()}`);
+
+        setProducts(data.data || []);
+
+        setPagination({
+          currentPage: Number(data.current_page || 1),
+          lastPage: Number(data.last_page || 1),
+          perPage: Number(data.per_page || perPage),
+          total: Number(data.total || 0),
+          minimumPrice: Number(data.minimum_price || 0),
+          maximumPrice: Number(data.maximum_price || 0),
+          categories: data.categories || [],
+        });
+      } catch (requestError) {
+        console.error("Product fetch error:", requestError);
+
+        setError(
+          requestError.response?.data?.message ||
+            "Unable to load products. Please try again.",
+        );
+      } finally {
+        setLoading(false);
       }
-
-      if (search) {
-        params.set("search", search);
-      }
-
-      if (category !== "all") {
-        params.set("category", category);
-      }
-
-      if (grade !== "all") {
-        params.set("grade", grade);
-      }
-
-      if (minPrice !== "") {
-        params.set("min_price", minPrice);
-      }
-
-      if (maxPrice !== "") {
-        params.set("max_price", maxPrice);
-      }
-      if (sort !== "none") {
-        params.set("sort", sort);
-      }
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/products?${params.toString()}`,
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch products.");
-      }
-
-      const data = await response.json();
-
-      console.log("Products API response:", data);
-
-      setProducts(data.data);
-
-      setPagination({
-        currentPage: data.current_page,
-        lastPage: data.last_page,
-        perPage: data.per_page,
-        total: data.total,
-        minimumPrice: data.minimum_price,
-        maximumPrice: data.maximum_price,
-      });
-    } catch (error) {
-      console.error("Product fetch error:", error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [search, selectedCategory, urlSort, pagination.perPage],
+  );
 
   useEffect(() => {
-    fetchProducts();
-  }, [filter, search]);
+    fetchProducts({ page: 1 });
+  }, [fetchProducts]);
 
   if (error) {
     return (
       <section className="product-listing">
         <p className="product-listing-error">{error}</p>
+
+        <button type="button" onClick={() => fetchProducts()}>
+          Try Again
+        </button>
       </section>
     );
   }

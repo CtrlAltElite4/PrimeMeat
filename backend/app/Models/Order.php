@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
     public const FULFILLMENT_DELIVERY = 'delivery';
+
     public const FULFILLMENT_COLLECTION = 'collection';
 
     public const FULFILLMENT_TYPES = [
@@ -17,11 +19,17 @@ class Order extends Model
     ];
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_READY_FOR_COLLECTION = 'ready_for_collection';
+
     public const STATUS_OUT_FOR_DELIVERY = 'out_for_delivery';
+
     public const STATUS_COLLECTED = 'collected';
+
     public const STATUS_DELIVERED = 'delivered';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -42,12 +50,16 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'status',
-        'total_amount',
+        'total',
         'fulfillment_type',
+        'delivery_fee',
+        'delivery_zone_number',
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
+        'delivery_zone_number' => 'integer',
     ];
 
     protected static function booted(): void
@@ -92,5 +104,11 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /** Set when this order is the payment for a group order */
+    public function groupOrder(): HasOne
+    {
+        return $this->hasOne(GroupOrder::class);
     }
 }

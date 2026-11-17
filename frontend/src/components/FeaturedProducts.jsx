@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import "../styles/FeaturedProducts.css";
+import api from "../api";
+import productImage from "../utils/productImage";
+import "../styles/Home.css";
 
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
@@ -9,37 +11,12 @@ function FeaturedProducts() {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        const [fullResponse, halfResponse, quarterResponse] = await Promise.all(
-          [
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=full%20carcass&per_page=1",
-            ),
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=half%20carcass&per_page=1",
-            ),
-            fetch(
-              "http://127.0.0.1:8000/api/products?category=quarter%20carcass&per_page=1",
-            ),
-          ],
-        );
+        const { data } = await api.get("/api/products?per_page=4");
 
-        if (!fullResponse.ok || !halfResponse.ok || !quarterResponse.ok) {
-          throw new Error("Failed to fetch featured products.");
-        }
-
-        const fullData = await fullResponse.json();
-        const halfData = await halfResponse.json();
-        const quarterData = await quarterResponse.json();
-
-        setProducts(
-          [fullData.data[0], halfData.data[0], quarterData.data[0]].filter(
-            Boolean,
-          ),
-        );
-
-        setLoading(false);
+        setProducts((data.data || []).slice(0, 4));
       } catch (error) {
         console.error("Featured products error:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -53,16 +30,19 @@ function FeaturedProducts() {
         <h2 className="featured-products-title">Featured Products</h2>
 
         <p className="featured-products-description">
-          Premium butcher selected products you shouldn't miss.
+          Discover quality beef, mutton and lamb products selected for you.
         </p>
       </div>
 
       <div className="featured-products-grid">
         {loading ? (
           <p className="featured-products-message">Loading products...</p>
-        ) : (
-          <>
-            {products.map((product) => (
+        ) : products.length > 0 ? (
+          products.map((product) => {
+            const grade = product.grade || product.variants?.[0]?.grade;
+            const image = productImage(product);
+
+            return (
               <article className="featured-product-card" key={product.id}>
                 <Link
                   to={`/products/${product.id}`}
@@ -72,19 +52,16 @@ function FeaturedProducts() {
                   <div className="featured-product-image-container">
                     <img
                       className="featured-product-image"
-                      src={
-                        product.name.toLowerCase().includes("full")
-                          ? "/images/full-carcasss.png"
-                          : product.name.toLowerCase().includes("half")
-                            ? "/images/half-carcasss.png"
-                            : "/images/quarter-carcasss.png"
-                      }
+                      src={image || "/images/hero-meat.jpg"}
                       alt={product.name}
                     />
-                    <div className="f-grade-stamp">
-                      <span className="f-grade-letter">{product.grade}</span>
-                      <span className="f-grade-label">GRADE</span>
-                    </div>
+
+                    {grade && (
+                      <div className="f-grade-stamp">
+                        <span className="f-grade-letter">{grade}</span>
+                        <span className="f-grade-label">GRADE</span>
+                      </div>
+                    )}
                   </div>
                 </Link>
 
@@ -96,16 +73,30 @@ function FeaturedProducts() {
                     <h3 className="featured-product-name">{product.name}</h3>
                   </Link>
 
-                  <div className="featured-product-grade">
-                    <span>Grade</span>
-                    <strong>{product.grade}</strong>
-                  </div>
+                  {grade && (
+                    <div className="featured-product-grade">
+                      <span>Grade</span>
+                      <strong>{grade}</strong>
+                    </div>
+                  )}
 
                   <p className="featured-product-description">
-                    {product.description}
+                    {product.description || "Quality meat from PrimeMeat."}
                   </p>
 
-                  <div className="featured-product-price">R{product.price}</div>
+                  <div className="featured-product-price">
+                    {product.product_type === "carcass" &&
+                    product.variants?.length
+                      ? `From R${Math.min(
+                          ...product.variants
+                            .filter((variant) => variant.is_active)
+                            .map((variant) => Number(variant.price)),
+                        ).toLocaleString("en-ZA")}`
+                      : `R${Number(product.price || 0).toLocaleString("en-ZA", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`}
+                  </div>
 
                   <NavLink
                     className="featured-product-button"
@@ -115,36 +106,9 @@ function FeaturedProducts() {
                   </NavLink>
                 </div>
               </article>
-            ))}
-
-            <article className="featured-product-card featured-group-order-card">
-              <div className="featured-product-image-container">
-                <img
-                  className="featured-product-image"
-                  src="/images/group-order.jpg"
-                  alt="Group Orders"
-                />
-              </div>
-
-              <div className="featured-product-content">
-                <h3 className="featured-product-name">Group Orders</h3>
-
-                <p className="featured-product-description">
-                  Buy beef together with your group and have the meat divided as
-                  evenly as possible among the members.
-                </p>
-
-                <div className="featured-group-order-info">2–8 People</div>
-
-                <NavLink className="featured-product-button" to="/group-orders">
-                  Shop Group Orders
-                </NavLink>
-              </div>
-            </article>
-          </>
-        )}
-
-        {!loading && products.length === 0 && (
+            );
+          })
+        ) : (
           <p className="featured-products-message">
             No featured products available.
           </p>

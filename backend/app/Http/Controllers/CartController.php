@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CutOption;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,13 +22,68 @@ class CartController extends Controller
 
         $cart->load([
             'items.product',
+            'items.productVariant',
             'items.cutSelections.cutOption',
             'groupOrder.members',
             'groupOrder.deliveryMember',
         ]);
 
+        // Flag items that sold out (or were switched off) after they were added,
+        // so the cart can warn the customer before checkout instead of at payment.
+        $hasUnavailable = false;
+
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+            $variant = $item->productVariant;
+
+            $availableStock = 0;
+            $available = false;
+
+            if (
+                $product &&
+                $product->is_active &&
+                $product->status === 'published'
+            ) {
+                if ($product->product_type === Product::TYPE_CARCASS) {
+                    if (
+                        $variant &&
+                        (int) $variant->product_id === (int) $product->id &&
+                        $variant->is_active
+                    ) {
+                        $availableStock = (int) $variant->stock;
+
+                        $totalForVariant = $cart->items
+                            ->where('product_variant_id', $variant->id)
+                            ->sum('quantity');
+
+                        $available = $availableStock > 0
+                            && $totalForVariant <= $availableStock;
+                    }
+                } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
+                    if (! $variant) {
+                        $availableStock = (int) $product->stock;
+
+                        $totalForProduct = $cart->items
+                            ->filter(fn ($cartItem) => (int) $cartItem->product_id === (int) $product->id
+                                && $cartItem->product_variant_id === null
+                            )
+                            ->sum('quantity');
+
+                        $available = $availableStock > 0
+                            && $totalForProduct <= $availableStock;
+                    }
+                }
+            }
+
+            $item->setAttribute('is_available', $available);
+            $item->setAttribute('available_stock', $availableStock);
+
+            $hasUnavailable = $hasUnavailable || ! $available;
+        }
+
         return response()->json([
             'cart' => $cart,
+            'has_unavailable_items' => $hasUnavailable,
         ]);
     }
 
@@ -35,24 +91,22 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'product_variant_id' => [
+                'nullable',
+                'integer',
+                'exists:product_variants,id',
+            ],
             'quantity' => ['required', 'integer', 'min:1'],
             'cut_type' => ['required', 'in:traditional,custom'],
             'selected_quarter' => ['nullable', 'in:front,hind'],
-            'remaining_meat_preferences' => [
-                'nullable',
-                'array',
-            ],
 
+            'remaining_meat_preferences' => ['nullable', 'array'],
             'remaining_meat_preferences.*' => [
                 'string',
                 'in:steaks,stew,mince,butcher_choice',
             ],
 
-            'special_instructions' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
+            'special_instructions' => ['nullable', 'string', 'max:2000'],
 
             'selections' => ['nullable', 'array'],
             'selections.*.cut_option_id' => [
@@ -60,23 +114,84 @@ class CartController extends Controller
                 'integer',
                 'exists:cut_options,id',
             ],
-            'selections.*.side' => [
-                'required',
-                'in:A,B',
-            ],
-            'selections.*.quarter' => [
-                'required',
-                'in:front,hind',
-            ],
-
+            'selections.*.side' => ['required', 'in:A,B'],
+            'selections.*.quarter' => ['required', 'in:front,hind'],
         ]);
 
         $product = Product::findOrFail($validated['product_id']);
 
-        if (! $product->is_active) {
+        $variant = null;
+
+        if ($product->product_type === Product::TYPE_CARCASS) {
+            if (empty($validated['product_variant_id'])) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'Please select a carcass weight and price option.',
+                    ],
+                ]);
+            }
+
+            $variant = ProductVariant::query()
+                ->where('product_id', $product->id)
+                ->find($validated['product_variant_id']);
+
+            if (! $variant) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'The selected variant does not belong to this product.',
+                    ],
+                ]);
+            }
+        } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants && empty($validated['product_variant_id'])) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'Please select an option for this product.',
+                    ],
+                ]);
+            }
+
+            if (! $hasVariants && ! empty($validated['product_variant_id'])) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'This product does not have selectable options.',
+                    ],
+                ]);
+            }
+
+            if ($hasVariants) {
+                $variant = ProductVariant::query()
+                    ->where('product_id', $product->id)
+                    ->find($validated['product_variant_id']);
+
+                if (! $variant) {
+                    throw ValidationException::withMessages([
+                        'product_variant_id' => [
+                            'The selected option does not belong to this product.',
+                        ],
+                    ]);
+                }
+            }
+        } else {
             return response()->json([
-                'message' => 'This product is no longer available.',
+                'message' => 'This product cannot currently be purchased.',
             ], 422);
+        }
+
+        $cart = Cart::firstOrCreate([
+            'user_id' => $request->user()->id,
+        ]);
+
+        if ($stockError = $this->stockError(
+            $product,
+            $cart,
+            (int) $validated['quantity'],
+            null,
+            $variant
+        )) {
+            return $stockError;
         }
 
         $productType = $this->getProductType($product->name);
@@ -110,21 +225,19 @@ class CartController extends Controller
             );
         }
 
-        $cart = Cart::firstOrCreate([
-            'user_id' => $request->user()->id,
-        ]);
-
         $cartItem = DB::transaction(function () use (
             $cart,
             $product,
+            $variant,
             $validated
         ) {
             $cartItem = CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
                 'quantity' => $validated['quantity'],
                 'cut_type' => $validated['cut_type'],
-                'selected_quarter' => $validated['selected_quarter'],
+                'selected_quarter' => $validated['selected_quarter'] ?? null,
                 'remaining_meat_preferences' => $validated['remaining_meat_preferences'] ?? null,
                 'special_instructions' => $validated['special_instructions'] ?? null,
             ]);
@@ -143,6 +256,7 @@ class CartController extends Controller
             'message' => 'Product added to cart.',
             'cart_item' => $cartItem->load([
                 'product',
+                'productVariant',
                 'cutSelections.cutOption',
             ]),
         ], 201);
@@ -152,63 +266,116 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
-
-            'cut_type' => [
-                'required',
-                'in:traditional,custom',
-            ],
-
-            'selected_quarter' => [
+            'product_variant_id' => [
+                'sometimes',
                 'nullable',
-                'in:front,hind',
+                'integer',
+                'exists:product_variants,id',
             ],
 
-            'selections' => [
-                'nullable',
-                'array',
-            ],
+            'cut_type' => ['required', 'in:traditional,custom'],
+            'selected_quarter' => ['nullable', 'in:front,hind'],
 
+            'selections' => ['nullable', 'array'],
             'selections.*.cut_option_id' => [
                 'required',
                 'integer',
                 'exists:cut_options,id',
             ],
+            'selections.*.side' => ['required', 'in:A,B'],
+            'selections.*.quarter' => ['required', 'in:front,hind'],
 
-            'selections.*.side' => [
-                'required',
-                'in:A,B',
-            ],
-
-            'selections.*.quarter' => [
-                'required',
-                'in:front,hind',
-            ],
-
-            'remaining_meat_preferences' => [
-                'nullable',
-                'array',
-            ],
-
+            'remaining_meat_preferences' => ['nullable', 'array'],
             'remaining_meat_preferences.*' => [
                 'string',
                 'in:steaks,stew,mince,butcher_choice',
             ],
 
-            'special_instructions' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
+            'special_instructions' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $this->ensureCartItemBelongsToUser($request, $cartItem);
 
         $product = $cartItem->product;
 
-        if (! $product->is_active) {
+        if (! $product) {
             return response()->json([
-                'message' => 'This product is no longer available.',
+                'message' => 'The product for this cart item no longer exists.',
             ], 422);
+        }
+
+        $variantId = array_key_exists('product_variant_id', $validated)
+            ? $validated['product_variant_id']
+            : $cartItem->product_variant_id;
+
+        $variant = null;
+
+        if ($product->product_type === Product::TYPE_CARCASS) {
+            if (! $variantId) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'Please select a carcass weight and price option.',
+                    ],
+                ]);
+            }
+
+            $variant = ProductVariant::query()
+                ->where('product_id', $product->id)
+                ->find($variantId);
+
+            if (! $variant) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'The selected variant does not belong to this product.',
+                    ],
+                ]);
+            }
+        } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants && ! $variantId) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'Please select an option for this product.',
+                    ],
+                ]);
+            }
+
+            if (! $hasVariants && $variantId !== null) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => [
+                        'This product does not have selectable options.',
+                    ],
+                ]);
+            }
+
+            if ($hasVariants) {
+                $variant = ProductVariant::query()
+                    ->where('product_id', $product->id)
+                    ->find($variantId);
+
+                if (! $variant) {
+                    throw ValidationException::withMessages([
+                        'product_variant_id' => [
+                            'The selected option does not belong to this product.',
+                        ],
+                    ]);
+                }
+            }
+        } else {
+            return response()->json([
+                'message' => 'This product cannot currently be purchased.',
+            ], 422);
+        }
+
+        if ($stockError = $this->stockError(
+            $product,
+            $cartItem->cart,
+            (int) $validated['quantity'],
+            $cartItem->id,
+            $variant
+        )) {
+            return $stockError;
         }
 
         $productType = $this->getProductType($product->name);
@@ -242,14 +409,12 @@ class CartController extends Controller
             );
         }
 
-        DB::transaction(function () use (
-            $cartItem,
-            $validated
-        ) {
+        DB::transaction(function () use ($cartItem, $variant, $validated) {
             $cartItem->update([
+                'product_variant_id' => $variant?->id,
                 'quantity' => $validated['quantity'],
                 'cut_type' => $validated['cut_type'],
-                'selected_quarter' => $validated['selected_quarter'],
+                'selected_quarter' => $validated['selected_quarter'] ?? null,
                 'remaining_meat_preferences' => $validated['remaining_meat_preferences'] ?? null,
                 'special_instructions' => $validated['special_instructions'] ?? null,
             ]);
@@ -268,6 +433,7 @@ class CartController extends Controller
             'message' => 'Cart item updated.',
             'cart_item' => $cartItem->load([
                 'product',
+                'productVariant',
                 'cutSelections.cutOption',
             ]),
         ]);
@@ -300,6 +466,112 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Cart cleared.',
         ]);
+    }
+
+    /**
+     * Stops a product going into the cart if it's sold out, switched off or a draft,
+     * or if the cart would hold more than is in stock. Returns null when it's fine.
+     */
+    private function stockError(
+        Product $product,
+        Cart $cart,
+        int $quantity,
+        ?int $ignoreItemId = null,
+        ?ProductVariant $variant = null
+    ): ?JsonResponse {
+        if (! $product->is_active || $product->status !== 'published') {
+            return response()->json([
+                'message' => 'Sorry, this product is currently unavailable.',
+            ], 422);
+        }
+
+        if ($product->product_type === Product::TYPE_CARCASS) {
+            if (! $variant || (int) $variant->product_id !== (int) $product->id) {
+                return response()->json([
+                    'message' => 'Please select a valid carcass variant.',
+                ], 422);
+            }
+
+            if (! $variant->is_active || (int) $variant->stock < 1) {
+                return response()->json([
+                    'message' => 'Sorry, this carcass variant is out of stock.',
+                ], 422);
+            }
+
+            $availableStock = (int) $variant->stock;
+
+            $cartItemsQuery = $cart->items()
+                ->where('product_id', $product->id)
+                ->where('product_variant_id', $variant->id);
+        } elseif ($product->product_type === Product::TYPE_FIXED_PRICE) {
+            $hasVariants = $product->variants()->exists();
+
+            if ($hasVariants) {
+                if (
+                    ! $variant ||
+                    (int) $variant->product_id !== (int) $product->id
+                ) {
+                    return response()->json([
+                        'message' => 'Please select a valid product option.',
+                    ], 422);
+                }
+
+                if (! $variant->is_active || (int) $variant->stock < 1) {
+                    return response()->json([
+                        'message' => 'Sorry, this product option is out of stock.',
+                    ], 422);
+                }
+
+                $availableStock = (int) $variant->stock;
+
+                $cartItemsQuery = $cart->items()
+                    ->where('product_id', $product->id)
+                    ->where('product_variant_id', $variant->id);
+            } else {
+                if ($variant !== null) {
+                    return response()->json([
+                        'message' => 'This product does not have selectable options.',
+                    ], 422);
+                }
+
+                if ((int) $product->stock < 1) {
+                    return response()->json([
+                        'message' => 'Sorry, this product is out of stock.',
+                    ], 422);
+                }
+
+                $availableStock = (int) $product->stock;
+
+                $cartItemsQuery = $cart->items()
+                    ->where('product_id', $product->id)
+                    ->whereNull('product_variant_id');
+            }
+        } else {
+            return response()->json([
+                'message' => 'This product cannot currently be purchased.',
+            ], 422);
+        }
+
+        $alreadyInCart = (int) $cartItemsQuery
+            ->when(
+                $ignoreItemId,
+                fn ($query) => $query->where('id', '!=', $ignoreItemId)
+            )
+            ->sum('quantity');
+
+        $remainingStock = max(0, $availableStock - $alreadyInCart);
+
+        if ($quantity > $remainingStock) {
+            return response()->json([
+                'message' => $remainingStock > 0
+                    ? "Only {$remainingStock} of this item "
+                        .($remainingStock === 1 ? 'is' : 'are')
+                        .' available.'
+                    : 'You already have all available stock of this item in your cart.',
+            ], 422);
+        }
+
+        return null;
     }
 
     private function ensureCartItemBelongsToUser(

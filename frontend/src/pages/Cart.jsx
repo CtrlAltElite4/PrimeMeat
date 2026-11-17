@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import AddressForm from "../components/AddressForm";
 import api from "../api";
+import productImage from "../utils/productImage";
 import "../styles/Cart.css";
 
+
+// Must match backend/config/delivery.php "minimum_order".
+const DELIVERY_MINIMUM = 2500;
+
 function Cart({ onCartUpdated }) {
+  const navigate = useNavigate();
+
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
-
   const [deliveryAddress, setDeliveryAddress] = useState({
     addressLine1: "",
     addressLine2: "",
@@ -20,6 +25,14 @@ function Cart({ onCartUpdated }) {
     postalCode: "",
     instructions: "",
   });
+  const [deliveryEligibility, setDeliveryEligibility] = useState({
+    checking: false,
+    eligible: false,
+    message: "Select a delivery address to check availability.",
+  });
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
 
   // Load the current user's cart.
   const fetchCart = async () => {
@@ -43,17 +56,171 @@ function Cart({ onCartUpdated }) {
 
   useEffect(() => {
     fetchCart();
-  }, []);
 
-  // Update the quantity of a cart item.
-  const updateQuantity = async (itemId, quantity) => {
+    const fetchSavedAddresses = async () => {
+      try {
+        const { data } = await api.get("/api/addresses");
+        const addresses = data.addresses || [];
+
+        setSavedAddresses(addresses);
+
+        const defaultAddress = addresses.find((address) => address.is_default);
+
+        if (defaultAddress) {
+          setSelectedAddressId(String(defaultAddress.id));
+
+          setDeliveryAddress((current) => ({
+            ...current,
+            addressLine1: defaultAddress.address_line_1 || "",
+            addressLine2: defaultAddress.address_line_2 || "",
+            city: defaultAddress.city || "",
+            province: defaultAddress.province || "",
+            postalCode: defaultAddress.postal_code || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load saved addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, []);
+  useEffect(() => {
+    // Delivery needs a minimum order. The address check happens after the
+    // customer picks Delivery and fills in their address.
+    if (deliveryMethod === "delivery" && getCartTotal() < DELIVERY_MINIMUM) {
+      setDeliveryMethod("collection");
+    }
+  }, [cart, deliveryMethod]);
+  // Keep the selected saved address in sync with checkout details.
+  const handleSavedAddressChange = (event) => {
+    const addressId = event.target.value;
+
+    setSelectedAddressId(addressId);
+
+    if (!addressId) {
+      setDeliveryAddress((current) => ({
+        ...current,
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        province: "",
+        postalCode: "",
+      }));
+
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find(
+      (address) => String(address.id) === addressId,
+    );
+
+    if (!selectedAddress) {
+      return;
+    }
+
+    setDeliveryAddress((current) => ({
+      ...current,
+      addressLine1: selectedAddress.address_line_1 || "",
+      addressLine2: selectedAddress.address_line_2 || "",
+      city: selectedAddress.city || "",
+      province: selectedAddress.province || "",
+      postalCode: selectedAddress.postal_code || "",
+    }));
+  };
+
+  // Return the selected carcass variant when one exists.
+  const getItemVariant = (item) =>
+    item.product_variant || item.productVariant || null;
+
+  // Resolve prices using the selected variant for carcasses.
+  const getItemUnitPrice = (item) => {
+    const variant = getItemVariant(item);
+
+    return Number(variant?.price ?? item.price ?? item.product?.price ?? 0);
+  };
+
+  // Format South African currency consistently.
+  const formatPrice = (price) =>
+    `R${Number(price).toLocaleString("en-ZA", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
+  const getItemTotal = (item) => getItemUnitPrice(item) * Number(item.quantity);
+
+  // Resolve optional grade information from the selected variant.
+  const getItemGrade = (item) => {
+    const variant = getItemVariant(item);
+
+    return variant?.grade ?? item.grade ?? item.product?.grade ?? null;
+  };
+
+  // Display the weight range selected for a carcass.
+  const getItemWeight = (item) => {
+    const variant = getItemVariant(item);
+
+    if (variant?.weight_min_kg == null || variant?.weight_max_kg == null) {
+      return null;
+    }
+
+    return `${variant.weight_min_kg}–${variant.weight_max_kg} kg`;
+  };
+
+  // Use the stock value supplied by the backend.
+  const getAvailableStock = (item) => {
+    if (item.available_stock == null) {
+      return null;
+    }
+
+    return Math.max(0, Number(item.available_stock));
+  };
+
+  const isItemUnavailable = (item) => {
+    const availableStock = getAvailableStock(item);
+
+    return (
+      item.is_available === false ||
+      (availableStock !== null && availableStock < Number(item.quantity))
+    );
+  };
+
+  // Update quantity without losing the selected variant or cut details.
+  const updateQuantity = async (item, quantity) => {
     if (quantity < 1) {
       return;
     }
 
+    const availableStock = getAvailableStock(item);
+
+    if (availableStock !== null && quantity > availableStock) {
+      setErrorMessage(
+        `Only ${availableStock} of this item are currently available.`,
+      );
+      return;
+    }
+
     try {
-      await api.put(`/api/cart/items/${itemId}`, {
+      setErrorMessage("");
+
+      await api.put(`/api/cart/items/${item.id}`, {
         quantity,
+        product_variant_id:
+          item.product_variant_id ??
+          item.product_variant?.id ??
+          item.productVariant?.id ??
+          null,
+        cut_type: item.cut_type,
+        selected_quarter: item.selected_quarter,
+        selections: (item.cut_selections || []).map((selection) => ({
+          cut_option_id: selection.cut_option_id,
+          side: selection.side,
+          quarter: selection.quarter,
+        })),
+        remaining_meat_preferences: item.remaining_meat_preferences,
+        special_instructions: item.special_instructions,
       });
 
       await fetchCart();
@@ -67,9 +234,11 @@ function Cart({ onCartUpdated }) {
     }
   };
 
-  // Remove an item from the cart.
+  // Remove an individual cart item.
   const removeItem = async (itemId) => {
     try {
+      setErrorMessage("");
+
       await api.delete(`/api/cart/items/${itemId}`);
 
       await fetchCart();
@@ -82,8 +251,12 @@ function Cart({ onCartUpdated }) {
       );
     }
   };
+
+  // Remove the group order.
   const removeGroupOrder = async () => {
     try {
+      setErrorMessage("");
+
       await api.delete("/api/group-orders");
 
       await fetchCart();
@@ -96,6 +269,7 @@ function Cart({ onCartUpdated }) {
       );
     }
   };
+
   // Get the selected custom cuts for a cart item.
   const getItemCuts = (item) => {
     if (item.cut_type !== "custom" || !item.cut_selections) {
@@ -103,19 +277,11 @@ function Cart({ onCartUpdated }) {
     }
 
     return item.cut_selections
-      .map((selection) => {
-        const cut = selection.cut_option?.name;
-
-        if (!cut) {
-          return null;
-        }
-
-        return cut;
-      })
+      .map((selection) => selection.cut_option?.name)
       .filter(Boolean);
   };
 
-  // Split cuts into columns with a maximum number of items.
+  // Split cuts into columns for easier reading.
   const splitIntoColumns = (items, itemsPerColumn = 5) => {
     const columns = [];
 
@@ -142,12 +308,7 @@ function Cart({ onCartUpdated }) {
     return preferences.map((preference) => labels[preference]).filter(Boolean);
   };
 
-  // Calculate the total for one cart item.
-  const getItemTotal = (item) => {
-    return Number(item.product.price) * Number(item.quantity);
-  };
-
-  // Calculate the cart subtotal.
+  // Calculate the cart subtotal using variant-aware item prices.
   const getCartTotal = () => {
     if (!cart) {
       return 0;
@@ -165,7 +326,63 @@ function Cart({ onCartUpdated }) {
     return productTotal + groupOrderTotal;
   };
 
+  // Check delivery eligibility whenever the cart or postal code changes.
+  useEffect(() => {
+    const postalCode = deliveryAddress.postalCode.trim();
+
+    if (!postalCode || !cart?.items?.length) {
+      setDeliveryEligibility({
+        checking: false,
+        eligible: false,
+        message: "Select a delivery address to check availability.",
+      });
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkDeliveryEligibility = async () => {
+      setDeliveryEligibility((current) => ({
+        ...current,
+        checking: true,
+      }));
+
+      try {
+        const { data } = await api.post("/api/checkout/delivery-eligibility", {
+          postal_code: postalCode,
+        });
+
+        if (!cancelled) {
+          setDeliveryEligibility({
+            checking: false,
+            eligible: data.delivery.eligible,
+            message: data.delivery.message,
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDeliveryEligibility({
+            checking: false,
+            eligible: false,
+            message:
+              error.response?.data?.message ||
+              "Unable to check delivery availability.",
+          });
+        }
+      }
+    };
+
+    checkDeliveryEligibility();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart, deliveryAddress.postalCode]);
+
   const hasItems = (cart?.items?.length || 0) > 0 || Boolean(cart?.group_order);
+
+  // Prevent checkout if any item is unavailable or has insufficient stock.
+  const hasUnavailableItems = (cart?.items || []).some(isItemUnavailable);
 
   if (loading) {
     return (
@@ -211,10 +428,14 @@ function Cart({ onCartUpdated }) {
         <div className="cart-heading">
           <h1>Your Cart</h1>
 
-          <p>Review your selected carcasses before checkout.</p>
+          <p>Review your selected products before checkout.</p>
         </div>
 
-        {errorMessage && <div className="cart-message">{errorMessage}</div>}
+        {errorMessage && (
+          <div className="cart-message" role="alert">
+            {errorMessage}
+          </div>
+        )}
 
         <div className="cart-layout">
           <section className="cart-items">
@@ -226,16 +447,16 @@ function Cart({ onCartUpdated }) {
                   <h2>Full Carcass</h2>
 
                   <p className="cart-item-price">
-                    R{Number(cart.group_order.price).toLocaleString("en-ZA")}
+                    {formatPrice(cart.group_order.price)}
                   </p>
-
-                  <div className="cart-item-cut-type">
-                    <strong>Preparation:</strong> Traditional
-                  </div>
 
                   <div className="cart-item-quarter">
                     <strong>Weight Range:</strong>{" "}
-                    {cart.group_order.weight_range.replace("-", "–")} kg
+                    {String(cart.group_order.weight_range || "").replace(
+                      "-",
+                      "–",
+                    )}{" "}
+                    kg
                   </div>
 
                   <div className="cart-item-quarter">
@@ -288,7 +509,7 @@ function Cart({ onCartUpdated }) {
                 </div>
 
                 <div className="cart-item-total">
-                  R{Number(cart.group_order.price).toLocaleString("en-ZA")}
+                  {formatPrice(cart.group_order.price)}
                 </div>
               </article>
             )}
@@ -300,35 +521,57 @@ function Cart({ onCartUpdated }) {
                 item.remaining_meat_preferences,
               );
 
+              const product = item.product;
+              const isBeefCarcass = Array.isArray(product?.category)
+                ? product.category.includes("Beef Carcasses")
+                : product?.category === "Beef Carcasses";
+              const grade = getItemGrade(item);
+              const weight = getItemWeight(item);
+              const unavailable = isItemUnavailable(item);
+              const availableStock = getAvailableStock(item);
+
               return (
                 <article key={item.id} className="cart-item">
                   <Link
-                    to={`/products/${item.product.id}?editCartItem=${item.id}`}
+                    to={`/products/${product.id}?editCartItem=${item.id}`}
                     className="cart-item-product-link"
                   >
                     <div className="cart-item-image">
-                      <img src={item.product.image} alt={item.product.name} />
+                      <img src={productImage(product)} alt={product.name} />
                     </div>
 
                     <div className="cart-item-details">
-                      <span className="cart-item-name">
-                        {item.product.name}
-                      </span>
+                      <span className="cart-item-name">{product.name}</span>
 
-                      <h2>Grade {item.product.grade}</h2>
+                      {isBeefCarcass ? (
+                        <>
+                          {grade && <h2>Grade {grade}</h2>}
+
+                          {weight && (
+                            <div className="cart-item-quarter">
+                              <strong>Weight:</strong> {weight}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="cart-item-quarter">
+                          <span>{product.category}</span>
+                        </div>
+                      )}
 
                       <p className="cart-item-price">
-                        R{Number(item.product.price).toLocaleString("en-ZA")}
+                        {formatPrice(getItemUnitPrice(item))} each
                       </p>
 
-                      <div className="cart-item-cut-type">
-                        <strong>Preparation:</strong>{" "}
-                        {item.cut_type === "custom"
-                          ? "Custom Cuts"
-                          : "Traditional"}
-                      </div>
+                      {unavailable && (
+                        <p className="cart-message" role="alert">
+                          {availableStock !== null && availableStock > 0
+                            ? `Only ${availableStock} available. Reduce the quantity to continue.`
+                            : "This item is currently unavailable. Remove it or contact us before checkout."}
+                        </p>
+                      )}
 
-                      {item.selected_quarter && (
+                      {isBeefCarcass && item.selected_quarter && (
                         <div className="cart-item-quarter">
                           <strong>Quarter:</strong>{" "}
                           {item.selected_quarter === "front"
@@ -336,8 +579,7 @@ function Cart({ onCartUpdated }) {
                             : "Hind Quarter"}
                         </div>
                       )}
-
-                      {cuts.length > 0 && (
+                      {isBeefCarcass && cuts.length > 0 && (
                         <div className="cart-item-cuts">
                           <strong>Selected Cuts:</strong>
 
@@ -345,7 +587,7 @@ function Cart({ onCartUpdated }) {
                             {cutColumns.map((column, columnIndex) => (
                               <ul key={columnIndex}>
                                 {column.map((cut, index) => (
-                                  <li key={index}>{cut}</li>
+                                  <li key={`${cut}-${index}`}>{cut}</li>
                                 ))}
                               </ul>
                             ))}
@@ -353,7 +595,7 @@ function Cart({ onCartUpdated }) {
                         </div>
                       )}
 
-                      {remainingMeat.length > 0 && (
+                      {isBeefCarcass && remainingMeat.length > 0 && (
                         <div className="cart-item-preferences">
                           <strong>Remaining Meat:</strong>
 
@@ -365,7 +607,7 @@ function Cart({ onCartUpdated }) {
                         </div>
                       )}
 
-                      {item.special_instructions && (
+                      {isBeefCarcass && item.special_instructions && (
                         <div className="cart-item-instructions">
                           <strong>Special Instructions:</strong>
 
@@ -380,9 +622,10 @@ function Cart({ onCartUpdated }) {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(item.id, Number(item.quantity) - 1)
+                          updateQuantity(item, Number(item.quantity) - 1)
                         }
                         disabled={Number(item.quantity) <= 1}
+                        aria-label={`Decrease quantity of ${product.name}`}
                       >
                         −
                       </button>
@@ -392,8 +635,13 @@ function Cart({ onCartUpdated }) {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(item.id, Number(item.quantity) + 1)
+                          updateQuantity(item, Number(item.quantity) + 1)
                         }
+                        disabled={
+                          availableStock !== null &&
+                          Number(item.quantity) >= availableStock
+                        }
+                        aria-label={`Increase quantity of ${product.name}`}
                       >
                         +
                       </button>
@@ -409,7 +657,7 @@ function Cart({ onCartUpdated }) {
                   </div>
 
                   <div className="cart-item-total">
-                    R{getItemTotal(item).toLocaleString("en-ZA")}
+                    {formatPrice(getItemTotal(item))}
                   </div>
                 </article>
               );
@@ -431,6 +679,7 @@ function Cart({ onCartUpdated }) {
                     ? "cart-delivery-option--selected"
                     : ""
                 }`}
+                disabled={getCartTotal() < DELIVERY_MINIMUM}
                 onClick={() => setDeliveryMethod("delivery")}
               >
                 <strong>Delivery</strong>
@@ -452,15 +701,70 @@ function Cart({ onCartUpdated }) {
                 <span>Collect your order from our location.</span>
               </button>
             </div>
-
+            {getCartTotal() < DELIVERY_MINIMUM && (
+              <p className="cart-delivery-message" role="status">
+                Delivery is available on orders of {formatPrice(DELIVERY_MINIMUM)} or more.
+                Add {formatPrice(DELIVERY_MINIMUM - getCartTotal())} more to qualify.
+              </p>
+            )}
+            {deliveryMethod === "delivery" &&
+              (deliveryEligibility.checking ? (
+                <p className="cart-delivery-message">
+                  Checking delivery availability...
+                </p>
+              ) : (
+                <p className="cart-delivery-message" role="status">
+                  {deliveryEligibility.message}
+                </p>
+              ))}
             {deliveryMethod === "delivery" && (
               <div className="cart-delivery-address">
                 <h3>Delivery Address</h3>
 
-                <AddressForm
-                  address={deliveryAddress}
-                  onChange={setDeliveryAddress}
-                />
+                {loadingAddresses ? (
+                  <p>Loading saved addresses...</p>
+                ) : savedAddresses.length > 0 ? (
+                  <>
+                    <div className="cart-saved-address">
+                      <label htmlFor="cart-saved-address">
+                        Select Delivery Address
+                      </label>
+
+                      <select
+                        id="cart-saved-address"
+                        value={selectedAddressId}
+                        onChange={handleSavedAddressChange}
+                      >
+                        <option value="">Select a saved address</option>
+
+                        {savedAddresses.map((address) => (
+                          <option key={address.id} value={address.id}>
+                            {address.label || "Saved Address"}
+                            {address.is_default ? " — Default" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <Link
+                      to="/account/addresses/new"
+                      className="cart-add-address-button"
+                    >
+                      Add New Address
+                    </Link>
+                  </>
+                ) : (
+                  <div className="cart-no-address">
+                    <p>You do not have any saved delivery addresses.</p>
+
+                    <Link
+                      to="/account/addresses/new"
+                      className="cart-add-address-button"
+                    >
+                      Add Address
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -469,26 +773,49 @@ function Cart({ onCartUpdated }) {
             <h2>Order Summary</h2>
 
             <div className="cart-summary-row">
-              <span>Subtotal</span>
-
-              <strong>R{getCartTotal().toLocaleString("en-ZA")}</strong>
+              <span>Cart Total</span>
+              <strong>{formatPrice(getCartTotal())}</strong>
             </div>
 
             <div className="cart-summary-row">
-              <span>Delivery</span>
-
-              <span>Calculated at checkout</span>
+              <span>Delivery Fee</span>
+              <strong>Calculated at checkout</strong>
             </div>
 
             <div className="cart-summary-total">
-              <span>Total</span>
-
-              <strong>R{getCartTotal().toLocaleString("en-ZA")}</strong>
+              <span>Subtotal</span>
+              <strong>{formatPrice(getCartTotal())}</strong>
             </div>
 
-            <Link to="/checkout" className="cart-checkout-button">
+            {hasUnavailableItems && (
+              <p className="cart-message" role="alert">
+                Some items in your cart are unavailable or have insufficient
+                stock. Update their quantities or remove them before checkout.
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="cart-checkout-button"
+              disabled={
+                hasUnavailableItems ||
+                !hasItems ||
+                (deliveryMethod === "delivery" &&
+                  (!deliveryAddress.postalCode?.trim() ||
+                    deliveryEligibility.checking ||
+                    !deliveryEligibility.eligible))
+              }
+              onClick={() =>
+                navigate("/checkout", {
+                  state: {
+                    deliveryMethod,
+                    deliveryAddress,
+                  },
+                })
+              }
+            >
               Proceed to Checkout
-            </Link>
+            </button>
 
             <Link to="/products" className="cart-continue-button">
               Continue Shopping
@@ -499,5 +826,6 @@ function Cart({ onCartUpdated }) {
     </main>
   );
 }
+
 
 export default Cart;

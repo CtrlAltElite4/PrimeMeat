@@ -1,29 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
 import AddressForm from "../components/AddressForm";
 import "../styles/GroupOrders.css";
 
-const WEIGHT_RANGES = [
-  {
-    id: "200-240",
-    label: "200–240 kg",
-    price: 17000,
-  },
-  {
-    id: "241-280",
-    label: "241–280 kg",
-    price: 20750,
-  },
-  {
-    id: "281-320",
-    label: "281–320 kg",
-    price: 23750,
-  },
-];
-
-function GroupOrders() {
+function GroupOrders({ user }) {
   const navigate = useNavigate();
 
   const [selectedWeightRange, setSelectedWeightRange] = useState("");
@@ -55,15 +37,70 @@ function GroupOrders() {
     postalCode: "",
     instructions: "",
   });
-
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [error, setError] = useState("");
+  const [groupOrderProducts, setGroupOrderProducts] = useState([]);
+  const [loadingGroupOrderProducts, setLoadingGroupOrderProducts] =
+    useState(true);
+  const [selectedProductId, setSelectedProductId] = useState("");
+  useEffect(() => {
+    const fetchSavedAddresses = async () => {
+      try {
+        const { data } = await api.get("/api/addresses");
 
-  const selectedRange = WEIGHT_RANGES.find(
-    (range) => range.id === selectedWeightRange,
+        const addresses = data.addresses || [];
+
+        setSavedAddresses(addresses);
+
+        const defaultAddress = addresses.find((address) => address.is_default);
+
+        if (defaultAddress) {
+          setSelectedAddressId(String(defaultAddress.id));
+
+          setDeliveryAddress((current) => ({
+            ...current,
+            addressLine1: defaultAddress.address_line_1 || "",
+            addressLine2: defaultAddress.address_line_2 || "",
+            city: defaultAddress.city || "",
+            province: defaultAddress.province || "",
+            postalCode: defaultAddress.postal_code || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load saved addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, []);
+
+  useEffect(() => {
+    const fetchGroupOrderProducts = async () => {
+      try {
+        const { data } = await api.get("/api/group-order-products");
+
+        setGroupOrderProducts(data.group_order_products || []);
+      } catch (error) {
+        console.error("Failed to load group order products:", error);
+        setError("Unable to load group order packages. Please try again.");
+      } finally {
+        setLoadingGroupOrderProducts(false);
+      }
+    };
+
+    fetchGroupOrderProducts();
+  }, []);
+
+  const selectedRange = groupOrderProducts.find(
+    (product) => String(product.id) === selectedProductId,
   );
 
   const pricePerPerson = selectedRange
-    ? selectedRange.price / numberOfPeople
+    ? Number(selectedRange.price) / numberOfPeople
     : 0;
 
   const updateMember = (index, field, value) => {
@@ -98,13 +135,60 @@ function GroupOrders() {
       setDeliveryMemberIndex(0);
     }
   };
+  const handleSavedAddressChange = (event) => {
+    const addressId = event.target.value;
 
+    setSelectedAddressId(addressId);
+
+    if (!addressId) {
+      setDeliveryAddress((current) => ({
+        ...current,
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        province: "",
+        postalCode: "",
+      }));
+
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find(
+      (address) => String(address.id) === addressId,
+    );
+
+    if (!selectedAddress) {
+      return;
+    }
+
+    setDeliveryAddress((current) => ({
+      ...current,
+      addressLine1: selectedAddress.address_line_1 || "",
+      addressLine2: selectedAddress.address_line_2 || "",
+      city: selectedAddress.city || "",
+      province: selectedAddress.province || "",
+      postalCode: selectedAddress.postal_code || "",
+    }));
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!user) {
+      navigate("/login", {
+        state: {
+          from: "/group-orders",
+        },
+      });
+      return;
+    }
     setError("");
 
-    if (!selectedWeightRange) {
+    if (!selectedProductId) {
       setError("Please select a weight range.");
+      return;
+    }
+
+    if (!selectedRange || selectedRange.stock < 1) {
+      setError("This group order package is no longer available.");
       return;
     }
 
@@ -132,7 +216,7 @@ function GroupOrders() {
 
     try {
       const { data } = await api.post("/api/group-orders/checkout", {
-        weight_range: selectedWeightRange,
+        group_order_product_id: Number(selectedProductId),
         include_ground_beef: includeGroundBeef,
         number_of_people: numberOfPeople,
         members,
@@ -201,23 +285,32 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
-            {WEIGHT_RANGES.map((range) => (
-              <button
-                key={range.id}
-                type="button"
-                className={`group-orders-option ${
-                  selectedWeightRange === range.id
-                    ? "group-orders-option--selected"
-                    : ""
-                }`}
-                onClick={() => setSelectedWeightRange(range.id)}
-              >
-                <strong>{range.label}</strong>
+          <div className="group-orders-weight-options">
+            {loadingGroupOrderProducts ? (
+              <p>Loading available packages...</p>
+            ) : groupOrderProducts.length === 0 ? (
+              <p>No group order packages are currently available.</p>
+            ) : (
+              groupOrderProducts.map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  disabled={product.stock < 1}
+                  className={`group-orders-weight-option ${
+                    selectedProductId === String(product.id)
+                      ? "group-orders-weight-option--selected"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedProductId(String(product.id))}
+                >
+                  <strong>{product.weight_range} kg</strong>
 
-                <span>R{range.price.toLocaleString("en-ZA")}</span>
-              </button>
-            ))}
+                  <span>R{Number(product.price).toLocaleString("en-ZA")}</span>
+
+                  {product.stock < 1 && <small>Out of stock</small>}
+                </button>
+              ))
+            )}
           </div>
         </section>
 
@@ -315,28 +408,30 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
+          <div className="group-orders-ground-beef-options">
             <button
               type="button"
-              className={`group-orders-option ${
-                includeGroundBeef ? "group-orders-option--selected" : ""
+              className={`group-orders-ground-beef-option ${
+                includeGroundBeef
+                  ? "group-orders-ground-beef-option--selected"
+                  : ""
               }`}
               onClick={() => setIncludeGroundBeef(true)}
             >
               <strong>Yes</strong>
-
               <span>Include ground beef.</span>
             </button>
 
             <button
               type="button"
-              className={`group-orders-option ${
-                !includeGroundBeef ? "group-orders-option--selected" : ""
+              className={`group-orders-ground-beef-option ${
+                !includeGroundBeef
+                  ? "group-orders-ground-beef-option--selected"
+                  : ""
               }`}
               onClick={() => setIncludeGroundBeef(false)}
             >
               <strong>No</strong>
-
               <span>Do not include ground beef.</span>
             </button>
           </div>
@@ -353,32 +448,30 @@ function GroupOrders() {
             </div>
           </div>
 
-          <div className="group-orders-options">
+          <div className="group-orders-delivery-options">
             <button
               type="button"
-              className={`group-orders-option ${
+              className={`group-orders-delivery-option ${
                 deliveryMethod === "delivery"
-                  ? "group-orders-option--selected"
+                  ? "group-orders-delivery-option--selected"
                   : ""
               }`}
               onClick={() => setDeliveryMethod("delivery")}
             >
               <strong>Delivery</strong>
-
               <span>Have the group order delivered to one member.</span>
             </button>
 
             <button
               type="button"
-              className={`group-orders-option ${
+              className={`group-orders-delivery-option ${
                 deliveryMethod === "collection"
-                  ? "group-orders-option--selected"
+                  ? "group-orders-delivery-option--selected"
                   : ""
               }`}
               onClick={() => setDeliveryMethod("collection")}
             >
               <strong>Collection</strong>
-
               <span>Collect the group order from our location.</span>
             </button>
           </div>
@@ -393,6 +486,27 @@ function GroupOrders() {
                     `Person ${deliveryMemberIndex + 1}`}
                 </strong>
               </div>
+
+              {!loadingAddresses && savedAddresses.length > 0 && (
+                <div className="group-orders-saved-address">
+                  <label htmlFor="group-saved-address">Saved Address</label>
+
+                  <select
+                    id="group-saved-address"
+                    value={selectedAddressId}
+                    onChange={handleSavedAddressChange}
+                  >
+                    <option value="">Enter a different address</option>
+
+                    {savedAddresses.map((address) => (
+                      <option key={address.id} value={address.id}>
+                        {address.label || "Saved Address"}
+                        {address.is_default ? " — Default" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <AddressForm
                 address={deliveryAddress}
@@ -425,26 +539,27 @@ function GroupOrders() {
             <div>
               <span>Weight range</span>
 
-              <strong>{selectedRange?.label || "Not selected"}</strong>
+              <strong>
+                {selectedRange
+                  ? `${selectedRange.weight_range} kg`
+                  : "Not selected"}
+              </strong>
             </div>
 
-            <div>
+            <div className="group-orders-review-people">
               <span>Group size</span>
+              <strong>{numberOfPeople} people</strong>
 
-              <strong>
-                {numberOfPeople} people
-                {selectedRange && (
-                  <>
-                    {" "}
-                    — R
-                    {pricePerPerson.toLocaleString("en-ZA", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    per person
-                  </>
-                )}
-              </strong>
+              {selectedRange && (
+                <small className="group-orders-review-per-person">
+                  R
+                  {pricePerPerson.toLocaleString("en-ZA", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  per person
+                </small>
+              )}
             </div>
 
             <div>
@@ -477,7 +592,7 @@ function GroupOrders() {
 
               <strong>
                 {selectedRange
-                  ? `R${selectedRange.price.toLocaleString("en-ZA")}`
+                  ? `R${Number(selectedRange.price).toLocaleString("en-ZA")}`
                   : "Not selected"}
               </strong>
             </div>
@@ -485,7 +600,11 @@ function GroupOrders() {
 
           {error && <p className="group-orders-error">{error}</p>}
 
-          <button type="submit" className="group-orders-submit">
+          <button
+            type="submit"
+            className="group-orders-submit"
+            disabled={loadingGroupOrderProducts || !selectedProductId}
+          >
             Proceed to Checkout
           </button>
         </section>

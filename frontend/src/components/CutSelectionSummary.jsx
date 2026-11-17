@@ -1,35 +1,61 @@
 function CutSelectionSummary({ selectedCuts }) {
+  const sides = ["A", "B"];
+  const quarters = [
+    { id: "front", label: "Front Quarter" },
+    { id: "hind", label: "Hind Quarter" },
+  ];
+
+  const groupedCuts = sides
+    .map((side) => ({
+      side,
+      quarters: quarters
+        .map((quarter) => ({
+          ...quarter,
+          cuts: selectedCuts
+            .map((cut) => {
+              const parts = cut.split("-");
+              return {
+                id: cut,
+                side: parts[0],
+                quarter: parts[1],
+                name: parts.slice(2).join("-"),
+              };
+            })
+            .filter((cut) => cut.side === side && cut.quarter === quarter.id),
+        }))
+        .filter((quarter) => quarter.cuts.length > 0),
+    }))
+    .filter((side) => side.quarters.length > 0);
+
   return (
     <div className="cut-selection-summary">
       <div className="cut-selection-summary-header">
         <h3>Your Selected Cuts</h3>
-
         <span>{selectedCuts.length} selected</span>
       </div>
 
       {selectedCuts.length === 0 ? (
         <p className="cut-selection-empty">No custom cuts selected yet.</p>
       ) : (
-        <ul className="cut-selection-list">
-          {selectedCuts.map((cut) => {
-            const parts = cut.split("-");
+        <div className="cut-selection-grid">
+          {groupedCuts.map((side) => (
+            <section className="cut-selection-side" key={side.side}>
+              <h4>Side {side.side}</h4>
 
-            const side = parts[0];
-            const quarter = parts[1];
-            const name = parts.slice(2).join("-");
+              {side.quarters.map((quarter) => (
+                <div className="cut-selection-quarter" key={quarter.id}>
+                  <h5>{quarter.label}</h5>
 
-            return (
-              <li key={cut}>
-                <span>
-                  Side {side} —{" "}
-                  {quarter === "front" ? "Front Quarter" : "Hind Quarter"}
-                </span>
-
-                <strong>{name}</strong>
-              </li>
-            );
-          })}
-        </ul>
+                  <ul className="cut-selection-list">
+                    {quarter.cuts.map((cut) => (
+                      <li key={cut.id}>{cut.name.replace(/-/g, " ")}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );

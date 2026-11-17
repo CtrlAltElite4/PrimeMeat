@@ -87,9 +87,22 @@ function CustomCutSheet({
   const toggleCut = (side, quarter, cut) => {
     const key = `${side}-${quarter}-${cut}`;
 
+    const isRibSelection = ["Rib Steak", "Rib Eye", "Prime Rib"].includes(cut);
+
     setSelectedCuts((current) => {
       if (current.includes(key)) {
         return current.filter((item) => item !== key);
+      }
+
+      if (isRibSelection) {
+        const ribOptions = ["Rib Steak", "Rib Eye", "Prime Rib"];
+
+        const filtered = current.filter((item) => {
+          const selectedCut = item.split("-").slice(2).join("-");
+          return !ribOptions.includes(selectedCut);
+        });
+
+        return [...filtered, key];
       }
 
       return [...current, key];

@@ -4,6 +4,7 @@ import {
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -13,12 +14,15 @@ import Home from "./pages/Home";
 import Products from "./pages/Products";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
-  import SupportPage from "./pages/SupportPage";
-   import ArticlePage from "./components/ArticlePage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import Cart from "./pages/Cart";
 import GroupOrders from "./pages/GroupOrders";
 import GroupOrderCheckout from "./pages/GroupOrderCheckout";
+
+import SupportPage from "./pages/SupportPage";
+import ArticlePage from "./components/ArticlePage";
+import AccountPage from "./pages/AccountPage";
+import Checkout from "./pages/Checkout";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -27,15 +31,21 @@ import AuthPage from "./components/AuthPage";
 import PageTransitionLoader from "./components/PageTransitionLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
+import ScrollReveal from "./components/ScrollReveal";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 import AdminLayout from "./admin/AdminLayout";
+import ChatbotContent from "./admin/ChatbotContent";
 import Dashboard from "./admin/Dashboard";
 import Orders from "./admin/Orders";
 import Payments from "./admin/Payments";
+import AdminHelpFaqPage from "./admin/AdminHelpFaqPage";
 import Users from "./admin/Users";
 import AdminProducts from "./admin/Products";
 import Settings from "./admin/Settings";
-import ComingSoon from "./admin/ComingSoon";
+import CheckoutResult from "./pages/CheckoutResult";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import "./App.css";
 
@@ -44,7 +54,9 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const isAccountPage = location.pathname.startsWith("/account");
   // Restore an existing session on page load
   useEffect(() => {
     api
@@ -53,6 +65,25 @@ function App() {
       .catch(() => setUser(null))
       .finally(() => setChecking(false));
   }, []);
+
+  useEffect(() => {
+      const handleAuthRequired = () => {
+      const publicAuthPages = ["/login", "/forgot-password", "/reset-password"];
+      if (!user && !publicAuthPages.includes(location.pathname)) {
+        navigate("/login", {
+          state: {
+            from: `${location.pathname}${location.search}`,
+          },
+        });
+      }
+    };
+
+    window.addEventListener("auth:required", handleAuthRequired);
+
+    return () => {
+      window.removeEventListener("auth:required", handleAuthRequired);
+    };
+  }, [user, navigate, location.pathname, location.search]);
 
   const fetchCartCount = async () => {
     if (!user) {
@@ -84,14 +115,25 @@ function App() {
     }
   }, [user, checking]);
 
-  // After login/register: admins go straight to the admin panel
+  // After login/register: admins go straight to the admin panel.
+  // The redirect runs in an effect (after the login page has finished), so the
+  // login page can't send the admin back to the shop afterwards.
+  const [sendToAdmin, setSendToAdmin] = useState(false);
+
   const handleAuth = (data) => {
     setUser(data);
 
-    if (data.is_admin) {
-      navigate("/admin");
+    if (data?.is_admin) {
+      setSendToAdmin(true);
     }
   };
+
+  useEffect(() => {
+    if (sendToAdmin) {
+      setSendToAdmin(false);
+      navigate("/admin", { replace: true });
+    }
+  }, [sendToAdmin, navigate]);
 
   const logout = async () => {
     try {
@@ -104,23 +146,18 @@ function App() {
     }
   };
 
-  if (checking) {
-    return null;
-  }
-
   const site = (
     <div className="page-container">
       <ScrollToTop />
       <BackToTop />
       <PageTransitionLoader />
 
-      <Navbar
-        user={user}
-        onLogout={logout}
-        cartCount={cartCount}
-      />
+      {!isAccountPage && (
+        <Navbar user={user} onLogout={logout} cartCount={cartCount} />
+      )}
 
       <main className="main-content">
+        <ScrollReveal />
         <Routes>
           <Route path="/" element={<Home />} />
 
@@ -131,16 +168,15 @@ function App() {
 
           <Route
             path="/products/:id"
-            element={
-              <ProductDetailPage onCartUpdated={fetchCartCount} />
-            }
+            element={<ProductDetailPage onCartUpdated={fetchCartCount} />}
           />
 
           <Route path="/about" element={<AboutPage />} />
-              <Route path="/Support" element={<SupportPage />} />
+
+          <Route path="/Support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
-           <Route path = "/article/:id" element = {<ArticlePage />} />
-          <Route path="/group-orders" element={<GroupOrders />} />
+          <Route path="/article/:id" element={<ArticlePage />} />
+          <Route path="/group-orders" element={<GroupOrders user={user} />} />
 
           <Route
             path="/group-orders/checkout/:id"
@@ -155,7 +191,9 @@ function App() {
           <Route
             path="/login"
             element={
-              user ? (
+              user?.is_admin ? (
+                <Navigate to="/admin" replace />
+              ) : user ? (
                 <section className="auth auth--done">
                   <p>
                     Signed in as <strong>{user.name}</strong> ({user.email})
@@ -176,21 +214,78 @@ function App() {
               )
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          <Route
+            path="/account/addresses/new"
+            element={
+              user ? (
+                <AccountPage
+                  user={user}
+                  onUserUpdate={setUser}
+                  onLogout={logout}
+                  initialSection="addresses"
+                  openAddAddress
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/checkout/success"
+            element={
+              <CheckoutResult
+                outcome="success"
+                onCartUpdated={fetchCartCount}
+              />
+            }
+          />
+          <Route
+            path="/checkout/cancelled"
+            element={
+              <CheckoutResult
+                outcome="cancelled"
+                onCartUpdated={fetchCartCount}
+              />
+            }
+          />
+
+          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/account"
+            element={
+              user ? (
+                user.is_admin ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <AccountPage
+                    user={user}
+                    onUserUpdate={setUser}
+                    onLogout={logout}
+                  />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Routes>
       </main>
 
       <Chatbot />
       <Footer />
+      {!(user?.is_admin && isAccountPage) && (
+        <MobileBottomNav cartCount={cartCount} />
+      )}
     </div>
   );
 
   // The admin panel has its own top bar and sidebar.
   let admin = (
-    <AdminLayout
-      user={user}
-      onLogout={logout}
-      onUserUpdate={setUser}
-    />
+    <AdminLayout user={user} onLogout={logout} onUserUpdate={setUser} />
   );
 
   if (!user) {
@@ -204,13 +299,11 @@ function App() {
       <Route path="/admin" element={admin}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<AdminProducts />} />
+        <Route path="helpfaqs" element={<AdminHelpFaqPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="payments" element={<Payments />} />
         <Route path="users" element={<Users />} />
-        <Route
-          path="chatbot"
-          element={<ComingSoon title="Chatbot content" />}
-        />
+        <Route path="chatbot" element={<ChatbotContent />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

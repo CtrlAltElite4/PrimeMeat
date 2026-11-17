@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 import api from "../api";
 import "../styles/GroupOrderCheckout.css";
@@ -15,6 +15,13 @@ function GroupOrderCheckout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [paid, setPaid] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
+
+  const [deliveryQuote, setDeliveryQuote] = useState(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+
   useEffect(() => {
     const fetchGroupOrder = async () => {
       try {
@@ -23,6 +30,7 @@ function GroupOrderCheckout() {
         setGroupOrder(data.group_order);
         setPricePerPerson(data.price_per_person);
         setTotalPrice(data.total_price);
+        setPaid(Boolean(data.paid));
       } catch (requestError) {
         setError(
           requestError.response?.data?.message ||
@@ -35,6 +43,81 @@ function GroupOrderCheckout() {
 
     fetchGroupOrder();
   }, [id]);
+
+  useEffect(() => {
+    if (!groupOrder || groupOrder.delivery_method !== "delivery") {
+      setDeliveryQuote(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchDeliveryQuote = async () => {
+      setLoadingQuote(true);
+      setDeliveryQuote(null);
+
+      try {
+        const { data } = await api.post("/api/checkout/delivery-quote", {
+          postal_code: groupOrder.postal_code,
+          subtotal: Number(totalPrice),
+        });
+
+        if (!cancelled) {
+          setDeliveryQuote(data.delivery);
+        }
+      } catch (requestError) {
+        if (!cancelled) {
+          setDeliveryQuote({
+            eligible: false,
+            message:
+              requestError.response?.data?.message ||
+              "Unable to calculate the delivery fee.",
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingQuote(false);
+        }
+      }
+    };
+
+    fetchDeliveryQuote();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [groupOrder, totalPrice]);
+  // The organiser pays the full amount through PayFast. Laravel creates the order
+  // and returns a signed form, which is posted to PayFast from here.
+  const startPayment = async () => {
+    setPaying(true);
+    setPayError("");
+
+    try {
+      const { data } = await api.post(`/api/group-orders/${id}/payfast`);
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.url;
+
+      Object.entries(data.fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (requestError) {
+      setPayError(
+        requestError.response?.data?.message ||
+          "Couldn't start the payment. Please try again.",
+      );
+      setPaying(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -209,7 +292,7 @@ function GroupOrderCheckout() {
 
         <div className="group-order-checkout-summary">
           <div>
-            <span>Group order total</span>
+            <span>Group order subtotal</span>
 
             <strong>
               R
@@ -220,9 +303,88 @@ function GroupOrderCheckout() {
             </strong>
           </div>
 
-          <button type="button" className="group-order-checkout-payment">
-            Continue to Payment
-          </button>
+          <div>
+            <span>Delivery</span>
+
+            <strong>
+              {groupOrder.delivery_method === "collection"
+                ? "Free"
+                : loadingQuote
+                  ? "Calculating..."
+                  : deliveryQuote?.eligible
+                    ? `R${Number(deliveryQuote.delivery_fee).toLocaleString(
+                        "en-ZA",
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        },
+                      )}`
+                    : "Unavailable"}
+            </strong>
+          </div>
+
+          <div>
+            <span>Total</span>
+
+            <strong>
+              R
+              {(
+                Number(totalPrice) +
+                (deliveryQuote?.eligible &&
+                groupOrder.delivery_method === "delivery"
+                  ? Number(deliveryQuote.delivery_fee)
+                  : 0)
+              ).toLocaleString("en-ZA", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </strong>
+          </div>
+
+          {!paid && (
+            <>
+              {groupOrder.delivery_method === "delivery" &&
+                !loadingQuote &&
+                deliveryQuote &&
+                !deliveryQuote.eligible && (
+                  <p role="alert">{deliveryQuote.message}</p>
+                )}
+
+              <button
+                type="button"
+                className="group-order-checkout-payment"
+                onClick={startPayment}
+                disabled={
+                  paying ||
+                  (groupOrder.delivery_method === "delivery" &&
+                    (loadingQuote || !deliveryQuote?.eligible))
+                }
+              >
+                {paying ? "Taking you to PayFast…" : "Pay with PayFast"}
+              </button>
+
+              <p className="group-order-checkout-secure">
+                You'll pay the full group total securely on PayFast. Once it's
+                paid, every group member gets a confirmation email.
+              </p>
+            </>
+          )}
+
+          {paid && (
+            <p className="group-order-checkout-secure">
+              <strong>Paid.</strong> Order {groupOrder.order?.order_number} is
+              being prepared, and all group members have been emailed.
+            </p>
+          )}
+
+          {payError && (
+            <p
+              role="alert"
+              style={{ color: "#ffd2d2", maxWidth: 320, margin: 0 }}
+            >
+              {payError}
+            </p>
+          )}
         </div>
       </section>
     </main>

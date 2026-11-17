@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
-import "../styles/HeroSection.css";
 
+import "../styles/Home.css";
 function HeroSection() {
   return (
     <section className="hero-section">
@@ -15,7 +15,7 @@ function HeroSection() {
           </div>
 
           <p className="hero-description">
-            We offer the best meats delivered where you are. Shop with us today,
+            We offer the best meat delivered where you are. Shop with us today,
             <br />
             for that excellent service.
           </p>

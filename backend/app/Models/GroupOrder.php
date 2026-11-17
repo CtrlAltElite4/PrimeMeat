@@ -23,11 +23,16 @@ class GroupOrder extends Model
         'province',
         'postal_code',
         'delivery_instructions',
+        'group_order_product_id',
+        'stock_reserved',
+        'stock_reserved_at',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'include_ground_beef' => 'boolean',
+        'stock_reserved' => 'boolean',
+        'stock_reserved_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -45,11 +50,22 @@ class GroupOrder extends Model
         return $this->hasMany(GroupOrderMember::class);
     }
 
+    /** The order created when the organiser pays (null until checkout starts) */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
     public function deliveryMember(): BelongsTo
     {
         return $this->belongsTo(
             GroupOrderMember::class,
             'delivery_member_id'
         );
+    }
+
+    public function groupOrderProduct(): BelongsTo
+    {
+        return $this->belongsTo(GroupOrderProduct::class);
     }
 }
