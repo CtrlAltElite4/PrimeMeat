@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 class HelpfaqController extends Controller
 {
     //
-
+//ADD HELPFAQCONTROLLER TO GITHUB
     public function instructions(): array{
         return [
         'category' => 'required|string|max:40',

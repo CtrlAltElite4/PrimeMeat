@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import { NavLink } from "react-router-dom";
 import "../styles/Footer.css";
 
@@ -45,7 +45,7 @@ const Footer = () => {
 
           <ul>
             <li>
-              <NavLink to="/faq">FAQ</NavLink>
+              <NavLink to="/support">FAQ</NavLink>
             </li>
 
             <li>
@@ -53,7 +53,7 @@ const Footer = () => {
             </li>
 
             <li>
-              <a href="mailto:syrolgroup@gmail.com">syrolgroup@gmail.com</a>
+              <a href="mailto:Moloto@syrol.co.za">Moloto@syrol.co.za</a>
             </li>
 
             <li>

@@ -334,17 +334,22 @@
   font-style: italic;
 }
 
-.FaqAnswer h3.INFO {
-  margin: 0 0 14px 0;
-  font-size: 15px;
-  font-weight: 400;
-  color: #333;
-  line-height: 1.65;
+.MarkdownHelp {
+  margin: 8px 0 16px;
+  font-size: 13px;
+  color: #555;
 }
-.FaqAnswer ul.MeatPackageList {
-  margin: 0 0 14px 0;
-  padding-left: 22px;
+.MarkdownHelp summary {
+  cursor: pointer;
+  color: #8b2e3c;
 }
-.FaqAnswer ul.MeatPackageList li {
-  margin-bottom: 4px;
+.MarkdownHelp table {
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+.MarkdownHelp th,
+.MarkdownHelp td {
+  text-align: left;
+  padding: 4px 12px 4px 0;
+  vertical-align: top;
 }
