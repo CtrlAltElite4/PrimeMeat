@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import SearchBar from "./SearchBar";
+import NotificationBell from "./NotificationBell";
 import "../styles/Navbar.css";
 
 function Navbar({ user, onLogout, cartCount }) {
@@ -124,6 +125,7 @@ function Navbar({ user, onLogout, cartCount }) {
                 </button>
               </div>
             )}
+             {user && <NotificationBell user={user} />}
           </div>
         </div>
 

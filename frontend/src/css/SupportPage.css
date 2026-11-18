@@ -681,6 +681,8 @@
   }
 }
 
+.RelatedList li a:hover{
+    color:#9b1c31;
 @media (max-width: 480px) {
   .MidSupport {
     padding-right: 12px;

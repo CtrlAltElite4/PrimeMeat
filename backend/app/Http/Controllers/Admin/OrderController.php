@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Notifications\CustomerNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -174,13 +175,120 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             // Only statuses that fit this order's fulfillment type are accepted
-            'status' => ['required', Rule::in(Order::statusesFor($order->fulfillment_type))],
+            'status' => [
+                'required', Rule::in(Order::statusesFor($order->fulfillment_type))
+                ],
         ]);
 
-        $order->update(['status' => $data['status']]);
+        $oldStatus = $order->status;
+        $newStatus = $data['status'];
 
-        return response()->json($this->summary($order->load('user:id,name')));
+        if ($oldStatus ===$newStatus) {
+            return response()->json($this->summary($order ->load('user:id,name')
+            ));
+        }
+
+        $order->update(['status' => $newStatus]);
+
+        $order->load('user');
+        $customer = $order->user;
+
+        if($customer){
+
+            $notification = $this->getStatusNotification($order);
+
+            $customer->notify(new CustomerNotification(
+                subject: $notification['subject'],
+                lines: $notification['lines'],
+                buttonText: 'View Order',
+                path: '/account/orders/'.$order->id,
+                category: 'orders'
+            ));
+        }
+        return response()->json(
+            $this->summary($order->load('user:id,name')));
     }
+
+
+
+
+private function getStatusNotification(Order $order): array
+    {
+
+        $orderNumber = $order->order_number ?? 'ORD-' .$order->id;
+
+        $message = [
+            Order:: STATUS_PENDING => [
+                'subject' => 'Order Received',
+                'lines' => [
+                    "We have received your order {$orderNumber}.",
+                    'Your order is awaiting processing'
+                ],
+            ],
+
+             Order::STATUS_PROCESSING => [
+            'subject' => 'Order Being Processed',
+            'lines' => [
+                "Your order {$orderNumber} is now being processed.",
+                'We will notify you when there is another update.',
+            ],
+        ],
+
+        Order::STATUS_READY_FOR_COLLECTION => [
+            'subject' => 'Order Ready for Collection',
+            'lines' => [
+                "Your order {$orderNumber} is ready for collection.",
+                'You can now arrange to collect your order.',
+            ],
+        ],
+
+         Order::STATUS_OUT_FOR_DELIVERY => [
+            'subject' => 'Order Out for Delivery',
+            'lines' => [
+                "Your order {$orderNumber} is out for delivery.",
+                'Your order is on its way!',
+            ],
+        ],
+
+
+         Order::STATUS_COLLECTED => [
+            'subject' => 'Order Collected',
+            'lines' => [
+                "Your order {$orderNumber} has been successfully collected.",
+                'Thank you for shopping with Syrol Group!',
+            ],
+        ],
+
+        Order::STATUS_DELIVERED => [
+            'subject' => 'Order Delivered',
+            'lines' => [
+                "Your order {$orderNumber} has been successfully delivered.",
+                'Thank you for shopping with Syrol Group!',
+            ],
+        ],
+
+
+         Order::STATUS_CANCELLED => [
+            'subject' => 'Order Cancelled',
+            'lines' => [
+                "Your order {$orderNumber} has been cancelled.",
+                'Please contact our support team if you have any questions.',
+            ],
+        ],
+    ];
+        return $message [$order->status] ?? [
+            'subject' => "Order status updated",
+            'lines' => [
+                "The status of order {$orderNumber} has been updated to {$order->status}.",
+                'Please check your account for more details.',
+                'Thank you for shopping with us!'
+            ],
+        ];
+
+
+        //return compact('subject', 'lines');
+    }
+
 
     private function summary(Order $order): array
     {

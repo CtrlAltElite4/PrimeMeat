@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
+import FilterSidebar from "./FilterSidebar";
 import "../styles/ProductListing.css";
 
 function ProductListing({
@@ -10,101 +11,16 @@ function ProductListing({
   onProductsFetch,
   onCartUpdated,
 }) {
-  const [filtersOpen, setFiltersOpen] = useState(false);
+
   const [searchParams] = useSearchParams();
 
+  
   const filter = searchParams.get("filter");
   const search = searchParams.get("search")?.toLowerCase().trim() || "";
 
-  const [category, setCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState([0, 0]);
-  const [priceFilterActive, setPriceFilterActive] = useState(false);
-  const [sort, setSort] = useState("none");
 
-  const minimumPrice = pagination.minimumPrice || 0;
-  const maximumPrice = pagination.maximumPrice || 0;
+  const filterSidebarRef = useRef(null);
 
-  useEffect(() => {
-    setPriceRange([minimumPrice, maximumPrice]);
-    setPriceFilterActive(false);
-  }, [minimumPrice, maximumPrice]);
-  useEffect(() => {
-    fetchWithFilters({
-      page: 1,
-    });
-  }, [search]);
-  const fetchWithFilters = ({
-    newCategory = category,
-    newPriceRange = priceRange,
-    newPriceFilterActive = priceFilterActive,
-    newSort = sort,
-    page = 1,
-    perPage = pagination.perPage,
-  } = {}) => {
-    onProductsFetch({
-      page,
-      perPage,
-      category: newCategory,
-      minPrice: newPriceFilterActive ? newPriceRange[0] : "",
-      maxPrice: newPriceFilterActive ? newPriceRange[1] : "",
-      sort: newSort,
-    });
-  };
-
-  const handleCategoryChange = (value) => {
-    setCategory(value);
-
-    fetchWithFilters({
-      newCategory: value,
-      page: 1,
-    });
-  };
-
-  const handleMinimumPriceChange = (event) => {
-    const value = Number(event.target.value);
-
-    setPriceRange((previousRange) => [
-      Math.min(value, previousRange[1]),
-      previousRange[1],
-    ]);
-
-    setPriceFilterActive(true);
-  };
-
-  const handleMaximumPriceChange = (event) => {
-    const value = Number(event.target.value);
-
-    setPriceRange((previousRange) => [
-      previousRange[0],
-      Math.max(value, previousRange[0]),
-    ]);
-
-    setPriceFilterActive(true);
-  };
-
-  const applyPriceFilter = () => {
-    fetchWithFilters({
-      newPriceRange: priceRange,
-      newPriceFilterActive: true,
-      page: 1,
-    });
-  };
-
-  const resetFilters = () => {
-    setCategory("all");
-    setPriceRange([minimumPrice, maximumPrice]);
-    setPriceFilterActive(false);
-    setSort("none");
-
-    onProductsFetch({
-      page: 1,
-      perPage: pagination.perPage,
-      category: "all",
-      minPrice: "",
-      maxPrice: "",
-      sort: "none",
-    });
-  };
 
   const handlePageChange = (page) => {
     if (
@@ -115,10 +31,8 @@ function ProductListing({
       return;
     }
 
-    fetchWithFilters({
-      page,
-    });
-
+    filterSidebarRef.current.fetchProducts({page});
+    
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -127,11 +41,7 @@ function ProductListing({
 
   const handlePerPageChange = (event) => {
     const perPage = Number(event.target.value);
-
-    fetchWithFilters({
-      page: 1,
-      perPage,
-    });
+    filterSidebarRef.current.fetchProducts({page: 1, perPage});
   };
 
   const getPageNumbers = () => {
@@ -158,153 +68,13 @@ function ProductListing({
   };
 
   return (
-    <section className="product-listing">
-      <div
-        className={`product-filter-overlay ${
-          filtersOpen ? "product-filter-overlay-open" : ""
-        }`}
-        onClick={() => setFiltersOpen(false)}
-      />
-
-      <aside
-        className={`product-filter-sidebar ${
-          filtersOpen ? "product-filter-sidebar-open" : ""
-        }`}
-      >
-        <div className="product-filter-sidebar-header">
-          <h3>Filters</h3>
-
-          <button
-            className="product-filter-close"
-            type="button"
-            onClick={() => setFiltersOpen(false)}
-            aria-label="Close filters"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="product-filter-sidebar-content">
-          <div className="product-filter-group">
-            <h4>Category</h4>
-
-            <label className="product-filter-option">
-              <input
-                type="radio"
-                name="category"
-                checked={category === "all"}
-                onChange={() => handleCategoryChange("all")}
-              />
-              <span>All</span>
-            </label>
-
-            {(pagination.categories || []).map((value) => (
-              <label className="product-filter-option" key={value}>
-                <input
-                  type="radio"
-                  name="category"
-                  checked={category === value}
-                  onChange={() => handleCategoryChange(value)}
-                />
-                <span>{value}</span>
-              </label>
-            ))}
-          </div>
-
-          <div className="product-filter-group">
-            <h4>Price</h4>
-
-            <div className="product-price-values">
-              <span>R{priceRange[0].toLocaleString()}</span>
-              <span>R{priceRange[1].toLocaleString()}</span>
-            </div>
-
-            <div className="product-price-slider">
-              <input
-                className="product-price-range"
-                type="range"
-                min={minimumPrice}
-                max={maximumPrice}
-                value={priceRange[0]}
-                onChange={handleMinimumPriceChange}
-                onMouseUp={applyPriceFilter}
-                onTouchEnd={applyPriceFilter}
-              />
-
-              <input
-                className="product-price-range"
-                type="range"
-                min={minimumPrice}
-                max={maximumPrice}
-                value={priceRange[1]}
-                onChange={handleMaximumPriceChange}
-                onMouseUp={applyPriceFilter}
-                onTouchEnd={applyPriceFilter}
-              />
-            </div>
-
-            <div className="product-price-limits">
-              <span>R{minimumPrice.toLocaleString()}</span>
-              <span>R{maximumPrice.toLocaleString()}</span>
-            </div>
-          </div>
-
-          <div className="product-filter-group">
-            <h4>Sort By</h4>
-
-            {[
-              ["none", "Default"],
-              ["price-low-high", "Price: Low to High"],
-              ["price-high-low", "Price: High to Low"],
-            ].map(([value, label]) => (
-              <label className="product-filter-option" key={value}>
-                <input
-                  type="radio"
-                  name="sort"
-                  checked={sort === value}
-                  onChange={() => {
-                    setSort(value);
-
-                    fetchWithFilters({
-                      newSort: value,
-                      page: 1,
-                    });
-                  }}
-                />
-
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="product-filter-sidebar-footer">
-          <button
-            className="product-filter-clear-button"
-            type="button"
-            onClick={resetFilters}
-          >
-            Clear All
-          </button>
-
-          <button
-            className="product-filter-done-button"
-            type="button"
-            onClick={() => setFiltersOpen(false)}
-          >
-            Done
-          </button>
-        </div>
-      </aside>
-
+     <section className="product-listing">
       <div className="product-listing-header">
-        <button
-          className="product-filter-open-button"
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-        >
-          Filters
-        </button>
+        <FilterSidebar
+          ref={filterSidebarRef}
+          pagination={pagination}
+          onProductsFetch={onProductsFetch}
+        />
 
         <div className="product-listing-title-container">
           <h2 className="product-listing-title">Our Products</h2>

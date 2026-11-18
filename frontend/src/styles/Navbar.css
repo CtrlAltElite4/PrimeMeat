@@ -505,3 +505,132 @@
     padding: 20px;
   }
 }
+
+
+.notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-bell {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  width: 9px;
+  height: 9px;
+  background-color: #e53935;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  max-height: 420px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.14);
+  z-index: 1000;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-content h4 {
+  margin: 0 0 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.notification-content p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.notification-timestamp {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #888;
+}
+
+.notification-action {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a51d24;
+  text-decoration: none;
+}
+
+.notification-action:hover {
+  text-decoration: underline;
+}
+
+.notification-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #777;
+  cursor: pointer;
+}
+
+.notification-remove:hover {
+  background: #f1f1f1;
+  color: #d32f2f;
+}
+
+.notification-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notification-message {
+  padding: 25px 16px;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+}

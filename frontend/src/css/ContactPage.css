@@ -145,6 +145,12 @@ animation-fill-mode: forwards;
   font-size: 19px;
 }
 
+.FieldError {
+  color: #d00000;
+  font-size: 14px;
+  margin: 4px 0 12px;
+}
+
 .MapBack {
   background: linear-gradient(rgb(113, 0, 20), rgb(211, 3, 41));
   padding-bottom: 200px;

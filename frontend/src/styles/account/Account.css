@@ -2106,3 +2106,160 @@
     transition: none;
   }
 }
+
+/*Account Notifications*/
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #8f8984;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.toggle-on {
+  background: #8c2f3f;
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.toggle-on .toggle__knob {
+  transform: translateX(20px);
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.account-notifications__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+}
+
+.account-notifications {
+  max-width: 640px;
+}
+
+.account-notifications__group-title {
+  margin: 28px 0 4px;
+  font-family: Georgia, "Source Serif 4", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f1a1a;
+}
+
+.account-notifications__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+}
+
+.account-notifications__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #c9ae98;
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+.account-notifications__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-notifications__item-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f1a1a;
+}
+
+.account-notifications__item-description {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b6460;
+}
+
+.account-notifications__divider {
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px solid #ddd5cf;
+}
+
+.account-notifications__note {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b6460;
+}
+
+.account-notifications__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.account-notifications__cancel,
+.account-notifications__save {
+  min-width: 120px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-notifications__cancel {
+  border: 1px solid #cfc8c2;
+  background: #fff;
+  color: #1f1a1a;
+}
+
+.account-notifications__save {
+  border: 0;
+  background: #8c2f3f;
+  color: #fff;
+}
+
+.account-notifications__save:disabled {
+  background: #c9959e;
+  cursor: default;
+}
+
+.account-notifications__cancel:hover {
+  background: #f4f0ec;
+}
+
+.account-notifications__save:not(:disabled):hover {
+  background: #7a2735;
+}
+
+.account-notifications button:focus-visible {
+  outline: 2px solid #1f1a1a;
+  outline-offset: 2px;
+}
